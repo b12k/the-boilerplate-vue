@@ -1,0 +1,12 @@
+{% extends "base.njk" %}
+
+{% block head %}
+  {{ '{{{ renderResourceHints() }}}' }}
+  {{ '{{{ renderStyles() }}}' }}
+{% endblock %}
+
+{% block body %}
+  <!--vue-ssr-outlet-->
+  {{ '{{{ renderState() }}}' }}
+  {{ '{{{ renderScripts() }}}' }}
+{% endblock %}

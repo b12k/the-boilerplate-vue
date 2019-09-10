@@ -1,0 +1,69 @@
+{% extends "baseError.njk" %}
+
+{% block head %}
+  {{ super() }}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery.json-viewer@1.4.0/json-viewer/jquery.json-viewer.min.css">
+  <style>
+    a.json-toggle:before { line-height: 1.5; }
+  </style>
+{% endblock %}
+
+{% block body %}
+  <h1 class="display-1 text-center">500</h1>
+  <div class="container">
+    <div class="card mb-4">
+      <div class="card-header">
+        <button
+          type="button"
+          class="btn btn-link btn-block p-0 m-0 text-left"
+          data-toggle="collapse"
+          data-target="#errorContainer"
+        >
+          Error
+        </button>
+      </div>
+      <div
+        id="errorContainer"
+        class="collapse collapse show"
+      >
+        <div class="card-body">
+          <pre class="m-0 pt-4 p-3 bg-light border border-secondary rounded">
+            {{ err.stack }}
+          </pre>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <button
+          type="button"
+          class="btn btn-link btn-block p-0 m-0 text-left"
+          data-toggle="collapse"
+          data-target="#reqJsonContainer"
+        >
+          Request
+        </button>
+      </div>
+      <div class="collapse" id="reqJsonContainer">
+        <div class="card-body">
+          <section
+            id="reqJson"
+            class="bg-light border border-secondary rounded"
+          ></section>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script src="https://cdn.jsdelivr.net/npm/jquery.json-viewer@1.4.0/json-viewer/jquery.json-viewer.min.js"></script>
+  <script>
+    $('#reqJson').jsonViewer({{ req | safe }}, {
+        collapsed: true,
+        withLinks: true,
+        rootCollapsable: false,
+    });
+  </script>
+{% endblock %}
