@@ -41,6 +41,4 @@ if (!IS_PROD_SERVER) {
   config.devtool = 'source-map';
 }
 
-console.log({ IS_PROD_SERVER, IS_PROD_MODE })
-
 module.exports = config;

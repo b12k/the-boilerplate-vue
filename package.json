@@ -20,7 +20,7 @@
     "dev:server": "cross-env BABEL_ENV=node nodemon src/server/server.js",
     "dev:ssr": "webpack --config webpack/config.ssr.js --watch",
     "lint:scripts": "eslint ./ --ext .js,.vue,.html",
-    "lint:styles": "stylelint **/*.css **/*.scss **/*.html **/*.njk !./dist/**",
+    "lint:styles": "stylelint **/*.css **/*.scss **/*.html !./dist/**",
     "heroku-postbuild": "npm run build",
     "prepare": "cp -n .env.example .env"
   },

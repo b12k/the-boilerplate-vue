@@ -8,11 +8,6 @@ const {
   },
 } = process;
 
-console.log({
-  NODE_ENV,
-  SERVER_ENV,
-})
-
 module.exports = {
   version,
   IS_PROD_MODE: NODE_ENV !== 'development',
