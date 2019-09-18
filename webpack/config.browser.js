@@ -1,7 +1,7 @@
 const config = require('./config.base');
 const {
   resolvePath,
-  IS_PROD,
+  IS_PROD_MODE,
   version,
 } = require('./helpers');
 const {
@@ -21,42 +21,27 @@ const {
   namedModulesPlugin,
   extractCssPlugin,
   serviceWorkerPlugin,
+  vueEnvPlugin,
 } = require('./plugins');
 
-config.entry = {
-  app: resolvePath('src/client/entry.browser'),
-};
-config.output.filename = `js/[name].js${IS_PROD ? `?v=${version}` : ''}`;
-config.output.publicPath = '/public/';
+config.entry = resolvePath('src/client/entry.browser');
+
+config.output.filename = `js/[name]${IS_PROD_MODE ? '.[chunkhash:8]' : ''}.js`;
+config.output.publicPath = IS_PROD_MODE ? '/public/' : 'http://localhost:8081/public/';
+
 config.module.rules.push(
   vueLoader(),
   styleLoader(),
   imageLoader(),
 );
 config.plugins.push(
+  vueEnvPlugin(),
   vueClientManifestPlugin(),
   copyPlugin(),
   serviceWorkerPlugin(),
 );
-config.devServer = {
-  writeToDisk: true,
-  publicPath: '/public/',
-  contentBase: resolvePath('dist'),
-  hot: true,
-  inline: true,
-  port: 8081,
-  historyApiFallback: true,
-  noInfo: true,
-  overlay: {
-    errors: true,
-    warnings: false,
-  },
-  headers: {
-    'Access-Control-Allow-Origin': '*',
-  },
-};
 
-if (IS_PROD) {
+if (IS_PROD_MODE) {
   config.optimization = {
     minimizer: [
       optimizeCssAssetsPlugin(),
@@ -85,6 +70,22 @@ if (IS_PROD) {
     namedModulesPlugin(),
     hotModuleReplacementPlugin(),
   );
+  config.devServer = {
+    writeToDisk: true,
+    publicPath: config.output.publicPath,
+    contentBase: resolvePath('dist'),
+    hot: true,
+    inline: true,
+    port: 8081,
+    historyApiFallback: true,
+    overlay: {
+      errors: true,
+      warnings: false,
+    },
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+    },
+  };
 }
 
 module.exports = config;

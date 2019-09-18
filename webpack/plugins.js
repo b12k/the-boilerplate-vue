@@ -25,10 +25,10 @@ module.exports = {
     VUE_ENV: IS_SSR ? 'server' : 'client',
   }),
   vueClientManifestPlugin: () => new VueClientManifestPlugin({
-    filename: 'json/clientManifest.json',
+    filename: '../ssr/clientManifest.json',
   }),
   vueSsrBundlePlugin: () => new VueSsrBundlePlugin({
-    filename: 'json/ssrBundle.json',
+    filename: '../ssr/ssrBundle.json',
   }),
   copyPlugin: () => new CopyPlugin([{
     from: resolvePath('src/public'),
@@ -48,6 +48,6 @@ module.exports = {
   }),
   serviceWorkerPlugin: () => new GenerateSW(),
   extractCssPlugin: () => new ExtractCssPlugin({
-    filename: `css/[name].css?v=${version}`,
+    filename: 'css/[name].[contenthash:8].css',
   }),
 };

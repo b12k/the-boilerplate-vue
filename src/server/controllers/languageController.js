@@ -6,7 +6,7 @@ export default () => {
     },
   } = process;
 
-  const acceptedLanguages = ACCEPTED_LANGUAGES.split(',');
+  const acceptedLanguages = ACCEPTED_LANGUAGES.split('|');
 
   return (req, res) => {
     const {

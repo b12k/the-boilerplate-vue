@@ -1,4 +1,5 @@
 import PurgeCss from 'purgecss';
+import { isNil } from 'lodash';
 
 import { resolvePath } from '../helpers';
 
@@ -12,6 +13,8 @@ export default class CriticalCss {
   }
 
   extract(html) {
+    if (!this.css.length) return '';
+
     return new Promise((resolve, reject) => {
       try {
         const purgeCss = new PurgeCss({
@@ -32,6 +35,7 @@ export default class CriticalCss {
   }
 
   async inject(html, styles) {
-    return html.replace('<!--critical-css-->', styles || await this.extract(html));
+    const stylesToInject = isNil(styles) ? await this.extract(html) : styles;
+    return html.replace('<!--critical-css-->', stylesToInject);
   }
 }

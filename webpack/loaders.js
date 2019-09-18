@@ -3,7 +3,7 @@ const EslintFriendlyFormatter = require('eslint-friendly-formatter');
 
 const {
   resolvePath,
-  IS_PROD,
+  IS_PROD_MODE,
 } = require('./helpers');
 
 module.exports = {
@@ -28,8 +28,8 @@ module.exports = {
     };
     if (!IS_SSR) {
       config.options = {
-        extractCSS: IS_PROD,
-        cssSourceMap: IS_PROD,
+        extractCSS: IS_PROD_MODE,
+        cssSourceMap: IS_PROD_MODE,
       };
     }
     return config;
@@ -37,23 +37,23 @@ module.exports = {
   styleLoader: () => ({
     test: /\.s?css$/,
     use: [
-      IS_PROD ? ExtractCssPlugin.loader : 'vue-style-loader',
+      IS_PROD_MODE ? ExtractCssPlugin.loader : 'vue-style-loader',
       {
         loader: 'css-loader',
         options: {
-          sourceMap: IS_PROD,
+          sourceMap: IS_PROD_MODE,
         },
       },
       {
         loader: 'postcss-loader',
         options: {
-          sourceMap: IS_PROD,
+          sourceMap: IS_PROD_MODE,
         },
       },
       {
         loader: 'sass-loader',
         options: {
-          sourceMap: IS_PROD,
+          sourceMap: IS_PROD_MODE,
         },
       },
     ],

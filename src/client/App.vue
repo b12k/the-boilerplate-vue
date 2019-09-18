@@ -1,6 +1,19 @@
 <template>
-  <div class="app">
-    App Container
+  <div id="app">
+    <RouterLink
+      :to="{
+        name: 'Home',
+      }"
+    >
+      Home
+    </RouterLink>
+    <RouterLink
+      :to="{
+        name: 'About',
+      }"
+    >
+      About
+    </RouterLink>
     <RouterView />
   </div>
 </template>

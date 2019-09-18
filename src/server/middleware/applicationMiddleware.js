@@ -1,47 +1,35 @@
-import nunjucks from 'nunjucks';
-import { createBundleRenderer } from 'vue-server-renderer';
-import path from 'path';
-
+import { getPageCacheConfig } from '../helpers';
 import {
-  resolvePath,
-  getPageCacheConfig,
-} from '../helpers';
-import {
+  Application,
   Cache,
-  CriticalCss,
   minifyHtml,
 } from '../services';
 
+const {
+  env: {
+    REDIS_URL,
+  },
+} = process;
+
 export default () => {
-  const {
-    env: {
-      REDIS_URL,
-    },
-  } = process;
-  const clientManifest = require(resolvePath('dist/public/json/clientManifest.json')); // eslint-disable-line
-  const ssrBundle = require(resolvePath('dist/public/json/ssrBundle.json')); // eslint-disable-line
-  const templatePath = path.resolve(__dirname, '../views/index.njk');
-  const criticalCss = new CriticalCss(clientManifest);
   const criticalCssCachePrefix = 'CRITICAL-CSS';
   const cache = new Cache(REDIS_URL);
 
+  const app = new Application(cache);
+
   const render = async (context) => {
-    const { renderToString } = createBundleRenderer(ssrBundle, {
-      cache,
-      clientManifest,
-      inject: false,
-      template: nunjucks.render(templatePath, context),
-    });
     const criticalCssCacheKey = `${criticalCssCachePrefix}:${context.path}`;
-    console.log('Before render');
-    const html = await renderToString(context);
+    const html = await app.renderToString(context);
     let cachedCriticalCss = await cache.get(criticalCssCacheKey);
     if (!cachedCriticalCss) {
-      cachedCriticalCss = criticalCss.extract(html);
-      cache.set(criticalCssCacheKey, cachedCriticalCss);
+      try {
+        cachedCriticalCss = await app.criticalCss.extract(html);
+        cache.set(criticalCssCacheKey, cachedCriticalCss);
+      } catch (e) {
+        cachedCriticalCss = '';
+      }
     }
-    const htmlWithCriticalCss = criticalCss.inject(html, cachedCriticalCss);
-
+    const htmlWithCriticalCss = await app.criticalCss.inject(html, cachedCriticalCss);
     return minifyHtml(htmlWithCriticalCss);
   };
 
@@ -62,6 +50,13 @@ export default () => {
     } catch (e) {
       return next(e);
     }
-    return res.send(html);
+
+    const statusCode = context.state.route.name === 'NotFound'
+      ? 404
+      : 200;
+
+    return res
+      .status(statusCode)
+      .send(html);
   };
 };

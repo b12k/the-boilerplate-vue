@@ -9,7 +9,6 @@ export default () => {
     return res.status(500).render('500', {
       err,
       req: stringify(req),
-      lang: req.context.lang,
     });
   };
 };

@@ -1,20 +1,20 @@
-const PageHome = import(/* webpackChunkName: "PageHome" */ '@pages/PageHome');
-const PageAbout = import(/* webpackChunkName: "PageAbout" */'@pages/PageAbout');
-const PageNotFound = import(/* webpackChunkName: "PageNotFound" */'@pages/PageNotFound');
+const PageHome = () => import(/* webpackChunkName: "PageHome" */ '@pages/PageHome');
+const PageAbout = () => import(/* webpackChunkName: "PageAbout" */ '@pages/PageAbout');
+const PageNotFound = () => import(/* webpackChunkName: "PageNotFound" */ '@pages/PageNotFound');
 
 export default [
   {
-    name: 'home',
+    name: 'Home',
     path: '/',
     component: PageHome,
   },
   {
-    name: 'about',
+    name: 'About',
     path: 'about',
     component: PageAbout,
   },
   {
-    name: 'notFound',
+    name: 'NotFound',
     path: '*',
     component: PageNotFound,
   },

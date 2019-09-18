@@ -3,9 +3,3 @@
     Page Home
   </section>
 </template>
-
-<script>
-  export default {
-    name: 'PageHome',
-  };
-</script>

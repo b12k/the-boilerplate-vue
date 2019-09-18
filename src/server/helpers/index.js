@@ -18,19 +18,30 @@ export const { version } = require(resolvePath('package.json')); // eslint-disab
 
 export const wait = (timeoutMs = 0) => new Promise((resolve) => setTimeout(resolve, timeoutMs));
 
-export const pingDevServer = () => axios.get(`http://localhost:${WDS_PORT}/public/json/clientManifest.json`);
+export const pingDevServer = () => axios.get(`http://localhost:${WDS_PORT}/ssr/clientManifest.json`);
 
-export const waitDevServer = async (attempt = 0) => {
+export const waitForDevServer = async (attempt = 0) => {
   if (attempt >= 60) throw new Error('Webpack Dev Server not running');
   try {
     await pingDevServer();
   } catch (e) {
     await wait(1000);
-    await waitDevServer(attempt + 1);
+    await waitForDevServer(attempt + 1);
   }
-  console.log(`WDS is running on http://localhost:${WDS_PORT}`); // eslint-disable-line
 };
 
-export const appListenCallback = () => !IS_PROD && console.log(`SSR is running on http://localhost:${PORT}`); // eslint-disable-line
+// eslint-disable-next-line no-console
+export const appListenCallback = () => {
+  if (IS_PROD) {
+    console.log(`http://localhost:${PORT}`);
+  } else {
+    console.log(`
+  **************************************
+  * SERVER RUNNING IN DEVELOPMENT MODE *
+  **************************************
+  Open: http://localhost:${PORT} 
+    `);
+  }
+};
 
 export getPageCacheConfig from './getPageCacheConfig';

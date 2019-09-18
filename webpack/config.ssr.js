@@ -15,6 +15,7 @@ const {
 config.target = 'node';
 config.entry = resolvePath('src/client/entry.ssr');
 
+config.output.filename = '[name].js';
 config.output.libraryTarget = 'commonjs2';
 
 config.externals = nodeExternals();

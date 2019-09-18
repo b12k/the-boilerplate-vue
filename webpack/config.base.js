@@ -1,5 +1,6 @@
 const {
-  IS_PROD,
+  IS_PROD_MODE,
+  IS_PROD_SERVER,
   resolvePath,
 } = require('./helpers');
 
@@ -11,7 +12,7 @@ const {
 const { vueLoaderPlugin } = require('./plugins');
 
 const config = {
-  mode: IS_PROD ? 'production' : 'development',
+  mode: IS_PROD_MODE ? 'production' : 'development',
   resolve: {
     extensions: ['.js', '.vue'],
     alias: {
@@ -36,8 +37,10 @@ const config = {
   plugins: [vueLoaderPlugin()],
 };
 
-if (!IS_PROD) {
+if (!IS_PROD_SERVER) {
   config.devtool = 'source-map';
 }
+
+console.log({ IS_PROD_SERVER, IS_PROD_MODE })
 
 module.exports = config;

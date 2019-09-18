@@ -1,7 +1,6 @@
 import { minify } from 'html-minifier';
 
 const config = {
-  collapseWhitespace: true,
   collapseInlineTagWhitespace: true,
   minifyCSS: true,
   removeAttributeQuotes: true,
