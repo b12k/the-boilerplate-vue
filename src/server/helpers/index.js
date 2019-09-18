@@ -30,11 +30,12 @@ export const waitForDevServer = async (attempt = 0) => {
   }
 };
 
-// eslint-disable-next-line no-console
 export const appListenCallback = () => {
   if (IS_PROD) {
+    // eslint-disable-next-line no-console
     console.log(`http://localhost:${PORT}`);
   } else {
+    // eslint-disable-next-line no-console
     console.log(`
   **************************************
   * SERVER RUNNING IN DEVELOPMENT MODE *

@@ -41,5 +41,4 @@ export default class Application {
       template: nunjucks.render(templatePath, {}),
     }).renderToString;
   }
-
 }

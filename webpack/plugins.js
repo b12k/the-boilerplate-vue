@@ -14,10 +14,7 @@ const StylelintPlugin = require('stylelint-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 
-const {
-  resolvePath,
-  version,
-} = require('./helpers');
+const { resolvePath } = require('./helpers');
 
 module.exports = {
   vueLoaderPlugin: () => new VueLoaderPlugin(),

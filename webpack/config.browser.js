@@ -2,7 +2,6 @@ const config = require('./config.base');
 const {
   resolvePath,
   IS_PROD_MODE,
-  version,
 } = require('./helpers');
 const {
   vueLoader,

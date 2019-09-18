@@ -37,7 +37,6 @@ export default class Cache {
 
       return returnValue(this.cache.get(key));
     });
-
   }
 
   set(key, value, ttl = this.entryTtl) {

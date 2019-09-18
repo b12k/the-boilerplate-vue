@@ -320,7 +320,7 @@
     ]
   },
   "eslintIgnore": [
-    "dist/"
+    "dist/**/*"
   ],
   "postcss": {
     "plugins": {
