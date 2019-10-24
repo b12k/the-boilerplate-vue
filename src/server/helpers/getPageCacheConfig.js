@@ -3,9 +3,9 @@ import { isString } from 'lodash';
 const {
   env: {
     PAGE_CACHE_TTL,
+    PAGE_CACHE_PREFIX = 'PAGE',
   },
 } = process;
-const prefix = 'PAGE';
 
 const pathCacheConfigs = {
   // '/': (context) => {},
@@ -21,6 +21,6 @@ export default (context) => {
 
   return {
     ttl,
-    key: `${prefix}:${key}`,
+    key: `${PAGE_CACHE_PREFIX}:${key}`,
   };
 };

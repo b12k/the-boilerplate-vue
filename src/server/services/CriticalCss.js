@@ -36,6 +36,6 @@ export default class CriticalCss {
 
   async inject(html, styles) {
     const stylesToInject = isNil(styles) ? await this.extract(html) : styles;
-    return html.replace('<!--critical-css-->', stylesToInject);
+    return html.replace('<!--critical-css-->', `<style data-critical-css>${stylesToInject}</style>`);
   }
 }

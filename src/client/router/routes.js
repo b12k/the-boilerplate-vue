@@ -1,6 +1,5 @@
 const PageHome = () => import(/* webpackChunkName: "PageHome" */ '@pages/PageHome');
 const PageAbout = () => import(/* webpackChunkName: "PageAbout" */ '@pages/PageAbout');
-const PageNotFound = () => import(/* webpackChunkName: "PageNotFound" */ '@pages/PageNotFound');
 
 export default [
   {
@@ -12,10 +11,5 @@ export default [
     name: 'About',
     path: 'about',
     component: PageAbout,
-  },
-  {
-    name: 'NotFound',
-    path: '*',
-    component: PageNotFound,
   },
 ];

@@ -1,6 +1,6 @@
 <template>
   <section class="page-not-found">
-    Page Not Found
+    VUE Page Not Found
   </section>
 </template>
 

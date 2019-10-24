@@ -20,16 +20,12 @@ export default () => {
   const render = async (context) => {
     const criticalCssCacheKey = `${criticalCssCachePrefix}:${context.path}`;
     const html = await app.renderToString(context);
-    let cachedCriticalCss = await cache.get(criticalCssCacheKey);
-    if (!cachedCriticalCss) {
-      try {
-        cachedCriticalCss = await app.criticalCss.extract(html);
-        cache.set(criticalCssCacheKey, cachedCriticalCss);
-      } catch (e) {
-        cachedCriticalCss = '';
-      }
+    let criticalCss = await cache.get(criticalCssCacheKey) || '';
+    if (!criticalCss) {
+      criticalCss = await app.criticalCss.extract(html);
+      cache.set(criticalCssCacheKey, criticalCss);
     }
-    const htmlWithCriticalCss = await app.criticalCss.inject(html, cachedCriticalCss);
+    const htmlWithCriticalCss = await app.criticalCss.inject(html, criticalCss);
     return minifyHtml(htmlWithCriticalCss);
   };
 

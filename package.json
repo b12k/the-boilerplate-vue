@@ -1,10 +1,10 @@
 {
   "name": "b12k.com",
   "version": "1.0.0",
-  "description": "",
+  "description": "Vueltimate Boilerplate - VUE + EXPRESS + SSR + HMR",
   "main": "./dist/server.js",
   "keywords": [],
-  "author": "",
+  "author": "Bogdan Kolesnyk",
   "license": "ISC",
   "scripts": {
     "dev": "npm run clean && env-cmd run-p dev:*",
@@ -341,7 +341,7 @@
   },
   "nodemonConfig": {
     "exec": "babel-node",
-    "watch": "src/server",
+    "watch": ["src/server"],
     "ext": "js,njk,json"
   }
 }

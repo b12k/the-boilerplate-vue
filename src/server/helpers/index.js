@@ -21,11 +21,13 @@ export const wait = (timeoutMs = 0) => new Promise((resolve) => setTimeout(resol
 export const pingDevServer = () => axios.get(`http://localhost:${WDS_PORT}/ssr/clientManifest.json`);
 
 export const waitForDevServer = async (attempt = 0) => {
-  if (attempt >= 60) throw new Error('Webpack Dev Server not running');
+  const MAX_ATTEMPTS = 60;
+  const ATTEMPT_INTERVAL = 1000;
+  if (attempt >= MAX_ATTEMPTS) throw new Error('Webpack Dev Server not running');
   try {
     await pingDevServer();
   } catch (e) {
-    await wait(1000);
+    await wait(ATTEMPT_INTERVAL);
     await waitForDevServer(attempt + 1);
   }
 };

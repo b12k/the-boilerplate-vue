@@ -3,6 +3,8 @@ import { omit } from 'lodash';
 import createApp from './createApp';
 
 export default (context) => new Promise((resolve, reject) => {
+  context.isSSR = true;
+
   const {
     app,
     router,
