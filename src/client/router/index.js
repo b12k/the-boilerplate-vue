@@ -4,8 +4,6 @@ import VueRouter from 'vue-router';
 import RootRouterView from './RootRouterView';
 import routes from './routes';
 
-const PageNotFound = () => import(/* webpackChunkName: "PageNotFound" */ '@pages/PageNotFound');
-
 Vue.use(VueRouter);
 
 export const createRouter = (store) => new VueRouter({
@@ -19,15 +17,13 @@ export const createRouter = (store) => new VueRouter({
       children: routes,
     },
     {
-      name: 'NotFound',
       path: '*',
-      component: PageNotFound,
-      beforeEnter: (to, from, next) => {
-        if (!to.params.lang) {
-          to.params.lang = store.state.context.lang; // eslint-disable-line
-        }
-        return next();
-      },
+      redirect: (to) => ({
+        name: 'NotFound',
+        params: {
+          lang: to.params.lang || store.state.context.lang,
+        },
+      }),
     },
   ],
   scrollBehavior(to, from, savedPosition) {

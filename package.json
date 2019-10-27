@@ -1,5 +1,5 @@
 {
-  "name": "b12k.com",
+  "name": "vueltimate-boilerplate",
   "version": "1.0.0",
   "description": "Vueltimate Boilerplate - VUE + EXPRESS + SSR + HMR",
   "main": "./dist/server.js",

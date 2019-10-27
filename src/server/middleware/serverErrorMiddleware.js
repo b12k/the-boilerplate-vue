@@ -1,14 +1,29 @@
 import jsonStringifySafe from 'json-stringify-safe';
 
-export default () => {
-  const stringify = (thing) => jsonStringifySafe(thing, null, 2);
+const { env } = process;
 
-  return (err, req, res, next) => {
-    if (!err) return next();
+export default () => (err, req, res, next) => {
+  if (!err) return next();
 
-    return res.status(500).render('500', {
-      err,
-      req: stringify(req),
-    });
+  const { cookies } = req;
+  const canShowDetailedErrors = env.SHOW_DETAILED_ERRORS === 'true' || cookies.SHOW_DETAILED_ERRORS === 'true';
+
+  let template = 'serverError';
+  let data = {
+    title: 'Server Error',
+    lang: req.context.lang,
   };
+
+  if (canShowDetailedErrors) {
+    template = 'serverErrorDetailed';
+    data = {
+      ...data,
+      err,
+      req: jsonStringifySafe(req, null, 2),
+    };
+  }
+
+  return res
+    .status(500)
+    .render(template, data);
 };
