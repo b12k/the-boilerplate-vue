@@ -64,7 +64,7 @@ export default (context) => {
 
     Vue.use(VuexI18n.plugin, store, { preserveState: true });
     Vue.i18n.set(store.state.context.lang);
-    Vue.i18n.fallback('en');
+    Vue.i18n.fallback(store.state.context.env.DEFAULT_LANGUAGE);
   };
 
   return {

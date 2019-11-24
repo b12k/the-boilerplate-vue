@@ -1,1 +1,1 @@
-export const initializeServices = () => {};
+export const initializeServices = () => Promise.all([]);

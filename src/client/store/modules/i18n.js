@@ -2,6 +2,6 @@ export default {
   state: () => ({
     locale: null,
     fallback: null,
-    transaction: {},
+    translations: {},
   }),
 };

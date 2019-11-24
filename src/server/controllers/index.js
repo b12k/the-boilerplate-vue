@@ -1,1 +1,0 @@
-export languageController from './languageController';

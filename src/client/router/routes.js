@@ -15,7 +15,7 @@ export default [
   },
   {
     name: 'NotFound',
-    path: '*',
+    path: '404',
     component: PageNotFound,
   },
 ];

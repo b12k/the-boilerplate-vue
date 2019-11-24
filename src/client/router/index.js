@@ -6,15 +6,24 @@ import routes from './routes';
 
 Vue.use(VueRouter);
 
-export const createRouter = () => new VueRouter({
+export const createRouter = (store) => new VueRouter({
   mode: 'history',
   linkActiveClass: 'active',
   linkExactActiveClass: 'exact-active',
   routes: [
     {
-      path: '/:lang',
+      path: `/:lang(${store.state.context.env.ACCEPTED_LANGUAGES})`,
       component: RootRouterView,
       children: routes,
+    },
+    {
+      path: '*',
+      redirect: (to) => ({
+        name: 'NotFound',
+        params: {
+          lang: to.params.lang || store.state.context.lang,
+        },
+      }),
     },
   ],
   scrollBehavior(to, from, savedPosition) {

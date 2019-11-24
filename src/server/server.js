@@ -13,15 +13,10 @@ import {
 } from './helpers';
 
 import {
-  contextMiddleware,
-  notFoundMiddleware,
   serverErrorMiddleware,
   applicationMiddleware,
+  requestContextMiddleware,
 } from './middleware';
-
-import {
-  languageController,
-} from './controllers';
 
 (async () => {
   if (!IS_PROD) await waitForDevServer();
@@ -29,7 +24,6 @@ import {
   const {
     env: {
       PORT,
-      ACCEPTED_LANGUAGES,
     },
   } = process;
   const publicPath = resolvePath('dist/public');
@@ -37,7 +31,6 @@ import {
   const faviconPath = resolvePath('dist/public/favicon.ico');
   const viewsPath = path.resolve(__dirname, 'views');
   const server = express();
-  const appBasePath = `/:lang(${ACCEPTED_LANGUAGES})`;
 
   nunjucks.configure(viewsPath, {
     express: server,
@@ -52,10 +45,8 @@ import {
     .use('/ping', (req, res) => res.send('pong'))
     .use('/ssr', serveStatic(ssrPath))
     .use('/public', serveStatic(publicPath))
-    .get('/', languageController())
-    .use(appBasePath, contextMiddleware())
-    .use(appBasePath, applicationMiddleware())
-    .use(notFoundMiddleware())
+    .use('/:lang?', requestContextMiddleware())
+    .use(applicationMiddleware())
     .use(serverErrorMiddleware())
     .listen(PORT, appListenCallback);
 })();
