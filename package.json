@@ -20,11 +20,9 @@
     "dev:server": "cross-env BABEL_ENV=node nodemon src/server/server.js",
     "dev:ssr": "webpack --config webpack/config.ssr.js --watch",
     "lint:scripts": "eslint ./ --ext .js,.vue,.html",
-    "lint:scripts:fix": "npm run lint:scripts -- --fix",
     "lint:styles": "stylelint **/*.css **/*.scss **/*.html !./dist/**",
-    "lint:styles:fix": "npm run lint:styles -- --fix",
     "heroku-postbuild": "npm run build",
-    "prepare": "cp -n .env.example .env"
+    "prepare": "shx cp -n .env.example .env"
   },
   "dependencies": {
     "axios": "0.19.0",
@@ -114,6 +112,7 @@
     "postcss-object-fit-images": "1.1.2",
     "release-it": "12.4.3",
     "sass-loader": "8.0.0",
+    "shx": "0.3.2",
     "style-loader": "1.0.0",
     "stylelint": "12.0.0",
     "stylelint-config-twbs-bootstrap": "1.0.0",
@@ -334,17 +333,16 @@
   "husky": {
     "hooks": {
       "post-merge": "npm i",
-      "pre-commit": "lint-staged",
-      "pre-push": "npm run lint"
+      "pre-commit": "lint-staged"
     }
   },
   "lint-staged": {
     "src/**/*.{js,jsx}": [
-      "eslint . --fix",
+      "npm run lint:scripts -- --fix",
       "git add"
     ],
     "src/**/*.{css,scss}": [
-      "stylelint --syntax scss --fix",
+      "npm run lint:styles -- --fix",
       "git add"
     ]
   },
@@ -355,7 +353,9 @@
   },
   "nodemonConfig": {
     "exec": "babel-node",
-    "watch": ["src/server"],
+    "watch": [
+      "src/server"
+    ],
     "ext": "js,njk,json"
   }
 }
