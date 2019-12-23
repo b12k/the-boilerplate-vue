@@ -42,6 +42,7 @@ module.exports = {
         loader: 'css-loader',
         options: {
           sourceMap: IS_PROD_MODE,
+          // modules: true,
         },
       },
       {
@@ -68,8 +69,12 @@ module.exports = {
         options: {
           svgoConfig: {
             plugins: [
-              { cleanupIDs: false },
-              { prefixIds: false },
+              {
+                cleanupIDs: false,
+              },
+              {
+                prefixIds: false,
+              },
             ],
           },
         },

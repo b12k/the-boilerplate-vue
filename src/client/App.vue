@@ -1,24 +1,16 @@
 <template>
   <div id="app">
-    <RouterLink
-      :to="{
-        name: 'Home',
-      }"
-    >
-      Home
-    </RouterLink>
-    <RouterLink
-      :to="{
-        name: 'About',
-      }"
-    >
-      About
-    </RouterLink>
+    <BaseHeader class="boom" />
     <RouterView />
   </div>
 </template>
 <script>
+  import { BaseHeader } from '@components';
+
   export default {
     name: 'App',
+    components: {
+      BaseHeader,
+    },
   };
 </script>
