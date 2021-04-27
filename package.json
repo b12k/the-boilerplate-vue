@@ -38,7 +38,7 @@
     "nunjucks": "3.2.0",
     "popper.js": "1.16.0",
     "purgecss": "1.4.2",
-    "redis": "2.8.0",
+    "redis": "3.1.1",
     "serve-favicon": "2.5.0",
     "shrink-ray-current": "4.1.2",
     "vue": "2.6.11",
