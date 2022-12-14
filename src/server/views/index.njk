@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="{{ context.lang }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  {% for css in criticalCssEntries %}
+    <style data-type="critical-css">
+      {{ css | safe }}
+    </style>
+  {% endfor %}
+  {% for script in manifest.js.initial %}
+    <script src="{{ script }}" defer></script>
+  {% endfor %}
+  {% for script in manifest.js.async %}
+    <link rel="preload" as="script" href="{{ script }}">
+  {% endfor %}
+  <script>
+    window.INITIAL_STATE = '{{ state | safe }}';
+  </script>
+</head>
+<body>
+  <div id="app">{{ html | safe }}</div>
+  <script>
+    const cssAssets = {{ manifest.css | dump | safe }};
+    function createStyleLinkTag (href, rel) {
+      const link = document.createElement('link');
+      link.href = href;
+      link.rel = rel;
+      link.as = 'style';
+      return link;
+    }
+    cssAssets.initial.forEach((asset) => {
+      document.head.appendChild(createStyleLinkTag(asset, 'stylesheet'));
+    });
+    cssAssets.async.forEach((asset) => {
+      document.head.appendChild(createStyleLinkTag(asset, 'preload'));
+    });
+  </script>
+</body>
+</html>

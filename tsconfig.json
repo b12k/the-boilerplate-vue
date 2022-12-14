@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "jsx": "preserve",
+    "module": "NodeNext",
+    "strict": true,
+    "target": "esnext",
+    "skipLibCheck": true,
+    "importHelpers": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "noImplicitAny": true,
+    "baseUrl": ".",
+    "paths": {
+      "@client": ["./src/client"],
+      "@server": ["./src/server"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.vue"],
+  "exclude": ["node_modules"]
+}
