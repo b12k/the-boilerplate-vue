@@ -1,11 +1,16 @@
 <script lang="ts">
   import { defineComponent } from 'vue';
+  import { storeToRefs } from 'pinia';
   import { LayoutHollyGrail, BaseIcon } from '../components';
+  import { useContextStore } from '../store';
 
   export default defineComponent({
     components: {
       BaseIcon,
       LayoutHollyGrail,
+    },
+    data() {
+      return { context: storeToRefs(useContextStore()) };
     },
   });
 </script>
@@ -14,7 +19,7 @@
     <main class="page-one container">
       <div class="row">
         <div class="col">
-          <h1>Page One</h1>
+          <h1>Page One 1</h1>
           <p>
             Lorem ipsum dolor sit amet.
             <BaseIcon name="Poo" />
@@ -37,6 +42,8 @@
           />
         </div>
       </div>
+      Context
+      <pre>{{ context }}</pre>
     </main>
   </LayoutHollyGrail>
 </template>

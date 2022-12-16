@@ -37,7 +37,7 @@ export const ssrMiddleware: RequestHandler = async (
     }
 
     const { render, manifest } = await loadSsrAssets();
-    const { html, state, currentRoute } = await render(context);
+    const { html, state, currentRoute } = await render({ ...context });
     const criticalCssCacheKey =
       (isCachingEnabled &&
         currentRoute.name &&

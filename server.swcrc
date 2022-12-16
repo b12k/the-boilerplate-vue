@@ -8,6 +8,6 @@
       "syntax": "typescript"
     },
     "target": "es2022",
-    "externalHelpers": true
+    "externalHelpers": false
   }
 }
