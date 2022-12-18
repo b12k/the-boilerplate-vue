@@ -42,11 +42,10 @@ class CacheService {
       if (this.redisCache) {
         await this.redisCache.connect();
         this.isConnected = true;
-      } else {
-        console.log('LRU Cache is used');
       }
-    } catch {
+    } catch (error) {
       console.error('\nConnection to Redis cache failed\n');
+      console.error(error);
     }
   }
 
