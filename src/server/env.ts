@@ -33,7 +33,7 @@ const optionalEnvironment = optional(
 );
 
 const IS_PROD = NODE_ENV !== 'development';
-const ASSETS_LOCATION_PATH = resolve(__dirname, IS_PROD ? '.' : '../../dist');
+const ASSETS_LOCATION_PATH = resolve(__dirname, IS_PROD ? '../' : '../../dist');
 const PUBLIC_PATH = resolve(ASSETS_LOCATION_PATH, 'public');
 const CLIENT_MANIFEST_PATH = resolve(PUBLIC_PATH, 'manifest.json');
 const SSR_RENDERER_PATH = resolve(ASSETS_LOCATION_PATH, 'ssr');

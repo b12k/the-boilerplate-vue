@@ -3,7 +3,7 @@ import compression from 'shrink-ray-current';
 import express, { static as serveStatic } from 'express';
 import nunjucks from 'nunjucks';
 import cookieParser from 'cookie-parser';
-// import serveFavicon from 'serve-favicon';
+import serveFavicon from 'serve-favicon';
 
 import { env } from './env';
 import {
@@ -17,8 +17,6 @@ import { cacheService } from './services';
 import { getLanguage } from './utils';
 
 (async () => {
-  console.log(JSON.stringify(env, undefined, 2));
-
   if (env.CACHE_ENABLED === 'true') {
     await cacheService.connect();
   }
@@ -44,7 +42,7 @@ import { getLanguage } from './utils';
       }),
     )
     .use(compression())
-    // .use(serveFavicon(env.FAVICON_PATH))
+    .use(serveFavicon(env.FAVICON_PATH))
     .use('/health', healthMiddleware)
     .use(
       '/public',
