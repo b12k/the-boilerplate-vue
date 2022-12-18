@@ -22,6 +22,7 @@ const {
 
 const optionalEnvironment = optional(
   'CACHE_TTL',
+  'REDIS_URL',
   'REDIS_HOST',
   'REDIS_PORT',
   'REDIS_USER',
@@ -42,13 +43,6 @@ const VIEWS_PATH = resolve(__dirname, 'views');
 const FAVICON_PATH = resolve(PUBLIC_PATH, 'favicon.ico');
 const HOSTNAME = hostname();
 
-const REDIS_URL =
-  optionalEnvironment.REDIS_HOST &&
-  optionalEnvironment.REDIS_PORT &&
-  optionalEnvironment.REDIS_USER &&
-  optionalEnvironment.REDIS_PASSWORD &&
-  `redis://${optionalEnvironment.REDIS_USER}:${optionalEnvironment.REDIS_PASSWORD}@${optionalEnvironment.REDIS_HOST}:${optionalEnvironment.REDIS_PORT}`;
-
 export const envPublic = {
   ...publicEnvironmentVariables,
   IS_PROD,
@@ -61,7 +55,6 @@ export const env = {
   PORT,
   DEBUG,
   HOSTNAME,
-  REDIS_URL,
   VIEWS_PATH,
   PUBLIC_PATH,
   FAVICON_PATH,

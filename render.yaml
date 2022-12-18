@@ -9,16 +9,11 @@ services:
     numInstances: 1
     healthCheckPath: /health
     envVars:
-      - key: REDIS_HOST
+      - key: REDIS_URL
         fromService:
           type: redis
           name: cache
-          property: host
-      - key: REDIS_PORT
-        fromService:
-          type: redis
-          name: cache
-          property: port
+          property: connectionString
   - type: redis
     name: cache
     ipAllowList: # required
