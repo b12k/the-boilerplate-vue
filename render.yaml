@@ -4,7 +4,7 @@ services:
     env: docker
     repo: https://github.com/b12k/vueltimate-boilerplate.git
     region: frankfurt
-    plan: starter
+    plan: free
     branch: master
     numInstances: 1
     healthCheckPath: /health
