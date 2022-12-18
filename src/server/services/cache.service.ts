@@ -20,6 +20,8 @@ class CacheService {
 
   private readonly redisCache;
 
+  private isConnected = false;
+
   constructor(config: Partial<CacheServiceConfig> = {}) {
     this.config = {
       ...cacheServiceDefaultConfig,
@@ -35,6 +37,17 @@ class CacheService {
     }
   }
 
+  async connect() {
+    try {
+      if (this.redisCache) {
+        await this.redisCache.connect();
+        this.isConnected = true;
+      }
+    } catch {
+      console.error('\nConnection to Redis cache failed\n');
+    }
+  }
+
   private saltKey(key: string) {
     return [this.config.cacheKeySalt, key].join(',');
   }
@@ -42,11 +55,15 @@ class CacheService {
   async get(key: string, ttlReset = false) {
     let value: string | undefined;
 
-    if (this.lruCache)
-      value = this.lruCache.get(this.saltKey(key)) || undefined;
+    if (!this.isConnected) return value;
 
-    if (this.redisCache)
+    if (this.lruCache) {
+      value = this.lruCache.get(this.saltKey(key)) || undefined;
+    }
+
+    if (this.redisCache) {
       value = (await this.redisCache.get(this.saltKey(key))) || undefined;
+    }
 
     if (ttlReset && value) this.set(key, value);
 
@@ -54,6 +71,8 @@ class CacheService {
   }
 
   set(key: string, value: string, ttl = this.config.ttl) {
+    if (!this.isConnected) return;
+
     if (this.lruCache) this.lruCache.set(this.saltKey(key), value);
     if (this.redisCache)
       this.redisCache.set(this.saltKey(key), value, { EX: ttl });

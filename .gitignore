@@ -5,6 +5,7 @@
 
 .env
 .husky/_/*
+.data
 
 dist
 node_modules

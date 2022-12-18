@@ -1,5 +1,6 @@
 import Surenv from 'surenv';
 import { resolve } from 'node:path';
+import { hostname } from 'node:os';
 
 const { required, optional } = new Surenv();
 
@@ -21,7 +22,10 @@ const {
 
 const optionalEnvironment = optional(
   'CACHE_TTL',
-  'REDIS_URL',
+  'REDIS_HOST',
+  'REDIS_PORT',
+  'REDIS_USER',
+  'REDIS_PASSWORD',
   'DISABLE_LOG',
   'ENABLE_DEBUG',
   'CACHE_ENABLED',
@@ -36,6 +40,14 @@ const SSR_RENDERER_PATH = resolve(ASSETS_LOCATION_PATH, 'ssr');
 const SSR_MANIFEST_PATH = resolve(SSR_RENDERER_PATH, 'manifest.json');
 const VIEWS_PATH = resolve(__dirname, 'views');
 const FAVICON_PATH = resolve(PUBLIC_PATH, 'favicon.ico');
+const HOSTNAME = hostname();
+
+const REDIS_URL =
+  optionalEnvironment.REDIS_HOST &&
+  optionalEnvironment.REDIS_PORT &&
+  optionalEnvironment.REDIS_USER &&
+  optionalEnvironment.REDIS_PASSWORD &&
+  `redis://${optionalEnvironment.REDIS_USER}:${optionalEnvironment.REDIS_PASSWORD}@${optionalEnvironment.REDIS_HOST}:${optionalEnvironment.REDIS_PORT}`;
 
 export const envPublic = {
   ...publicEnvironmentVariables,
@@ -48,6 +60,8 @@ export const env = {
   ...optionalEnvironment,
   PORT,
   DEBUG,
+  HOSTNAME,
+  REDIS_URL,
   VIEWS_PATH,
   PUBLIC_PATH,
   FAVICON_PATH,

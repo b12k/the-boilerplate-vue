@@ -5,38 +5,43 @@
   <meta name="viewport"
         content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  {% for css in criticalCssEntries %}
+  {% if criticalCss %}
     <style data-type="critical-css">
-      {{ css | safe }}
+      {{ criticalCss | safe }}
     </style>
-  {% endfor %}
+  {% endif %}
   {% for script in manifest.js.initial %}
     <script src="{{ script }}" defer></script>
   {% endfor %}
   {% for script in manifest.js.async %}
     <link rel="preload" as="script" href="{{ script }}">
   {% endfor %}
-  <script>
+  {% for style in manifest.css.initial %}
+    <link rel="preload" as="style" href="{{ style }}">
+  {% endfor %}
+  {% for style in manifest.css.async %}
+    <link rel="preload" as="style" href="{{ style }}">
+  {% endfor %}
+  <script data-type="initial-state">
     window.INITIAL_STATE = '{{ state | safe }}';
   </script>
 </head>
 <body>
   <div id="app">{{ html | safe }}</div>
   <script>
-    const cssAssets = {{ manifest.css | dump | safe }};
-    function createStyleLinkTag (href, rel) {
+    const cssAssets = {{ manifest.css.initial | dump | safe }};
+    const promises = cssAssets.map((href) => new Promise((resolve) => {
       const link = document.createElement('link');
       link.href = href;
-      link.rel = rel;
+      link.rel = 'stylesheet';
       link.as = 'style';
-      return link;
-    }
-    cssAssets.initial.forEach((asset) => {
-      document.head.appendChild(createStyleLinkTag(asset, 'stylesheet'));
-    });
-    cssAssets.async.forEach((asset) => {
-      document.head.appendChild(createStyleLinkTag(asset, 'preload'));
-    });
+      link.onload = resolve;
+      document.head.appendChild(link);
+    }));
+    Promise.all(promises).then(() => document.querySelector('[data-type=critical-css]').remove());
   </script>
+  {% if context.isDebug %}
+    {% include "_env.njk" %}
+  {% endif %}
 </body>
 </html>
