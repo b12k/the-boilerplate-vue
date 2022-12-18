@@ -30,15 +30,13 @@
   <div id="app">{{ html | safe }}</div>
   <script>
     const cssAssets = {{ manifest.css.initial | dump | safe }};
-    const promises = cssAssets.map((href) => new Promise((resolve) => {
+    cssAssets.map((href) => {
       const link = document.createElement('link');
       link.href = href;
       link.rel = 'stylesheet';
       link.as = 'style';
-      link.onload = resolve;
       document.head.appendChild(link);
-    }));
-    Promise.all(promises).then(() => document.querySelector('[data-type=critical-css]').remove());
+    });
   </script>
   {% if context.isDebug %}
     {% include "_env.njk" %}
