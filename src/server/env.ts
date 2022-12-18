@@ -1,5 +1,6 @@
 import Surenv from 'surenv';
 import { resolve } from 'node:path';
+import { hostname } from 'node:os';
 
 const { required, optional } = new Surenv();
 
@@ -39,6 +40,7 @@ const SSR_RENDERER_PATH = resolve(ASSETS_LOCATION_PATH, 'ssr');
 const SSR_MANIFEST_PATH = resolve(SSR_RENDERER_PATH, 'manifest.json');
 const VIEWS_PATH = resolve(__dirname, 'views');
 const FAVICON_PATH = resolve(PUBLIC_PATH, 'favicon.ico');
+const HOSTNAME = hostname();
 
 const REDIS_URL =
   optionalEnvironment.REDIS_HOST &&
@@ -58,6 +60,7 @@ export const env = {
   ...optionalEnvironment,
   PORT,
   DEBUG,
+  HOSTNAME,
   REDIS_URL,
   VIEWS_PATH,
   PUBLIC_PATH,

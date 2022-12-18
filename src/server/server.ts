@@ -23,10 +23,12 @@ import { getLanguage } from './utils';
 
   const app = express();
 
-  nunjucks.configure(env.VIEWS_PATH, {
-    express: app,
-    autoescape: true,
-  });
+  nunjucks
+    .configure(env.VIEWS_PATH, {
+      express: app,
+      autoescape: true,
+    })
+    .addGlobal('env', env);
 
   app
     .disable('x-powered-by')

@@ -1,0 +1,64 @@
+<section>
+  <style>
+    #server-info {
+      position: absolute;
+      color: #080;
+      font-family: monospace;
+      left: 0;
+      right: 0;
+      top: 0;
+    }
+    #server-info section {
+      background-color: #121212;
+      display: flex;
+      justify-content: center;
+      height: 0;
+      overflow: hidden;
+    }
+    #server-info input {
+      position: absolute;
+      left: -9999px;
+      opacity: 0;
+    }
+    #server-info input:checked ~ section {
+      height: auto;
+      overflow: auto;
+    }
+    #server-info label {
+      display: block;
+      background-color: #121212;
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      bottom: -24px;
+      right: 0;
+      text-align: center;
+      font-weight: bold;
+      margin: 0;
+      padding: 0;
+      cursor: pointer;
+    }
+    #server-info td {
+      padding: 0.5rem;
+    }
+  </style>
+  <div id="server-info">
+    <input
+      type="checkbox"
+      id="cb"
+    >
+    <section>
+      <table>
+        {% for key, value in env %}
+          <tr>
+            <td>{{ key }}</td>
+            <td>{{ value }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+      <label for="cb">
+        i
+      </label>
+    </section>
+  </div>
+</section>

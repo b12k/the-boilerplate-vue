@@ -50,10 +50,7 @@ export const ssrMiddleware: RequestHandler = async (
           (await cacheService.get(criticalCssCacheKey, true)) || '[]',
         )) as Array<string>) || [];
 
-    if (
-      criticalCssCacheKey &&
-      (criticalCss.length === 0 || shouldRefreshCache)
-    ) {
+    if (criticalCss.length === 0 || shouldRefreshCache) {
       criticalCss = await getCriticalCss(html, [
         ...manifest.css.initial,
         ...manifest.css.async,

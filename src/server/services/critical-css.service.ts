@@ -5,16 +5,16 @@ import { join } from 'node:path';
 const purgeCss = new PurgeCSS();
 
 export const getCriticalCss = async (html: string, cssFiles: Array<string>) => {
-  const css = await Promise.all(
-    cssFiles.map((path) =>
-      readFile(join(__dirname, '../..', path), 'utf8').then((raw) => ({
-        raw,
-      })),
-    ),
+  const cssChunks = await Promise.all(
+    cssFiles.map((path) => readFile(join(__dirname, '../..', path), 'utf8')),
   );
 
   const result = await purgeCss.purge({
-    css,
+    css: [
+      {
+        raw: cssChunks.join(''),
+      },
+    ],
     content: [
       {
         raw: `<html><head></head><body><div id="app">${html}</div></body></html>>`,

@@ -40,6 +40,7 @@ export const buildContext = (request: Request) => {
     shouldRefreshCache,
     url: request.url,
     lang: request.params.lang,
+    query: request.query,
     baseUrl: request.baseUrl,
   };
 };
