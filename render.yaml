@@ -16,7 +16,8 @@ services:
           property: connectionString
   - type: redis
     name: cache
-    ipAllowList: # required
+    region: frankfurt
+    ipAllowList:
       - source: 0.0.0.0/0
         description: everywhere
     plan: free
