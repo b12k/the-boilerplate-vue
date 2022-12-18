@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: webapp
+    env: docker
+    repo: https://github.com/b12k/vueltimate-boilerplate.git
+    region: frankfurt
+    plan: starter
+    branch: master
+    numInstances: 1
+    healthCheckPath: /health
+    envVars:
+      - key: REDIS_HOST
+        fromService:
+          type: redis
+          name: cache
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          type: redis
+          name: cache
+          property: port
+  - type: redis
+    name: cache
+    ipAllowList: # required
+      - source: 0.0.0.0/0
+        description: everywhere
+    plan: free
+    maxmemoryPolicy: volatile-lru
