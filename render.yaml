@@ -21,4 +21,4 @@ services:
       - source: 0.0.0.0/0
         description: everywhere
     plan: free
-    maxmemoryPolicy: volatile-lru
+    maxmemoryPolicy: allkeys-lru

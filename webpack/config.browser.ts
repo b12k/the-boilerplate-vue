@@ -3,7 +3,7 @@ import { Configuration } from 'webpack';
 import { resolve } from 'node:path';
 import baseConfig from './config.base';
 import { sassLoader, createImageLoader } from './loaders';
-import { computeChunkName } from './utils';
+import { computeChunkName, getFilenameJs } from './utils';
 import {
   miniCssExtractPlugin,
   terserPlugin,
@@ -20,10 +20,9 @@ const config: Configuration = {
   },
   output: {
     path: resolve(__dirname, '../dist'),
-    filename: env.IS_PROD
-      ? 'public/js/[name].[contenthash:8].js'
-      : 'public/js/[name].js',
     publicPath: env.IS_PROD ? '/' : `http://localhost:${env.WDS_PORT}/`,
+    filename: getFilenameJs('[name]', env.IS_PROD),
+    chunkFilename: getFilenameJs('chunk', env.IS_PROD),
   },
   module: {
     rules: [

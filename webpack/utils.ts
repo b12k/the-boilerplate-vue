@@ -3,6 +3,11 @@ import { ManifestPluginOptions } from 'webpack-manifest-plugin';
 
 export const uniqArray = <T>(array: Array<T>) => [...new Set(array)];
 
+export const getFilenameJs = (name: string, isProduction: boolean) =>
+  isProduction
+    ? `public/js/${name}.[contenthash:8].js`
+    : `public/js/${name}.js`;
+
 export const computeChunkName =
   (prefix: string) =>
   ({ context }: Module) => {
