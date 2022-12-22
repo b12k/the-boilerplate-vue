@@ -1,5 +1,5 @@
 import pino from 'express-pino-logger';
-import compression from 'shrink-ray-current';
+import compression from 'shrink-ray-without-zopfli';
 import express, { static as serveStatic } from 'express';
 import nunjucks from 'nunjucks';
 import cookieParser from 'cookie-parser';
@@ -17,9 +17,13 @@ import { cacheService } from './services';
 import { getLanguage } from './utils';
 
 (async () => {
-  if (env.CACHE_ENABLED === 'true') {
-    await cacheService.connect();
-  }
+  await cacheService.initialize({
+    redisUrl: env.REDIS_URL,
+    renderCacheTtl: Number(env.RENDER_CACHE_TTL),
+    renderCacheSalt: env.RENDER_CACHE_SALT,
+    criticalCssCacheTtl: Number(env.CRITICAL_CSS_CACHE_TTL),
+    criticalCssCacheSalt: env.CRITICAL_CSS_CACHE_SALT,
+  });
 
   const app = express();
 
@@ -38,7 +42,7 @@ import { getLanguage } from './utils';
     .use(
       pino({
         level: 'info',
-        enabled: env.DISABLE_LOG !== 'true',
+        enabled: env.LOG === 'true',
       }),
     )
     .use(compression())
@@ -47,8 +51,8 @@ import { getLanguage } from './utils';
     .use(
       '/public',
       serveStatic(env.PUBLIC_PATH, {
-        etag: false,
         maxAge: '7d',
+        etag: false,
       }),
     )
     .use('/:lang?', languageMiddleware)
@@ -61,7 +65,7 @@ import { getLanguage } from './utils';
     .listen(
       env.PORT,
       () =>
-        !env.IS_PROD &&
+        env.SERVER_ENV === 'local' &&
         // eslint-disable-next-line no-console
         console.log(`🚀 Server running on: http://localhost:${env.PORT}`),
     );

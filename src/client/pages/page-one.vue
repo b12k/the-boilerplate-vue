@@ -5,6 +5,7 @@
   import { useContextStore } from '../store';
 
   export default defineComponent({
+    name: 'PageOne',
     components: {
       BaseIcon,
       LayoutHollyGrail,

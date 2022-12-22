@@ -9,6 +9,10 @@
     <style data-type="critical-css">
       {{ criticalCss | safe }}
     </style>
+  {% else %}
+    {% for style in manifest.css.initial %}
+      <link rel="stylesheet" as="style" href="{{ style }}">
+    {% endfor %}
   {% endif %}
   {% for script in manifest.js.initial %}
     <script src="{{ script }}" defer></script>
@@ -28,16 +32,18 @@
 </head>
 <body>
   <div id="app">{{ html | safe }}</div>
-  <script>
-    const cssAssets = {{ manifest.css.initial | dump | safe }};
-    cssAssets.map((href) => {
-      const link = document.createElement('link');
-      link.href = href;
-      link.rel = 'stylesheet';
-      link.as = 'style';
-      document.head.appendChild(link);
-    });
-  </script>
+  {% if criticalCss %}
+    <script>
+      const cssAssets = {{ manifest.css.initial | dump | safe }};
+      cssAssets.map((href) => {
+        const link = document.createElement('link');
+        link.href = href;
+        link.rel = 'stylesheet';
+        link.as = 'style';
+        document.head.appendChild(link);
+      });
+    </script>
+  {% endif %}
   {% if context.isDebug %}
     {% include "_env.njk" %}
   {% endif %}

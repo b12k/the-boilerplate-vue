@@ -1,8 +1,3 @@
-<script lang="ts">
-  import { defineComponent } from 'vue';
-
-  export default defineComponent({});
-</script>
 <template>
   <header class="container">
     <RouterLink :to="{ name: 'One' }" class="btn btn-link">One</RouterLink>

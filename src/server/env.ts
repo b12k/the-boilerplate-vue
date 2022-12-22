@@ -4,15 +4,9 @@ import { hostname } from 'node:os';
 
 const { required, optional } = new Surenv();
 
-const {
-  PORT,
-  DEBUG,
-  NODE_ENV,
-  npm_package_version: VERSION,
-  ...publicEnvironmentVariables
-} = required(
+const { npm_package_version: VERSION, ...requiredEnv } = required(
   'PORT',
-  'DEBUG',
+  'ENABLE_DEBUG',
   'NODE_ENV',
   'SERVER_ENV',
   'DEFAULT_LANGUAGE',
@@ -20,21 +14,31 @@ const {
   'npm_package_version',
 );
 
-const optionalEnvironment = optional(
-  'CACHE_TTL',
+const {
+  RENDER_CACHE_TTL = 60 * 60 * 24, // 1 day
+  RENDER_CACHE_SALT = VERSION,
+  CRITICAL_CSS_CACHE_TTL = 60 * 60 * 24, // 1 day
+  CRITICAL_CSS_CACHE_SALT = VERSION,
+  ...optionalEnv
+} = optional(
+  'DEBUG',
+  'LOG',
   'REDIS_URL',
-  'REDIS_HOST',
-  'REDIS_PORT',
-  'REDIS_USER',
-  'REDIS_PASSWORD',
-  'DISABLE_LOG',
-  'ENABLE_DEBUG',
-  'CACHE_ENABLED',
-  'CACHE_KEY_SALT',
+  'CACHE',
+  'RENDER_CACHE',
+  'RENDER_CACHE_TTL',
+  'RENDER_CACHE_SALT',
+  'CRITICAL_CSS_CACHE',
+  'CRITICAL_CSS_CACHE_TTL',
+  'CRITICAL_CSS_CACHE_SALT',
 );
 
-const IS_PROD = NODE_ENV !== 'development';
-const ASSETS_LOCATION_PATH = resolve(__dirname, IS_PROD ? '../' : '../../dist');
+const IS_PROD = String(requiredEnv.NODE_ENV !== 'development');
+
+const ASSETS_LOCATION_PATH = resolve(
+  __dirname,
+  IS_PROD === 'true' ? '../' : '../../dist',
+);
 const PUBLIC_PATH = resolve(ASSETS_LOCATION_PATH, 'public');
 const CLIENT_MANIFEST_PATH = resolve(PUBLIC_PATH, 'manifest.json');
 const SSR_RENDERER_PATH = resolve(ASSETS_LOCATION_PATH, 'ssr');
@@ -43,26 +47,24 @@ const VIEWS_PATH = resolve(__dirname, 'views');
 const FAVICON_PATH = resolve(PUBLIC_PATH, 'favicon.ico');
 const HOSTNAME = hostname();
 
-export const envPublic = {
-  ...publicEnvironmentVariables,
+export const env = {
+  IS_OVERRIDDEN: 'false',
+  ...requiredEnv,
+  ...optionalEnv,
   IS_PROD,
   VERSION,
-};
-
-export const env = {
-  ...envPublic,
-  ...optionalEnvironment,
-  PORT,
-  DEBUG,
-  HOSTNAME,
-  VIEWS_PATH,
   PUBLIC_PATH,
-  FAVICON_PATH,
-  CLIENT_MANIFEST_PATH,
-  SSR_RENDERER_PATH,
-  SSR_MANIFEST_PATH,
   ASSETS_LOCATION_PATH,
+  CLIENT_MANIFEST_PATH,
+  SSR_MANIFEST_PATH,
+  SSR_RENDERER_PATH,
+  VIEWS_PATH,
+  FAVICON_PATH,
+  HOSTNAME,
+  RENDER_CACHE_SALT,
+  RENDER_CACHE_TTL,
+  CRITICAL_CSS_CACHE_SALT,
+  CRITICAL_CSS_CACHE_TTL,
 };
 
 export type Env = typeof env;
-export type EnvPublic = typeof envPublic & { IS_OVERRIDDEN?: 'true' | 'false' };

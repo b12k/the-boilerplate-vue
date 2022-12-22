@@ -1,8 +1,8 @@
-import { RouteLocationNormalized } from 'vue-router';
+import type { RouteLocationNormalized } from 'vue-router';
 
 export {};
 
-declare module 'vue' {
+declare module '@vue/runtime-core' {
   interface ComponentCustomOptions {
     fetchData?: (to: RouteLocationNormalized) => Promise<void>;
     shouldReFetch?: boolean;
@@ -13,8 +13,5 @@ declare module 'vue-router' {
   interface RouteMeta {
     responseCode?: number;
     noPreFetchAwait?: boolean;
-  }
-  interface LocationAsRelativeRaw {
-    name: string;
   }
 }

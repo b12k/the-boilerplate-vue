@@ -1,6 +1,7 @@
 import { RouteRecordRaw } from 'vue-router';
 
-export const routes: Array<RouteRecordRaw> = [
+type RouteRecordRawNamed = RouteRecordRaw & { name: string };
+export const routes: Array<RouteRecordRawNamed> = [
   {
     name: 'One',
     path: '/',
@@ -30,6 +31,7 @@ export const routes: Array<RouteRecordRaw> = [
     component: () => import('../pages/error-page.vue'),
   },
   {
+    name: 'CatchNotFound',
     path: '/:notFoundPath(.*)*',
     redirect: (to) => ({
       path: '/404',

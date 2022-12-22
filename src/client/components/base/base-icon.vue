@@ -8,10 +8,10 @@
   }>();
 </script>
 <template>
+  <!-- eslint-disable-next-line -->
   <span class="icon" v-html="Icons[props.name]" />
 </template>
 <style lang="scss">
-  // import()
   .icon {
     svg {
       height: 1em;

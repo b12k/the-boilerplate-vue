@@ -1,6 +1,6 @@
 import decache from 'decache';
 
-import type { Renderer } from '@client';
+import type { Render } from '@client';
 
 import { resolve } from 'node:path';
 import { env } from '../env';
@@ -18,7 +18,7 @@ export interface AssetsManifest {
 
 interface SsrAssets {
   manifest: AssetsManifest;
-  render: Renderer;
+  render: Render;
 }
 
 type ImportedModule<T> = { default: T };
@@ -34,10 +34,10 @@ export const loadSsrAssets: SsrAssetsLoader = async () => {
     ])) as [
       ImportedModule<AssetsManifest>,
       ImportedModule<AssetsManifest>,
-      ImportedModule<Renderer>,
+      ImportedModule<Render>,
     ];
 
-  if (!env.IS_PROD) {
+  if (env.IS_PROD !== 'true') {
     decache(env.CLIENT_MANIFEST_PATH);
     decache(env.SSR_RENDERER_PATH);
     Object.values(ssrManifest).forEach((entry) =>

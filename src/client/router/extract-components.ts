@@ -1,10 +1,10 @@
-import {
+import type {
   RouteLocationNormalized,
   RouteLocationNormalizedLoaded,
   RouteRecordNormalized,
 } from 'vue-router';
 
-import { DefineComponent } from 'vue';
+import type { DefineComponent } from 'vue';
 
 type ImportFunction = () => Promise<{
   default: DefineComponent;

@@ -6,7 +6,7 @@ import { Context } from '@server';
 import { createApp } from './create-app';
 import { execRoutePreFetch } from './router';
 
-const renderer = async (context: Context) => {
+const render = async (context: Context) => {
   const history = createMemoryHistory(context.baseUrl);
   const { app, store, router } = await createApp(history, { context });
 
@@ -19,5 +19,6 @@ const renderer = async (context: Context) => {
   };
 };
 
-export type Renderer = (context: Context) => ReturnType<typeof renderer>;
-export default renderer;
+export type Render = (context: Context) => ReturnType<typeof render>;
+export type RenderResult = Awaited<ReturnType<typeof render>>;
+export default render;

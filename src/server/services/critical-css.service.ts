@@ -17,12 +17,12 @@ export const getCriticalCss = async (html: string, cssFiles: Array<string>) => {
     ],
     content: [
       {
-        raw: `<html><head></head><body><div id="app">${html}</div></body></html>>`,
+        raw: `<html><head></head><body><div id="app">${html}</div></body></html>`,
         extension: 'html',
       },
     ],
     fontFace: true,
   });
 
-  return result.map(({ css: criticalCss }) => criticalCss);
+  return result.map(({ css: criticalCss }) => criticalCss).join('');
 };

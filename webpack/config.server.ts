@@ -18,6 +18,11 @@ const config: Configuration = {
       type: 'commonjs2',
     },
   },
+  cache: {
+    type: 'filesystem',
+    cacheDirectory: env.CACHE_DIR,
+    name: `server-${env.IS_PROD ? 'prod' : 'dev'}`,
+  },
   externals: webpackNodeExternals(),
   module: {
     rules: [

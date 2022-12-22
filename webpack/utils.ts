@@ -17,9 +17,10 @@ export const computeChunkName =
     const matched = context?.match(/[/\\]node_modules[/\\](.*?)([/\\]|$)/);
 
     if (matched) {
-      name = Buffer.from(matched[1].replace('@', ''), 'utf8')
-        .toString('base64url')
-        .toLowerCase();
+      name = matched[1].replace('@', '');
+      // name = Buffer.from(matched[1].replace('@', ''), 'utf8')
+      //   .toString('base64url')
+      //   .toLowerCase();
     }
 
     return `${prefix}.${name}`;

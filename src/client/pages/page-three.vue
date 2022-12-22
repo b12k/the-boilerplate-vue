@@ -3,6 +3,7 @@
   import { LayoutHollyGrail } from '../components';
 
   export default defineComponent({
+    name: 'PageThree',
     components: {
       LayoutHollyGrail,
     },

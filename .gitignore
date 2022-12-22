@@ -6,6 +6,7 @@
 .env
 .husky/_/*
 .data
+.webpack-cache
 
 dist
 node_modules

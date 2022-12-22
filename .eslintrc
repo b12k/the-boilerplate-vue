@@ -38,6 +38,7 @@
     "unicorn/no-array-reduce": "off",
     "unicorn/prefer-top-level-await": "off",
     "unicorn/no-array-for-each": "off",
+    "unicorn/no-useless-undefined": "off",
     "unicorn/prevent-abbreviations": [
       "error",
       {
@@ -100,7 +101,8 @@
         "prettier"
       ],
       "rules": {
-        "prettier/prettier": "error"
+        "prettier/prettier": "error",
+        "vue/require-name-property": "error"
       }
     }
   ]

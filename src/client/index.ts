@@ -1,1 +1,1 @@
-export type { Renderer } from './entry.server';
+export type { Render, RenderResult } from './entry.server';

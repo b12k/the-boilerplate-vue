@@ -2,6 +2,7 @@ import { RequestHandler } from 'express';
 import serialize from 'serialize-javascript';
 import nunjucks from 'nunjucks';
 
+import { RenderResult } from '@client';
 import {
   loadSsrAssets,
   computeIdempotencyKey,
@@ -9,7 +10,7 @@ import {
   getCriticalCss,
 } from '../services';
 import { getContext } from './context.middleware';
-import { env } from '../env';
+import { stringToBase64 } from '../utils';
 
 export const ssrMiddleware: RequestHandler = async (
   request,
@@ -18,52 +19,56 @@ export const ssrMiddleware: RequestHandler = async (
 ) => {
   try {
     const responseStartedAt = Date.now();
-
     const context = getContext();
-    const { isCachingEnabled, shouldRefreshCache } = context;
-    const pageCacheKey =
-      env.CACHE_ENABLED === 'true' &&
-      isCachingEnabled &&
-      computeIdempotencyKey(context);
+    const {
+      isRenderCache,
+      isCriticalCssCache,
+      shouldRefreshRenderCache,
+      shouldRefreshCriticalCssCache,
+    } = context;
 
-    if (pageCacheKey && !shouldRefreshCache) {
-      const page = await cacheService.get(pageCacheKey, true);
-      if (page) {
-        return response
-          .setHeader('X-Response-Time', Date.now() - responseStartedAt)
-          .setHeader('X-Idempotency-Key', pageCacheKey)
-          .send(page);
+    const renderCacheKey = isRenderCache && computeIdempotencyKey(context);
+    const { render, manifest } = await loadSsrAssets();
+
+    response.setHeader('X-Cache-Type', cacheService.cacheType);
+
+    let renderResult: RenderResult | undefined;
+
+    if (renderCacheKey && !shouldRefreshRenderCache) {
+      const renderResultJson = await cacheService.getRender(
+        renderCacheKey,
+        true,
+      );
+      if (renderResultJson) {
+        renderResult = JSON.parse(renderResultJson) as RenderResult;
+        response.setHeader('X-Idempotency-Key', renderCacheKey);
       }
     }
 
-    const { render, manifest } = await loadSsrAssets();
+    if (!renderResult) {
+      renderResult = await render({ ...context });
+    }
 
-    const renderStartedAt = Date.now();
-    const { html, state, currentRoute } = await render({ ...context });
-    response.setHeader('X-Render-Time', Date.now() - renderStartedAt);
+    if (!renderResult) {
+      throw new Error('[SSR-MIDDLEWARE] Missing render result');
+    }
+
+    const { currentRoute, html, state } = renderResult;
 
     const criticalCssCacheKey =
-      (isCachingEnabled &&
-        currentRoute.name &&
-        `[critical-css]:${String(currentRoute.name)}`) ||
-      undefined;
+      isCriticalCssCache &&
+      stringToBase64((currentRoute.name || currentRoute.path).toString());
 
-    let criticalCss: Array<string> =
-      ((criticalCssCacheKey &&
-        JSON.parse(
-          (await cacheService.get(criticalCssCacheKey, true)) || '[]',
-        )) as Array<string>) || [];
+    let criticalCss: string | undefined;
 
-    if (criticalCss.length === 0 || shouldRefreshCache) {
-      const criticalCssStartedAt = Date.now();
-      criticalCss = await getCriticalCss(html, [
-        ...manifest.css.initial,
-        ...manifest.css.async,
-      ]);
-      response.setHeader(
-        'X-Critical-Css-Time',
-        Date.now() - criticalCssStartedAt,
+    if (criticalCssCacheKey) {
+      criticalCss = await cacheService.getCriticalCss(
+        criticalCssCacheKey,
+        true,
       );
+      if (criticalCss && criticalCss !== 'pending') {
+        response.setHeader('X-Critical-Css-Cache-Key', criticalCssCacheKey);
+      }
     }
 
     const page = nunjucks.render('index.njk', {
@@ -71,22 +76,31 @@ export const ssrMiddleware: RequestHandler = async (
       state: serialize(state),
       context,
       manifest,
-      criticalCss,
+      criticalCss: criticalCss !== 'pending' && criticalCss,
     });
 
-    if (criticalCssCacheKey) {
-      cacheService.set(criticalCssCacheKey, JSON.stringify(criticalCss));
-    }
-
-    if (pageCacheKey) {
-      cacheService.set(pageCacheKey, page);
-    }
-
-    return response
+    response
       .setHeader('X-Response-Time', Date.now() - responseStartedAt)
       .status(Number(currentRoute.meta.responseCode) || 200)
       .send(page);
+
+    if (
+      criticalCssCacheKey &&
+      criticalCss !== 'pending' &&
+      (!criticalCss || shouldRefreshCriticalCssCache)
+    ) {
+      cacheService.setCriticalCss(criticalCssCacheKey, 'pending');
+      criticalCss = await getCriticalCss(html, [
+        ...manifest.css.initial,
+        ...manifest.css.async,
+      ]);
+      cacheService.setCriticalCss(criticalCssCacheKey, criticalCss);
+    }
+
+    if (renderCacheKey) {
+      cacheService.setRender(renderCacheKey, JSON.stringify(renderResult));
+    }
   } catch (error) {
-    return next(error);
+    next(error);
   }
 };
