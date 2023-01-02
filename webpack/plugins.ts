@@ -14,7 +14,7 @@ export const miniCssExtractPlugin = new MiniCssExtractPlugin({
   chunkFilename: 'public/css/chunk.[contenthash:8].css',
 });
 export const terserPlugin = new TerserPlugin({
-  extractComments: 'all',
+  extractComments: false,
 });
 export const vueLoaderPlugin = new VueLoaderPlugin();
 

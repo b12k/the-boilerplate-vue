@@ -4,27 +4,13 @@ import { ManifestPluginOptions } from 'webpack-manifest-plugin';
 export const uniqArray = <T>(array: Array<T>) => [...new Set(array)];
 
 export const getFilenameJs = (name: string, isProduction: boolean) =>
-  isProduction
-    ? `public/js/${name}.[contenthash:8].js`
-    : `public/js/${name}.js`;
+  isProduction ? `public/js/${name}.[contenthash:8].js` : `public/js/[name].js`;
+export const getVendorName = ({ context }: Module) => {
+  // Source https://medium.com/hackernoon/the-100-correct-way-to-split-your-chunks-with-webpack-f8a9df5b7758
+  const matched = context?.match(/[/\\]node_modules[/\\](.*?)([/\\]|$)/);
 
-export const computeChunkName =
-  (prefix: string) =>
-  ({ context }: Module) => {
-    // Source https://medium.com/hackernoon/the-100-correct-way-to-split-your-chunks-with-webpack-f8a9df5b7758
-
-    let name = 'other';
-    const matched = context?.match(/[/\\]node_modules[/\\](.*?)([/\\]|$)/);
-
-    if (matched) {
-      name = matched[1].replace('@', '');
-      // name = Buffer.from(matched[1].replace('@', ''), 'utf8')
-      //   .toString('base64url')
-      //   .toLowerCase();
-    }
-
-    return `${prefix}.${name}`;
-  };
+  return matched ? matched[1].replace('@', '') : 'other';
+};
 
 const reduceManifestFiles = (array: Array<string>) =>
   array.reduce<{ js: Array<string>; css: Array<string> }>(

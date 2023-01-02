@@ -9,22 +9,22 @@
     <style data-type="critical-css">
       {{ criticalCss | safe }}
     </style>
+    {% for style in manifest.css.initial %}
+      <link rel="preload" as="style" href="{{ style }}">
+    {% endfor %}
   {% else %}
     {% for style in manifest.css.initial %}
       <link rel="stylesheet" as="style" href="{{ style }}">
     {% endfor %}
   {% endif %}
+  {% for style in manifest.css.async %}
+    <link rel="preload" as="style" href="{{ style }}">
+  {% endfor %}
   {% for script in manifest.js.initial %}
     <script src="{{ script }}" defer></script>
   {% endfor %}
   {% for script in manifest.js.async %}
     <link rel="preload" as="script" href="{{ script }}">
-  {% endfor %}
-  {% for style in manifest.css.initial %}
-    <link rel="preload" as="style" href="{{ style }}">
-  {% endfor %}
-  {% for style in manifest.css.async %}
-    <link rel="preload" as="style" href="{{ style }}">
   {% endfor %}
   <script data-type="initial-state">
     window.INITIAL_STATE = '{{ state | safe }}';
