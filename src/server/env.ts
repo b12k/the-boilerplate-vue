@@ -15,9 +15,9 @@ const { npm_package_version: VERSION, ...requiredEnv } = required(
 );
 
 const {
-  RENDER_CACHE_TTL = 60 * 60 * 24, // 1 day
+  RENDER_CACHE_TTL = (60 * 60 * 24).toString(), // 1 day
   RENDER_CACHE_SALT = VERSION,
-  CRITICAL_CSS_CACHE_TTL = 60 * 60 * 24, // 1 day
+  CRITICAL_CSS_CACHE_TTL = (60 * 60 * 24).toString(), // 1 day
   CRITICAL_CSS_CACHE_SALT = VERSION,
   ...optionalEnv
 } = optional(
