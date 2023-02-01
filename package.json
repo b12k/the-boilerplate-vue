@@ -5,11 +5,16 @@
   "license": "MIT",
   "version": "0.0.0",
   "private": true,
+  "engines": {
+    "node": "18",
+    "yarn": "1"
+  },
+  "packageManager": "yarn@1.22.19",
   "scripts": {
     "dev": "run-s _clean _dev",
     "tsc": "vue-tsc --noEmit",
     "lint": "run-p _lint:*",
-    "prettier": "prettier . --ignore-path .gitignore",
+    "prettify": "prettier . --ignore-path .gitignore",
     "build": "run-s _clean _build",
     "build:docker": "docker build . -t vueltimate-boilerplate:latest",
     "build:stats": "cross-env WITH_STATS=true yarn build",
