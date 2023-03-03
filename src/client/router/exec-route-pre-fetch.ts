@@ -2,14 +2,14 @@ import {
   RouteLocationNormalized,
   RouteLocationNormalizedLoaded,
 } from 'vue-router';
-import { extractComponents } from './extract-components';
+import { getMatchedComponents } from '@b12k/vue3-router-gmc';
 
 export const execRoutePreFetch = async (
   to: RouteLocationNormalized,
   from?: RouteLocationNormalizedLoaded,
   isSsr?: boolean,
 ) => {
-  const { entering, staying } = await extractComponents(to, from);
+  const { entering, staying } = await getMatchedComponents(to, from);
   const enteringFetchDataPromises = entering.map(
     ({ fetchData }) => fetchData && fetchData(to),
   );

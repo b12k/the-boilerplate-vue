@@ -5,11 +5,11 @@ export class LruCache implements CacheClient {
   private readonly client;
 
   constructor(ttl: number) {
-    this.client = new LRU({ max: 10_000, ttl: ttl * 1000 });
+    this.client = new LRU<string, string>({ max: 10_000, ttl: ttl * 1000 });
   }
 
   get(key: string) {
-    return this.client.get<string>(key);
+    return this.client.get(key);
   }
 
   set(key: string, value: string) {
