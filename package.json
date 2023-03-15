@@ -122,7 +122,7 @@
     "vue-template-compiler": "2.7.14",
     "vue-tsc": "1.2.0",
     "wait-on": "7.0.1",
-    "webpack": "5.75.0",
+    "webpack": "5.76.0",
     "webpack-cli": "5.0.1",
     "webpack-dev-server": "4.11.1",
     "webpack-manifest-plugin": "5.0.0",
