@@ -7,4 +7,4 @@ services:
       - ${REDIS_PORT}:6379
     command: redis-server --requirepass ${REDIS_PASSWORD}
     volumes:
-      - .data/redis:/data
+      - .temp/redis:/data

@@ -5,7 +5,8 @@
 
 .env
 .husky/_/*
-.data
+.temp/redis/*
+!.temp/redis/.gitkeep
 .webpack-cache
 
 dist
