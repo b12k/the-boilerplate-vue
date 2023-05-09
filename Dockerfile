@@ -1,4 +1,4 @@
-FROM node:lts-alpine AS base
+FROM node:20-alpine as base
 RUN apk update
 WORKDIR /app
 ENV YARN_CACHE_FOLDER=.yarn-cache
