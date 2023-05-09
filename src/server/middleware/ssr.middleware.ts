@@ -46,7 +46,7 @@ export const ssrMiddleware: RequestHandler = async (
     }
 
     if (!renderResult) {
-      renderResult = await render({ ...context });
+      renderResult = await render({ ...context }, request.log);
     }
 
     if (!renderResult) {
