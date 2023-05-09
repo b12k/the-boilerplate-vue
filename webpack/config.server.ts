@@ -1,5 +1,4 @@
-import { Configuration } from 'webpack';
-import webpackNodeExternals from 'webpack-node-externals';
+import type { Configuration } from 'webpack';
 
 import baseConfig from './config.base';
 import { sassIgnoreLoader, createImageLoader } from './loaders';
@@ -23,7 +22,6 @@ const config: Configuration = {
     cacheDirectory: env.CACHE_DIR,
     name: `server-${env.IS_PROD ? 'prod' : 'dev'}`,
   },
-  externals: webpackNodeExternals(),
   module: {
     rules: [
       ...(baseConfig.module?.rules || []),
