@@ -1,12 +1,13 @@
 <script lang="ts">
   import { defineComponent } from 'vue';
   import { storeToRefs } from 'pinia';
-  import { LayoutHollyGrail, BaseIcon } from '../components';
+  import { LayoutHollyGrail, BaseIcon, BaseButton } from '../components';
   import { useContextStore } from '../store';
 
   export default defineComponent({
     name: 'PageOne',
     components: {
+      BaseButton,
       BaseIcon,
       LayoutHollyGrail,
     },
@@ -45,6 +46,7 @@
       </div>
       Context
       <pre>{{ context }}</pre>
+      <BaseButton />
     </main>
   </LayoutHollyGrail>
 </template>

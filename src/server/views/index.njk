@@ -1,16 +1,17 @@
 <!doctype html>
-<html lang="{{ context.lang }}">
+<html lang="{{ context.lang }}"{{ head.htmlAttrs | safe }}>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport"
         content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  {{ head.headTags | safe }}
   {% if criticalCss %}
     <style data-type="critical-css">
       {{ criticalCss | safe }}
     </style>
     {% for style in manifest.css.initial %}
-      <link rel="preload" as="style" href="{{ style }}">
+      <link rel="prefetch" as="style" href="{{ style }}">
     {% endfor %}
   {% else %}
     {% for style in manifest.css.initial %}
@@ -18,20 +19,22 @@
     {% endfor %}
   {% endif %}
   {% for style in manifest.css.async %}
-    <link rel="preload" as="style" href="{{ style }}">
+    <link rel="prefetch" as="style" href="{{ style }}">
   {% endfor %}
   {% for script in manifest.js.initial %}
     <script src="{{ script }}" defer></script>
   {% endfor %}
   {% for script in manifest.js.async %}
-    <link rel="preload" as="script" href="{{ script }}">
+    <link rel="prefetch" as="script" href="{{ script }}">
   {% endfor %}
   <script data-type="initial-state">
     window.INITIAL_STATE = '{{ state | safe }}';
   </script>
 </head>
-<body>
+<body{{ head.bodyAttrs | safe }}>
+  {{ head.bodyTagsOpen | safe }}
   <div id="app">{{ html | safe }}</div>
+  {{ head.bodyTags | safe }}
   {% if criticalCss %}
     <script>
       const cssAssets = {{ manifest.css.initial | dump | safe }};

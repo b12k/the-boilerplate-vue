@@ -1,4 +1,3 @@
-import pino from 'express-pino-logger';
 import compression from 'shrink-ray-without-zopfli';
 import express, { static as serveStatic } from 'express';
 import nunjucks from 'nunjucks';
@@ -13,7 +12,7 @@ import {
   contextMiddleware,
   languageMiddleware,
 } from './middleware';
-import { cacheService } from './services';
+import { cacheService, loggerService } from './services';
 import { getLanguage } from './utils';
 
 (async () => {
@@ -35,16 +34,11 @@ import { getLanguage } from './utils';
     .addGlobal('env', env);
 
   app
+    .use(loggerService)
     .disable('x-powered-by')
     .set('etag', false)
     .set('view engine', 'njk')
     .use(cookieParser())
-    .use(
-      pino({
-        level: 'info',
-        enabled: env.LOG === 'true',
-      }),
-    )
     .use(compression())
     .use(serveFavicon(env.FAVICON_PATH))
     .use('/health', healthMiddleware)
