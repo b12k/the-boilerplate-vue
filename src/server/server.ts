@@ -34,11 +34,11 @@ import { getLanguage } from './utils';
     .addGlobal('env', env);
 
   app
+    .use(loggerService)
     .disable('x-powered-by')
     .set('etag', false)
     .set('view engine', 'njk')
     .use(cookieParser())
-    .use(loggerService)
     .use(compression())
     .use(serveFavicon(env.FAVICON_PATH))
     .use('/health', healthMiddleware)

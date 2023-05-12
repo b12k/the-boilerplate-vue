@@ -1,11 +1,8 @@
 import pino, { Logger } from 'pino';
 
-let logger: Logger | undefined;
-export const createLogger = (serverLogger?: Logger) => {
-  logger = serverLogger || pino();
-};
+// eslint-disable-next-line import/no-mutable-exports
+export let logger = pino();
 
-export const getLogger = () => {
-  if (!logger) throw new Error('Logger is used before created');
-  return logger;
+export const replaceLogger = (_logger: Logger) => {
+  logger = _logger;
 };

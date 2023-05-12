@@ -53,7 +53,7 @@ export const ssrMiddleware: RequestHandler = async (
       throw new Error('[SSR-MIDDLEWARE] Missing render result');
     }
 
-    const { currentRoute, html, state } = renderResult;
+    const { currentRoute, head, html, state } = renderResult;
 
     const criticalCssCacheKey =
       isCriticalCssCache &&
@@ -72,6 +72,7 @@ export const ssrMiddleware: RequestHandler = async (
     }
 
     const page = nunjucks.render('index.njk', {
+      head,
       html,
       state: serialize(state),
       context,

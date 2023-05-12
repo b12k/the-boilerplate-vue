@@ -4,6 +4,7 @@ import { createWebHistory } from 'vue-router';
 import './styles/main.scss';
 import { createApp, InitialState } from './create-app';
 import { execRoutePreFetch } from './router';
+import { logger } from './services';
 
 declare global {
   interface Window {
@@ -31,5 +32,9 @@ declare global {
       console.error(error);
       return false;
     }
+  });
+
+  window.addEventListener('error', (error) => {
+    logger.error(error);
   });
 })();

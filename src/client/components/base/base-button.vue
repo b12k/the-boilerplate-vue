@@ -1,14 +1,11 @@
 <template>
-  <button class="btn btn-primary">Button</button>
+  <button class="btn btn-primary" @click="handleClick">Button</button>
 </template>
 
 <script lang="ts" setup>
-  import { onMounted } from 'vue';
-  import { getLogger } from '../../services';
+  import { api } from '../../services';
 
-  getLogger().info('Logged from button component');
-
-  onMounted(() => {
-    getLogger().warn('Logged from button component mounted');
-  });
+  const handleClick = () => {
+    api();
+  };
 </script>

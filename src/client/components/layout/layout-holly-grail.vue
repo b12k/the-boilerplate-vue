@@ -4,7 +4,7 @@
 
 <template>
   <BaseHeader />
-  <slot></slot>
+  <slot />
   <BaseFooter />
 </template>
 
