@@ -12,6 +12,7 @@ export const errorMiddleware: ErrorRequestHandler = (
   next,
 ) => {
   if (!error) return next();
+  console.log(error);
   const context = getContext();
 
   if (context.isDebug) {

@@ -35,11 +35,10 @@ export const startServer = async () => {
     .addGlobal('env', env);
 
   app
-    .use(loggerService)
-    .use(helmet)
-    .disable('x-powered-by')
-    .set('etag', false)
     .set('view engine', 'njk')
+    .set('etag', false)
+    .use(helmet())
+    .use(loggerService)
     .use(cookieParser())
     .use(compression())
     .use(serveFavicon(env.FAVICON_PATH))
