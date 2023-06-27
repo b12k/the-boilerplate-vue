@@ -10,7 +10,6 @@ import {
   ssrMiddleware,
   errorMiddleware,
   healthMiddleware,
-  helmetMiddleware,
   contextMiddleware,
   languageMiddleware,
 } from './middleware';
@@ -37,11 +36,10 @@ export const startServer = async () => {
 
   app
     .use(loggerService)
-    .use(helmetMiddleware)
+    .use(helmet)
     .disable('x-powered-by')
     .set('etag', false)
     .set('view engine', 'njk')
-    .use(helmet)
     .use(cookieParser())
     .use(compression())
     .use(serveFavicon(env.FAVICON_PATH))
