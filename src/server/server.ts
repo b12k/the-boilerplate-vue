@@ -3,15 +3,16 @@ import express, { static as serveStatic } from 'express';
 import nunjucks from 'nunjucks';
 import cookieParser from 'cookie-parser';
 import serveFavicon from 'serve-favicon';
+import helmet from 'helmet';
 
 import { env } from './env';
 import {
   ssrMiddleware,
   errorMiddleware,
   healthMiddleware,
+  helmetMiddleware,
   contextMiddleware,
   languageMiddleware,
-  cspHeadersMiddleware,
 } from './middleware';
 import { cacheService, loggerService } from './services';
 import { getLanguage, printDevelopmentBanner } from './utils';
@@ -36,13 +37,14 @@ export const startServer = async () => {
 
   app
     .use(loggerService)
+    .use(helmetMiddleware)
     .disable('x-powered-by')
     .set('etag', false)
     .set('view engine', 'njk')
+    .use(helmet)
     .use(cookieParser())
     .use(compression())
     .use(serveFavicon(env.FAVICON_PATH))
-    .use(cspHeadersMiddleware)
     .use('/health', healthMiddleware)
     .use(
       '/public',
