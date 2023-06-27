@@ -29,19 +29,27 @@
         </div>
       </div>
       <div class="row">
-        <div class="col-2">
-          <img
-            src="../assets/images/image-1-thmb.jpg"
-            alt="image 1 thumb banana"
-            class="w-100 ratio-4x3"
-          />
+        <div class="col-1">
+          <div class="ratio ratio-1x1">
+            <img
+              src="../assets/images/image-1-thmb.jpg"
+              alt="image 1 thumb banana"
+              class="object-fit-cover"
+              width="100"
+              height="125"
+            />
+          </div>
         </div>
-        <div class="col-4">
-          <img
-            src="../assets/images/image-1.jpg"
-            alt="image 1"
-            class="w-100 ratio-4x3"
-          />
+        <div class="col-6">
+          <div class="ratio ratio-4x3">
+            <img
+              src="../assets/images/image-1.jpg"
+              alt="image 1"
+              class="w-100 object-fit-cover"
+              width="1024"
+              height="1280"
+            />
+          </div>
         </div>
       </div>
       Context

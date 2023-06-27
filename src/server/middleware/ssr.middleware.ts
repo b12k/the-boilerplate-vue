@@ -2,7 +2,7 @@ import { RequestHandler } from 'express';
 import serialize from 'serialize-javascript';
 import nunjucks from 'nunjucks';
 
-import { RenderResult } from '@client';
+import type { RenderResult } from '@client';
 import {
   loadSsrAssets,
   computeIdempotencyKey,

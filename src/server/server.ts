@@ -11,11 +11,12 @@ import {
   healthMiddleware,
   contextMiddleware,
   languageMiddleware,
+  cspHeadersMiddleware,
 } from './middleware';
 import { cacheService, loggerService } from './services';
-import { getLanguage } from './utils';
+import { getLanguage, printDevelopmentBanner } from './utils';
 
-(async () => {
+export const startServer = async () => {
   await cacheService.initialize({
     redisUrl: env.REDIS_URL,
     renderCacheTtl: Number(env.RENDER_CACHE_TTL),
@@ -41,6 +42,7 @@ import { getLanguage } from './utils';
     .use(cookieParser())
     .use(compression())
     .use(serveFavicon(env.FAVICON_PATH))
+    .use(cspHeadersMiddleware)
     .use('/health', healthMiddleware)
     .use(
       '/public',
@@ -59,8 +61,6 @@ import { getLanguage } from './utils';
     .listen(
       env.PORT,
       () =>
-        env.SERVER_ENV === 'local' &&
-        // eslint-disable-next-line no-console
-        console.log(`🚀 Server running on: http://localhost:${env.PORT}`),
+        env.SERVER_ENV === 'local' && printDevelopmentBanner(Number(env.PORT)),
     );
-})();
+};

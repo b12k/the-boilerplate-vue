@@ -8,6 +8,7 @@
   }>();
 </script>
 <template>
+  <!-- eslint-disable-next-line vue/no-v-html -->
   <span class="icon" v-html="Icons[props.name]" />
 </template>
 <style lang="scss">

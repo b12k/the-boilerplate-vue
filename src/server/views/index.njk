@@ -11,7 +11,7 @@
       {{ criticalCss | safe }}
     </style>
     {% for style in manifest.css.initial %}
-      <link rel="prefetch" as="style" href="{{ style }}">
+      <link rel="preload" as="style" href="{{ style }}" onload="onload=null;rel='stylesheet'">
     {% endfor %}
   {% else %}
     {% for style in manifest.css.initial %}
@@ -35,18 +35,6 @@
   {{ head.bodyTagsOpen | safe }}
   <div id="app">{{ html | safe }}</div>
   {{ head.bodyTags | safe }}
-  {% if criticalCss %}
-    <script>
-      const cssAssets = {{ manifest.css.initial | dump | safe }};
-      cssAssets.map((href) => {
-        const link = document.createElement('link');
-        link.href = href;
-        link.rel = 'stylesheet';
-        link.as = 'style';
-        document.head.appendChild(link);
-      });
-    </script>
-  {% endif %}
   {% if context.isDebug %}
     {% include "_env.njk" %}
   {% endif %}
