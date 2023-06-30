@@ -3,16 +3,20 @@ import helmet, { HelmetOptions } from 'helmet';
 
 import { getContext } from './context.middleware';
 
-export const helmetMiddleware: RequestHandler = (request, response, next) => {
-  const { requestId } = getContext();
+export const helmetMiddleware =
+  (isEnabled: boolean): RequestHandler =>
+  (request, response, next) => {
+    if (!isEnabled) return next();
 
-  const options: HelmetOptions = {
-    contentSecurityPolicy: {
-      directives: {
-        scriptSrc: ["'self'", `'nonce-${requestId}'`, "'unsafe-inline'"],
+    const { requestId } = getContext();
+
+    const options: HelmetOptions = {
+      contentSecurityPolicy: {
+        directives: {
+          scriptSrc: ["'self'", `'nonce-${requestId}'`, "'unsafe-inline'"],
+        },
       },
-    },
-  };
+    };
 
-  helmet(options)(request, response, next);
-};
+    return helmet(options)(request, response, next);
+  };

@@ -51,11 +51,8 @@ export const startServer = async () => {
       }),
     )
     .use('/:lang?', languageMiddleware)
-    .use('/:lang?', contextMiddleware);
-
-  if (env.SERVER_ENV === 'production') app.use(helmetMiddleware);
-
-  app
+    .use('/:lang?', contextMiddleware)
+    .use(helmetMiddleware(env.IS_PROD === 'true'))
     .use('/:lang(de|en)', ssrMiddleware)
     .use('*', (request, response) =>
       response.status(404).render('404', { lang: getLanguage(request) }),
@@ -63,7 +60,6 @@ export const startServer = async () => {
     .use(errorMiddleware)
     .listen(
       env.PORT,
-      () =>
-        env.SERVER_ENV === 'local' && printDevelopmentBanner(Number(env.PORT)),
+      () => env.IS_PROD !== 'true' && printDevelopmentBanner(Number(env.PORT)),
     );
 };
