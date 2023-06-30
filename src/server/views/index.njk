@@ -11,7 +11,7 @@
       {{ criticalCss | safe }}
     </style>
     {% for style in manifest.css.initial %}
-      <link rel="preload" as="style" href="{{ style }}" onload="onload=null;rel='stylesheet'">
+      <link rel="preload" as="style" href="{{ style }}" data-async-css>
     {% endfor %}
   {% else %}
     {% for style in manifest.css.initial %}
@@ -27,8 +27,14 @@
   {% for script in manifest.js.async %}
     <link rel="prefetch" as="script" href="{{ script }}">
   {% endfor %}
-  <script data-type="initial-state">
+  <script nonce="{{ context.requestId }}">
     window.INITIAL_STATE = '{{ state | safe }}';
+    document.querySelectorAll('[data-async-css]').forEach((link) => {
+      link.onload = () => {
+        link.rel = 'stylesheet';
+        link.onload = null;
+      }
+    });
   </script>
 </head>
 <body{{ head.bodyAttrs | safe }}>

@@ -3,13 +3,14 @@ import express, { static as serveStatic } from 'express';
 import nunjucks from 'nunjucks';
 import cookieParser from 'cookie-parser';
 import serveFavicon from 'serve-favicon';
-import helmet from 'helmet';
 
 import { env } from './env';
+
 import {
   ssrMiddleware,
   errorMiddleware,
   healthMiddleware,
+  helmetMiddleware,
   contextMiddleware,
   languageMiddleware,
 } from './middleware';
@@ -37,7 +38,6 @@ export const startServer = async () => {
   app
     .set('view engine', 'njk')
     .set('etag', false)
-    .use(helmet())
     .use(loggerService)
     .use(cookieParser())
     .use(compression())
@@ -51,7 +51,11 @@ export const startServer = async () => {
       }),
     )
     .use('/:lang?', languageMiddleware)
-    .use('/:lang?', contextMiddleware)
+    .use('/:lang?', contextMiddleware);
+
+  if (env.SERVER_ENV === 'production') app.use(helmetMiddleware);
+
+  app
     .use('/:lang(de|en)', ssrMiddleware)
     .use('*', (request, response) =>
       response.status(404).render('404', { lang: getLanguage(request) }),

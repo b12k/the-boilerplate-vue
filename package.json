@@ -19,7 +19,7 @@
     "build:docker": "docker build . -t vueltimate-boilerplate:latest",
     "build:stats": "cross-env WITH_STATS=true yarn build",
     "start": "node dist | pino-pretty",
-    "start:local": "yarn build && env-cmd node dist",
+    "start:local": "nodemon --watch src --watch .env --ext * --exec \"yarn build && env-cmd node ./dist\"",
     "⚙️": "######################## TECHNICAL SCRIPTS ########################",
     "prepare": "run-p _prepare:*",
     "_prepare:env": "shx cp -u .env.example .env",
