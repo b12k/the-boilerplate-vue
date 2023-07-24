@@ -48,7 +48,7 @@ export const buildContext = (request: Request) => {
     isProd: env.NODE_ENV !== 'development',
     version: env.VERSION,
     baseUrl: request.baseUrl,
-    requestId: request.id.toString(),
+    requestId: typeof request.id === 'object' ? '' : request.id.toString(),
   };
 };
 

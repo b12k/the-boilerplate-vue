@@ -21,10 +21,10 @@ const {
   CRITICAL_CSS_CACHE_SALT = VERSION,
   ...optionalEnv
 } = optional(
-  'LOG',
   'CACHE',
   'DEBUG',
   'WDS_PORT',
+  'LOG_LEVEL',
   'REDIS_URL',
   'RENDER_CACHE',
   'RENDER_CACHE_TTL',

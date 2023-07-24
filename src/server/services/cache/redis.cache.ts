@@ -4,7 +4,10 @@ import type { CacheClient } from './cache.service';
 export class RedisCache implements CacheClient {
   private readonly client;
 
-  constructor(url: string, private readonly ttl: number) {
+  constructor(
+    url: string,
+    private readonly ttl: number,
+  ) {
     this.client = createClient({
       url,
     });

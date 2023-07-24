@@ -55,7 +55,10 @@ export const startServer = async () => {
     .use(helmetMiddleware(env.IS_PROD === 'true'))
     .use('/:lang(de|en)', ssrMiddleware)
     .use('*', (request, response) =>
-      response.status(404).render('404', { lang: getLanguage(request) }),
+      response.status(404).render('404', {
+        lang: getLanguage(request),
+        requestId: typeof request.id === 'object' ? '' : request.id.toString(),
+      }),
     )
     .use(errorMiddleware)
     .listen(

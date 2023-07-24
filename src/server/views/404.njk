@@ -1,6 +1,6 @@
 <html>
 <head>
-  <script>
+  <script nonce="{{ requestId }}">
     const page404 = [
       window.location.origin,
       '{{ lang }}',
@@ -20,6 +20,7 @@
       font-size: 5vw;
       font-weight: bolder;
       display: flex;
+      overflow: hidden;
     }
   </style>
 </head>

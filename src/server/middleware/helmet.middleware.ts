@@ -1,14 +1,13 @@
 import { RequestHandler } from 'express';
 import helmet, { HelmetOptions } from 'helmet';
 
-import { getContext } from './context.middleware';
-
 export const helmetMiddleware =
   (isEnabled: boolean): RequestHandler =>
   (request, response, next) => {
     if (!isEnabled) return next();
 
-    const { requestId } = getContext();
+    const requestId =
+      typeof request.id === 'object' ? '' : request.id.toString();
 
     const options: HelmetOptions = {
       contentSecurityPolicy: {
