@@ -1,6 +1,6 @@
-import { PurgeCSS } from 'purgecss';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { PurgeCSS } from 'purgecss';
 
 const purgeCss = new PurgeCSS();
 

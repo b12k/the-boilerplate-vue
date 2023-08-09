@@ -1,6 +1,6 @@
 import 'webpack-dev-server';
-import { Configuration } from 'webpack';
 import { resolve } from 'node:path';
+import { Configuration } from 'webpack';
 import baseConfig from './config.base';
 import { sassLoader, createImageLoader } from './loaders';
 import { getVendorName, getFilenameJs } from './utils';
@@ -72,9 +72,19 @@ if (env.IS_PROD) {
   config.optimization = {
     runtimeChunk: 'single',
     splitChunks: {
-      chunks: 'all',
       cacheGroups: {
         vendor: {
+          chunks: 'initial',
+          // enforce: true,
+          test: /[/\\]node_modules[/\\]/,
+          name: getVendorName,
+          filename: getFilenameJs('vendor', env.IS_PROD),
+        },
+        async: {
+          chunks: 'async',
+          // enforce: true,
+          minSize: 0,
+          minChunks: 2,
           test: /[/\\]node_modules[/\\]/,
           name: getVendorName,
           filename: getFilenameJs('vendor', env.IS_PROD),

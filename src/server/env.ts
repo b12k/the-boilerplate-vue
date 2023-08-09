@@ -1,6 +1,6 @@
-import Surenv from 'surenv';
 import { resolve } from 'node:path';
 import { hostname } from 'node:os';
+import Surenv from 'surenv';
 
 const { required, optional } = new Surenv();
 
@@ -21,10 +21,10 @@ const {
   CRITICAL_CSS_CACHE_SALT = VERSION,
   ...optionalEnv
 } = optional(
-  'LOG',
   'CACHE',
   'DEBUG',
   'WDS_PORT',
+  'LOG_LEVEL',
   'REDIS_URL',
   'RENDER_CACHE',
   'RENDER_CACHE_TTL',

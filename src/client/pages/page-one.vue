@@ -24,7 +24,7 @@
           <h1>Page One 1</h1>
           <p>
             Lorem ipsum dolor sit amet.
-            <BaseIcon name="Poo" />
+            <BaseIcon icon="Poo" />
           </p>
         </div>
       </div>

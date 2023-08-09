@@ -1,5 +1,5 @@
 import { ErrorRequestHandler } from 'express';
-import jsonStringifySafe from 'json-stringify-safe';
+import serialize from 'serialize-javascript';
 
 import type { AxiosError } from 'axios';
 import { getContext } from './context.middleware';
@@ -12,13 +12,13 @@ export const errorMiddleware: ErrorRequestHandler = (
   next,
 ) => {
   if (!error) return next();
-  console.log(error);
+
   const context = getContext();
 
   if (context.isDebug) {
     return response.status(500).render('debug', {
       message: error.message,
-      details: jsonStringifySafe({
+      details: serialize({
         error: error.stack?.split('\n').map((line) => line.trim()),
         env,
         request,
