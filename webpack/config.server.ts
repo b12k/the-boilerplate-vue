@@ -32,6 +32,9 @@ const config: Configuration = {
   plugins: [...(baseConfig.plugins || []), webpackSsrManifestPlugin],
   devtool: false,
   watch: !env.IS_PROD,
+  optimization: {
+    minimize: false,
+  },
 };
 
 export default config;

@@ -27,7 +27,7 @@ export class CacheService {
 
   private config!: CacheClientConfig;
 
-  public cacheType!: 'redis' | 'lru';
+  public cacheType!: 'R' | 'L';
 
   async initialize(config: CacheClientConfig) {
     this.config = config;
@@ -40,7 +40,7 @@ export class CacheService {
         this.criticalCssCache = client;
         this.cache = client;
         this.isInitialized = true;
-        this.cacheType = 'redis';
+        this.cacheType = 'R';
         return;
       } catch {
         // eslint-disable-next-line no-console
@@ -50,7 +50,7 @@ export class CacheService {
     this.renderCache = new LruCache(config.renderCacheTtl);
     this.criticalCssCache = new LruCache(config.criticalCssCacheTtl);
     this.isInitialized = true;
-    this.cacheType = 'lru';
+    this.cacheType = 'L';
   }
 
   private saltRenderKey(key: string) {

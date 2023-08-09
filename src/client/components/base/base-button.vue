@@ -3,9 +3,8 @@
 </template>
 
 <script lang="ts" setup>
-  import { api } from '../../services';
-
-  const handleClick = () => {
-    api();
+  const handleClick = async () => {
+    const { default: isMobile } = await import('is-mobile');
+    console.log(isMobile());
   };
 </script>

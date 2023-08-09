@@ -1,4 +1,5 @@
 import { Request } from 'express';
+import isMobile from 'is-mobile';
 
 import { env as _env, Env } from '../env';
 import { createRequestPropertyExtractor, overrideEnv } from '../utils';
@@ -7,14 +8,14 @@ export const buildContext = (request: Request) => {
   const getRequestProperty = createRequestPropertyExtractor(request);
   const enableDebugProperty = getRequestProperty('ENABLE_DEBUG');
   const envOverridesProperty = getRequestProperty('ENV_OVERRIDES');
-  const isCache =
+  const isCacheEnabled =
     _env.CACHE === 'true' && getRequestProperty('CACHE') !== 'false';
-  const isRenderCache =
-    isCache &&
+  const isRenderCacheEnabled =
+    isCacheEnabled &&
     _env.RENDER_CACHE === 'true' &&
     getRequestProperty('RENDER_CACHE') !== 'false';
-  const isCriticalCssCache =
-    isCache &&
+  const isCriticalCssCacheEnabled =
+    isCacheEnabled &&
     _env.CRITICAL_CSS_CACHE === 'true' &&
     getRequestProperty('CRITICAL_CSS_CACHE') !== 'false';
   const shouldRefreshRenderCache =
@@ -35,11 +36,15 @@ export const buildContext = (request: Request) => {
   }
 
   return {
+    isMobile: isMobile({
+      ua: request,
+    }),
     isDebug,
-    isCache,
-    isRenderCache,
-    isCriticalCssCache,
+    isCacheEnabled,
+    isRenderCacheEnabled,
+    isCriticalCssCacheEnabled,
     isEnvOverridden: env.IS_OVERRIDDEN === 'true',
+    isContextPatched: false,
     shouldRefreshRenderCache,
     shouldRefreshCriticalCssCache,
     url: request.url,
@@ -52,4 +57,5 @@ export const buildContext = (request: Request) => {
   };
 };
 
-export type Context = ReturnType<typeof buildContext>;
+export type BuildContext = ReturnType<typeof buildContext>;
+export type Context = BuildContext & { cached?: Partial<BuildContext> };

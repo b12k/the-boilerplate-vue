@@ -4,21 +4,28 @@ import { createHash } from 'node:crypto';
 import { Context } from './context-builder.service';
 import config from '../idempotency.config';
 
-type ComputeIdempotencyKeyFunction = (
+type FalsyValue = false | null | undefined | 0;
+
+type ComputeKeyFunction = (
   context: Context,
   params: Record<string, string>,
-) => undefined | string;
+) => string | FalsyValue;
+
+type BeforeAfterComputeKeyFunction = (
+  context: Context,
+  params: Record<string, string>,
+) => string | boolean;
 
 export type IdempotencyConfig = {
-  paths: Record<string, ComputeIdempotencyKeyFunction>;
-  afterCompute?: (
-    key: string,
-    context: Context,
-    params: Record<string, string>,
-  ) => string | undefined;
+  paths: Record<string, ComputeKeyFunction>;
+  beforeCompute?: BeforeAfterComputeKeyFunction;
+  afterCompute?: BeforeAfterComputeKeyFunction;
 };
 
-const trimSlashes = (string_: string) => string_.replaceAll(/^\/|\/$/g, '');
+const trimSlashes = (path: string) => path.replaceAll(/^\/|\/$/g, '');
+
+const hashKey = (key: string) =>
+  createHash('sha256').update(key).digest('base64');
 
 export const computeIdempotencyKey = (context: Context) => {
   const { baseUrl, url } = context;
@@ -32,19 +39,25 @@ export const computeIdempotencyKey = (context: Context) => {
     })
     .find(Boolean);
 
-  let key: string | undefined;
-
-  if (!matched) return key;
+  if (!matched) return false;
 
   const params = matched.params as Record<string, string>;
 
-  key = config.paths[matched.key](context, params);
+  const keyBeforeComputed = config.beforeCompute
+    ? config.beforeCompute(context, params)
+    : '';
 
-  if (!key) return key;
+  if (keyBeforeComputed === false) return false;
 
-  if (config.afterCompute) {
-    key = config.afterCompute(key, context, params);
-  }
+  const computedKey = config.paths[matched.key](context, params);
 
-  return key && createHash('sha256').update(key).digest('base64');
+  if (!computedKey) return false;
+
+  const keyAfterComputed = config.afterCompute
+    ? config.afterCompute(context, params)
+    : '';
+
+  if (keyAfterComputed === false) return false;
+
+  return hashKey(`${keyBeforeComputed}${computedKey}${keyAfterComputed}`);
 };
