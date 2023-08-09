@@ -1,8 +1,8 @@
+import { resolve } from 'node:path';
 import decache from 'decache';
 
 import type { Render } from '@client';
 
-import { resolve } from 'node:path';
 import { env } from '../env';
 
 export interface AssetsManifest {

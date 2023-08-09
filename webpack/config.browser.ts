@@ -1,6 +1,6 @@
 import 'webpack-dev-server';
-import { Configuration } from 'webpack';
 import { resolve } from 'node:path';
+import { Configuration } from 'webpack';
 import baseConfig from './config.base';
 import { sassLoader, createImageLoader } from './loaders';
 import { getVendorName, getFilenameJs } from './utils';

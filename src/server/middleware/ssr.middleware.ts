@@ -3,7 +3,7 @@ import serialize from 'serialize-javascript';
 import nunjucks from 'nunjucks';
 import { diff } from 'deep-object-diff';
 
-import type { RenderResult } from '@client';
+import type { RenderResult, Logger } from '@client';
 import {
   loadSsrAssets,
   computeIdempotencyKey,
@@ -69,7 +69,7 @@ export const ssrMiddleware: RequestHandler = async (
      */
 
     if (!renderResult) {
-      renderResult = await render({ ...context }, request.log);
+      renderResult = await render({ ...context }, request.log as Logger);
     }
 
     if (!renderResult) {

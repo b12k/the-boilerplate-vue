@@ -1,6 +1,6 @@
-import Surenv from 'surenv';
 import { resolve } from 'node:path';
 import { hostname } from 'node:os';
+import Surenv from 'surenv';
 
 const { required, optional } = new Surenv();
 
