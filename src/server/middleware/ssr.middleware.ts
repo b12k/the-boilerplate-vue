@@ -37,8 +37,14 @@ export const ssrMiddleware: RequestHandler = async (
       isRenderCacheEnabled && computeIdempotencyKey(context);
     const { render, manifest } = await loadSsrAssets();
 
-    /**
-     * APPLICATION RENDER CACHE
+    // section Read Cache
+    /*
+     *   ____                _     ____           _
+     *  |  _ \ ___  __ _  __| |   / ___|__ _  ___| |__   ___
+     *  | |_) / _ \/ _` |/ _` |  | |   / _` |/ __| '_ \ / _ \
+     *  |  _ <  __/ (_| | (_| |  | |__| (_| | (__| | | |  __/
+     *  |_| \_\___|\__,_|\__,_|   \____\__,_|\___|_| |_|\___|
+     *
      */
 
     let renderResult: RenderResult | undefined;
@@ -64,8 +70,14 @@ export const ssrMiddleware: RequestHandler = async (
       }
     }
 
-    /**
-     * RENDER APPLICATION
+    // section Render
+    /*
+     *   ____                _
+     *  |  _ \ ___ _ __   __| | ___ _ __
+     *  | |_) / _ \ '_ \ / _` |/ _ \ '__|
+     *  |  _ <  __/ | | | (_| |  __/ |
+     *  |_| \_\___|_| |_|\__,_|\___|_|
+     *
      */
 
     if (!renderResult) {
@@ -78,8 +90,14 @@ export const ssrMiddleware: RequestHandler = async (
 
     const { currentRoute, head, html, state } = renderResult;
 
-    /**
-     * CRITICAL CSS
+    // section Critical CSS
+    /*
+     *    ____      _ _   _           _     ____ ____ ____
+     *   / ___|_ __(_) |_(_) ___ __ _| |   / ___/ ___/ ___|
+     *  | |   | '__| | __| |/ __/ _` | |  | |   \___ \___ \
+     *  | |___| |  | | |_| | (_| (_| | |  | |___ ___) |__) |
+     *   \____|_|  |_|\__|_|\___\__,_|_|   \____|____/____/
+     *
      */
 
     const criticalCssCacheKey =
@@ -89,17 +107,23 @@ export const ssrMiddleware: RequestHandler = async (
     let criticalCss: string | undefined;
 
     if (criticalCssCacheKey) {
-      const cachedCriticalCss = await cacheService.getCriticalCss(
-        criticalCssCacheKey,
-      );
+      const cachedCriticalCss =
+        await cacheService.getCriticalCss(criticalCssCacheKey);
+
       criticalCss =
         cachedCriticalCss === 'pending' ? undefined : cachedCriticalCss;
 
       isCriticalCssCached = Boolean(criticalCss);
     }
 
-    /**
-     * RENDER TEMPLATE
+    // section Template
+    /*
+     *   _____                    _       _
+     *  |_   _|__ _ __ ___  _ __ | | __ _| |_ ___
+     *    | |/ _ \ '_ ` _ \| '_ \| |/ _` | __/ _ \
+     *    | |  __/ | | | | | |_) | | (_| | ||  __/
+     *    |_|\___|_| |_| |_| .__/|_|\__,_|\__\___|
+     *                     |_|
      */
 
     const page = nunjucks.render('index.njk', {
@@ -111,8 +135,14 @@ export const ssrMiddleware: RequestHandler = async (
       criticalCss,
     });
 
-    /**
-     * RESPONSE
+    // section Response
+    /*
+     *   ____
+     *  |  _ \ ___  ___ _ __   ___  _ __  ___  ___
+     *  | |_) / _ \/ __| '_ \ / _ \| '_ \/ __|/ _ \
+     *  |  _ <  __/\__ \ |_) | (_) | | | \__ \  __/
+     *  |_| \_\___||___/ .__/ \___/|_| |_|___/\___|
+     *                 |_|
      */
 
     if (isCriticalCssCached || isRenderCached) {
@@ -135,8 +165,14 @@ export const ssrMiddleware: RequestHandler = async (
       .status(Number(currentRoute.meta.responseCode) || 200)
       .send(page);
 
-    /**
-     * POST RESPONSE
+    // section Set Cache
+    /*
+     *   ____       _       ____           _
+     *  / ___|  ___| |_    / ___|__ _  ___| |__   ___
+     *  \___ \ / _ \ __|  | |   / _` |/ __| '_ \ / _ \
+     *   ___) |  __/ |_   | |__| (_| | (__| | | |  __/
+     *  |____/ \___|\__|   \____\__,_|\___|_| |_|\___|
+     *
      */
 
     if (
