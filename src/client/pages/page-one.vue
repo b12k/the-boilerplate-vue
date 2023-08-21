@@ -12,7 +12,13 @@
       LayoutHollyGrail,
     },
     data() {
-      return { context: storeToRefs(useContextStore()) };
+      return {
+        isMounted: false,
+        context: storeToRefs(useContextStore()),
+      };
+    },
+    mounted() {
+      this.isMounted = true;
     },
   });
 </script>
@@ -53,7 +59,7 @@
         </div>
       </div>
       Context
-      <pre>{{ context }}</pre>
+      <pre v-if="isMounted">{{ context }}</pre>
       <BaseButton />
     </main>
   </LayoutHollyGrail>

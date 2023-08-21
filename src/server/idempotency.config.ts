@@ -1,7 +1,7 @@
 import type { IdempotencyConfig } from './services';
 
 export default {
-  beforeCompute: (context) => context.isMobile,
+  beforeCompute: (context) => context.device.type,
   paths: {
     '/:lang': (context, params) => params.lang,
   },

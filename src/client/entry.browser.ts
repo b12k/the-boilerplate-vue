@@ -1,10 +1,11 @@
-// import 'bootstrap';
+import 'bootstrap';
 import { createWebHistory } from 'vue-router';
 
 import './styles/main.scss';
 import { createApp, InitialState } from './create-app';
 import { execRoutePreFetch } from './router';
 import { logger } from './services';
+import { deserialize } from './utils';
 
 declare global {
   interface Window {
@@ -13,8 +14,7 @@ declare global {
 }
 
 (async () => {
-  const initialState = JSON.parse(window.INITIAL_STATE) as InitialState;
-
+  const initialState = deserialize<InitialState>(window.INITIAL_STATE);
   const history = createWebHistory(initialState.context.baseUrl);
   const { app, router } = await createApp(history, initialState);
 

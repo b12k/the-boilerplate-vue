@@ -1,8 +1,12 @@
 import { Request } from 'express';
-import isMobile from 'is-mobile';
+import UaParser from 'ua-parser-js';
 
 import { env as _env, Env } from '../env';
 import { createRequestPropertyExtractor, overrideEnv } from '../utils';
+
+interface Device {
+  type: 'mobile' | 'tablet' | 'desktop';
+}
 
 export const buildContext = (request: Request) => {
   const getRequestProperty = createRequestPropertyExtractor(request);
@@ -34,11 +38,27 @@ export const buildContext = (request: Request) => {
       env.IS_OVERRIDDEN = 'false';
     }
   }
+  const {
+    device: { type: detectedDeviceType },
+  } = new UaParser(request.headers['user-agent']).getResult();
+
+  const device: Device = {
+    type: 'mobile',
+  };
+
+  switch (detectedDeviceType) {
+    case 'tablet':
+    case 'mobile': {
+      device.type = detectedDeviceType;
+      break;
+    }
+    default: {
+      device.type = 'desktop';
+    }
+  }
 
   return {
-    isMobile: isMobile({
-      ua: request,
-    }),
+    device,
     isDebug,
     isCacheEnabled,
     isRenderCacheEnabled,
