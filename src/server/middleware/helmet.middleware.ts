@@ -12,7 +12,7 @@ export const helmetMiddleware =
     const options: HelmetOptions = {
       contentSecurityPolicy: {
         directives: {
-          scriptSrc: ["'self'", `'nonce-${requestId}'`, "'unsafe-inline'"],
+          scriptSrc: ["'self'", `'nonce-${requestId}'`, "'unsafe-eval'"],
         },
       },
     };
