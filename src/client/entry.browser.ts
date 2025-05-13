@@ -2,7 +2,7 @@ import { createHead } from '@unhead/vue/client';
 import { pino } from 'pino';
 import { createWebHistory } from 'vue-router';
 
-import './styles/main.scss';
+import './styles/main.css';
 import { createApp, type InitialState } from './create-app';
 import { execRoutePreFetch } from './router';
 import { deserialize } from './utils';

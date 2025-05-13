@@ -75,7 +75,7 @@ if (env.IS_PROD) {
           test: /[/\\]node_modules[/\\]/,
         },
         vendor: {
-          chunks: 'initial',
+          chunks: 'all',
           filename: getFilenameJs('vendor', env.IS_PROD),
           name: getVendorName,
           // enforce: true,

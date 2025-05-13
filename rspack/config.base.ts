@@ -4,10 +4,12 @@ import env from './env';
 import { iconsLoader, tsLoader, vueLoader } from './loaders';
 import { definePlugin, vuePlugin } from './plugins';
 
+console.log('FOOOOOOOO', env.IS_PROD);
+
 export default defineConfig({
   cache: true,
   context: env.CONTEXT,
-  devtool: env.IS_PROD ? 'eval-source-map' : 'source-map',
+  devtool: env.IS_PROD ? 'source-map' : 'eval-source-map',
   mode: env.IS_PROD ? 'production' : 'development',
   module: {
     rules: [tsLoader, vueLoader, iconsLoader],

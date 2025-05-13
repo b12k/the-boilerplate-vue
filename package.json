@@ -37,7 +37,7 @@
     "build:client": "rspack build -c rspack/config.single.ts",
     "build:server": "swc ./src/server -d ./dist --copy-files --strip-leading-paths --config-file server.swcrc",
     "build:public": "swc ./src/public -d ./dist --copy-files --strip-leading-paths --config-file public.swcrc",
-    "stats": "cross-env WITH_STATS=true pnpm build && serve ./dist/bundle-stats.html",
+    "stats": "cross-env WITH_STATS=true NODE_ENV=production pnpm build && serve ./dist/bundle-stats.html",
     "start": "node dist/server",
     "start:local": "nodemon --watch src --watch .env --ext * --exec \"pnpm build && cross-env NODE_ENV=production env-cmd -n node ./dist/server\"",
     "docker:build:amd": "env-cmd -i pnpm _docker-build --cache-from={{DOCKER_IMAGE}}-amd64-latest -t {{DOCKER_IMAGE}}-amd64-latest",
