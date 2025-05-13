@@ -1,24 +1,25 @@
-FROM node:20-alpine AS base
-RUN apk update
+FROM node:22-alpine AS base
+RUN corepack enable
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
 WORKDIR /app
-ENV YARN_CACHE_FOLDER=.yarn-cache
-
-FROM base AS all-deps
 COPY package.json ./package.json
-COPY yarn.lock ./yarn.lock
-RUN yarn --ignore-scripts
+COPY pnpm-lock.yaml ./pnpm-lock.yaml
 
-FROM all-deps as prod-deps
-RUN yarn --production --ignore-scripts --prefer-offline
+FROM base AS prod-deps
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --ignore-scripts --prod
 
-FROM all-deps AS builder
+FROM base AS dev-deps
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --ignore-scripts
+
+FROM base AS builder
+COPY --from=dev-deps /app/node_modules /app/node_modules
 COPY . .
-RUN yarn build
+RUN pnpm build
 
-FROM base as runner
-RUN yarn global add pino-pretty
-COPY --from=prod-deps /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-COPY package.json ./package.json
-CMD yarn start
+FROM base AS runner
+COPY --from=prod-deps /app/node_modules /app/node_modules
+COPY --from=builder /app/dist /app/dist
+CMD ["pnpm", "start"]
+
 

@@ -1,5 +1,0 @@
-{
-  "*": ["yarn prettier --check --ignore-unknown"],
-  "*.{css,scss,vue,STYLELINT}": ["yarn stylelint"],
-  "*.{ts,vue,ESLINT}": ["yarn eslint"]
-}

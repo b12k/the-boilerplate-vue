@@ -7,10 +7,12 @@
     icon: IconName;
   }>();
 </script>
+
 <template>
   <!-- eslint-disable-next-line vue/no-v-html -->
   <span class="icon" v-html="icons[props.icon]" />
 </template>
+
 <style lang="scss">
   .icon {
     svg {

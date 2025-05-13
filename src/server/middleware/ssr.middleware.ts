@@ -1,19 +1,20 @@
-import { RequestHandler } from 'express';
-import serialize from 'serialize-javascript';
-import nunjucks from 'nunjucks';
-import { diff } from 'deep-object-diff';
+import type { RenderResult } from '@client';
+import type { RequestHandler } from 'express';
 
-import type { RenderResult, Logger } from '@client';
+import { diff } from 'deep-object-diff';
+import { render as nunjuksRender } from 'nunjucks';
+import { stringify } from 'safe-stable-stringify';
+
 import {
-  loadSsrAssets,
-  computeIdempotencyKey,
+  type BuildContext,
   cacheService,
+  computeIdempotencyKey,
+  type Context,
   getCriticalCss,
-  BuildContext,
-  Context,
+  loadSsrAssets,
 } from '../services';
-import { getContext } from './context.middleware';
 import { stringToBase64 } from '../utils';
+import { getContext } from './context.middleware';
 
 export const ssrMiddleware: RequestHandler = async (
   request,
@@ -24,10 +25,10 @@ export const ssrMiddleware: RequestHandler = async (
     const responseStartedAt = Date.now();
     const context = getContext();
     const {
-      isRenderCacheEnabled,
       isCriticalCssCacheEnabled,
-      shouldRefreshRenderCache,
+      isRenderCacheEnabled,
       shouldRefreshCriticalCssCache,
+      shouldRefreshRenderCache,
     } = context;
 
     let isCriticalCssCached = false;
@@ -35,7 +36,7 @@ export const ssrMiddleware: RequestHandler = async (
 
     const renderCacheKey =
       isRenderCacheEnabled && computeIdempotencyKey(context);
-    const { render, manifest } = await loadSsrAssets();
+    const { manifest, render } = await loadSsrAssets();
 
     // section Read Cache
     /*
@@ -81,7 +82,7 @@ export const ssrMiddleware: RequestHandler = async (
      */
 
     if (!renderResult) {
-      renderResult = await render({ ...context }, request.log as Logger);
+      renderResult = await render({ ...context }, request.log);
     }
 
     if (!renderResult) {
@@ -126,13 +127,13 @@ export const ssrMiddleware: RequestHandler = async (
      *                     |_|
      */
 
-    const page = nunjucks.render('index.njk', {
+    const page = nunjuksRender('index.njk', {
+      context,
+      criticalCss,
       head,
       html,
-      state: serialize(state),
-      context,
       manifest,
-      criticalCss,
+      state: stringify(state),
     });
 
     // section Response
@@ -196,10 +197,11 @@ export const ssrMiddleware: RequestHandler = async (
         renderResult.state.context = {
           ...renderedContext,
           ...renderedContext.cached,
-          isContextPatched: false,
           cached: undefined,
+          isContextPatched: false,
         } as Context;
       }
+
       cacheService.setRender(renderCacheKey, JSON.stringify(renderResult));
     }
   } catch (error) {

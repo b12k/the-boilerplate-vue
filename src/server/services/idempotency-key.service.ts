@@ -1,26 +1,26 @@
 import { createHash } from 'node:crypto';
 import { match } from 'path-to-regexp';
 
-import { Context } from './context-builder.service';
 import config from '../idempotency.config';
+import { type Context } from './context-builder.service';
 
-type FalsyValue = false | null | undefined | 0;
-
-type ComputeKeyFunction = (
-  context: Context,
-  params: Record<string, string>,
-) => string | FalsyValue;
+export type IdempotencyConfig = {
+  afterCompute?: BeforeAfterComputeKeyFunction;
+  beforeCompute?: BeforeAfterComputeKeyFunction;
+  paths: Record<string, ComputeKeyFunction>;
+};
 
 type BeforeAfterComputeKeyFunction = (
   context: Context,
-  params: Record<string, string>,
-) => string | boolean;
+  parameters: Record<string, string>,
+) => boolean | string;
 
-export type IdempotencyConfig = {
-  paths: Record<string, ComputeKeyFunction>;
-  beforeCompute?: BeforeAfterComputeKeyFunction;
-  afterCompute?: BeforeAfterComputeKeyFunction;
-};
+type ComputeKeyFunction = (
+  context: Context,
+  parameters: Record<string, string>,
+) => FalsyValue | string;
+
+type FalsyValue = 0 | false | null | undefined;
 
 const trimSlashes = (path: string) => path.replaceAll(/^\/|\/$/g, '');
 
@@ -41,20 +41,20 @@ export const computeIdempotencyKey = (context: Context) => {
 
   if (!matched) return false;
 
-  const params = matched.params as Record<string, string>;
+  const parameters = matched.params as Record<string, string>;
 
   const keyBeforeComputed = config.beforeCompute
-    ? config.beforeCompute(context, params)
+    ? config.beforeCompute(context, parameters)
     : '';
 
   if (keyBeforeComputed === false) return false;
 
-  const computedKey = config.paths[matched.key](context, params);
+  const computedKey = config.paths[matched.key](context, parameters);
 
   if (!computedKey) return false;
 
   const keyAfterComputed = config.afterCompute
-    ? config.afterCompute(context, params)
+    ? config.afterCompute(context, parameters)
     : '';
 
   if (keyAfterComputed === false) return false;

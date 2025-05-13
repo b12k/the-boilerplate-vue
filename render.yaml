@@ -2,7 +2,7 @@ services:
   - type: web
     name: webapp
     env: docker
-    repo: https://github.com/b12k/vueltimate-boilerplate.git
+    repo: https://github.com/b12k/the-boilerplate-vue.git
     region: frankfurt
     plan: free
     branch: master

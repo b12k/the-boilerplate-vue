@@ -1,4 +1,5 @@
 import { createClient } from 'redis';
+
 import type { CacheClient } from './cache.service';
 
 export class RedisCache implements CacheClient {

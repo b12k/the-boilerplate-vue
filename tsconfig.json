@@ -1,23 +1,39 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "ts-node": {
+    "compilerOptions": {
+      "module": "CommonJS",
+      "verbatimModuleSyntax": false
+    }
+  },
+  "vueCompilerOptions": {
+    "target": 3.5
+  },
   "compilerOptions": {
     "jsx": "preserve",
-    "module": "NodeNext",
+    "jsxImportSource": "vue",
+    "module": "ESNext",
     "strict": true,
-    "target": "esnext",
+    "target": "ESNext",
+    "allowJs": true,
     "skipLibCheck": true,
     "importHelpers": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "isolatedModules": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "noImplicitAny": true,
+    "noImplicitThis": true,
+    "verbatimModuleSyntax": true,
+    "useDefineForClassFields": true,
+    "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
       "@client": ["./src/client"],
       "@server": ["./src/server"]
     }
   },
-  "include": ["**/*.ts", "**/*.vue"],
-  "exclude": ["node_modules"]
+  "include": ["**/*.ts", "**/*.js", "**/*.vue"],
+  "exclude": ["node_modules", "dist", ".temp"]
 }

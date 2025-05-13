@@ -1,33 +1,21 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="{{ context.lang }}"{{ head.htmlAttrs | safe }}>
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  {{ head.headTags | safe }}
-  {% if criticalCss %}
-    <style data-type="critical-css">
-      {{ criticalCss | safe }}
-    </style>
-    {% for style in manifest.css.initial %}
-      <link rel="preload" as="style" href="{{ style }}" data-async-css>
-    {% endfor %}
-  {% else %}
-    {% for style in manifest.css.initial %}
-      <link rel="stylesheet" href="{{ style }}">
-    {% endfor %}
-  {% endif %}
-  {% for style in manifest.css.async %}
-    <link rel="prefetch" as="style" href="{{ style }}">
-  {% endfor %}
-  {% for script in manifest.js.initial %}
-    <script src="{{ script }}" defer></script>
-  {% endfor %}
-  {% for script in manifest.js.async %}
-    <link rel="prefetch" as="script" href="{{ script }}">
-  {% endfor %}
-  <script nonce="{{ context.requestId }}">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    {{ head.headTags | safe }}
+    {% if criticalCss %}
+      <style data-type="critical-css">{{ criticalCss | safe }}</style>
+      {% for style in manifest.css.initial %}<link rel="preload" as="style" href="{{ style }}" data-async-css>{% endfor %}
+    {% else %}
+      {% for style in manifest.css.initial %}<link rel="stylesheet" href="{{ style }}">{% endfor %}
+    {% endif %}
+    {% for style in manifest.css.async %}<link rel="prefetch" as="style" href="{{ style }}">{% endfor %}
+    {% for script in manifest.js.initial %}<script src="{{ script }}" defer></script>{% endfor %}
+    {% for script in manifest.js.async %}<link rel="prefetch" as="script" href="{{ script }}">{% endfor %}
+    <script nonce="{{ context.requestId }}">
     window.INITIAL_STATE = '{{ state | safe }}';
     document.querySelectorAll('[data-async-css]').forEach((link) => {
       link.onload = () => {
@@ -35,14 +23,21 @@
         link.onload = null;
       }
     });
-  </script>
-</head>
-<body{{ head.bodyAttrs | safe }}>
-  {{ head.bodyTagsOpen | safe }}
-  <div id="app">{{ html | safe }}</div>
-  {{ head.bodyTags | safe }}
-  {% if context.isDebug %}
-    {% include "_env.njk" %}
-  {% endif %}
-</body>
+    </script>
+    <noscript>
+      {% for style in manifest.css.initial %}<link rel="stylesheet" href="{{ style }}">{% endfor %}
+      {% for style in manifest.css.async %}<link rel="stylesheet" href="{{ style }}">{% endfor %}
+    </noscript>
+    <script defer
+            src="https://cloud.umami.is/script.js"
+            data-website-id="127e8d85-f677-4920-84fd-9e6e58f8aeaa"></script>
+  </head>
+  <body {{ head.bodyAttrs | safe }}>
+    {{ head.bodyTagsOpen | safe }}
+    <div id="app">{{ html | safe }}</div>
+    {{ head.bodyTags | safe }}
+    {% if context.isDebug %}
+      {% include "_env.njk" %}
+    {% endif %}
+  </body>
 </html>

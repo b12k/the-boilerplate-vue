@@ -1,7 +1,7 @@
+import { type RequestHandler } from 'express';
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { RequestHandler } from 'express';
 
-import { buildContext, Context } from '../services';
+import { buildContext, type Context } from '../services';
 
 const contextStorage = new AsyncLocalStorage<Context>();
 export const getContext = () => {

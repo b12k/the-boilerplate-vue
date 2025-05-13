@@ -7,8 +7,7 @@
     "parser": {
       "syntax": "typescript"
     },
-    "target": "es2020",
-    "externalHelpers": true,
-
+    "target": "esnext",
+    "externalHelpers": true
   }
 }

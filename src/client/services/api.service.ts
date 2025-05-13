@@ -1,4 +1,8 @@
-export const api = () =>
-  setTimeout(() => {
-    throw new Error('API error');
-  }, 3000);
+// import type { Context } from '@server';
+export function createApi(/* context: Context */) {
+  return {
+    get: () => {
+      console.log('👌');
+    },
+  };
+}

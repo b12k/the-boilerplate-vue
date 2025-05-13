@@ -6,6 +6,10 @@
   ],
   "overrides": [
     {
+      "files": ["**/*.vue"],
+      "extends": ["stylelint-config-html/vue"]
+    },
+    {
       "files": ["**/*.njk"],
       "customSyntax": "postcss-html"
     }

@@ -1,42 +1,40 @@
-import { RouteRecordRaw } from 'vue-router';
+import { type RouteRecordRaw } from 'vue-router';
+
+declare module 'vue-router' {
+  interface RouteMeta {
+    noPreFetchAwait?: boolean;
+    responseCode?: number;
+  }
+}
 
 type RouteRecordRawNamed = RouteRecordRaw & { name: string };
+
 export const routes: Array<RouteRecordRawNamed> = [
   {
-    name: 'One',
+    component: () => import('../pages/page-home.vue'),
+    name: 'home',
     path: '/',
-    component: () => import('../pages/page-one.vue'),
   },
   {
-    name: 'Two',
-    path: '/two',
-    component: () => import('../pages/page-two.vue'),
+    component: () => import('../pages/page-about.vue'),
+    name: 'about',
+    path: '/about',
   },
   {
-    name: 'Three',
-    path: '/three',
-    component: () => import('../pages/page-three.vue'),
-  },
-  {
-    name: 'NotFound',
-    path: '/404',
-    component: () => import('../pages/page-not-found.vue'),
+    component: () => import('../pages/page-404.vue'),
     meta: {
       responseCode: 404,
     },
-  },
-  {
-    name: 'Error',
-    path: '/error',
-    component: () => import('../pages/error-page.vue'),
+    name: 'notFound',
+    path: '/404',
   },
   {
     name: 'CatchNotFound',
-    path: '/:notFoundPath(.*)*',
-    redirect: (to) => ({
+    path: '/:uri(.*)*',
+    redirect: ({ params: { uri } }) => ({
       path: '/404',
       query: {
-        'not-found': encodeURIComponent(String(to.params.notFoundPath)),
+        uri: encodeURIComponent(uri.toString()),
       },
     }),
   },

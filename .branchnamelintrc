@@ -2,7 +2,7 @@
   "pattern": ":type/:name",
   "params": {
     "type": ["feat", "fix", "chore", "tech"],
-    "name": ["[a-z0-9-]+"],
+    "name": ["[a-z0-9-]+"]
   },
-  "prohibited": ["ci", "wip", "main", "test", "build", "master", "release"],
+  "prohibited": ["ci", "wip", "main", "test", "build", "master", "release"]
 }

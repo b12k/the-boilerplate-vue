@@ -1,11 +1,11 @@
-import { Request } from 'express';
-import UaParser from 'ua-parser-js';
+import { type Request } from 'express';
+import { UAParser } from 'ua-parser-js';
 
-import { env as _env, Env } from '../env';
+import { env as _env, type Env } from '../env';
 import { createRequestPropertyExtractor, overrideEnv } from '../utils';
 
 interface Device {
-  type: 'mobile' | 'tablet' | 'desktop';
+  type: 'desktop' | 'mobile' | 'tablet';
 }
 
 export const buildContext = (request: Request) => {
@@ -40,15 +40,15 @@ export const buildContext = (request: Request) => {
   }
   const {
     device: { type: detectedDeviceType },
-  } = new UaParser(request.headers['user-agent']).getResult();
+  } = new UAParser(request.headers['user-agent']).getResult();
 
   const device: Device = {
     type: 'mobile',
   };
 
   switch (detectedDeviceType) {
-    case 'tablet':
-    case 'mobile': {
+    case 'mobile':
+    case 'tablet': {
       device.type = detectedDeviceType;
       break;
     }
@@ -58,22 +58,22 @@ export const buildContext = (request: Request) => {
   }
 
   return {
+    baseUrl: request.baseUrl,
     device,
-    isDebug,
     isCacheEnabled,
-    isRenderCacheEnabled,
-    isCriticalCssCacheEnabled,
-    isEnvOverridden: env.IS_OVERRIDDEN === 'true',
     isContextPatched: false,
-    shouldRefreshRenderCache,
-    shouldRefreshCriticalCssCache,
-    url: request.url,
+    isCriticalCssCacheEnabled,
+    isDebug,
+    isEnvOverridden: env.IS_OVERRIDDEN === 'true',
+    isProd: env.NODE_ENV !== 'development',
+    isRenderCacheEnabled,
     lang: request.params.lang,
     query: request.query,
-    isProd: env.NODE_ENV !== 'development',
-    version: env.VERSION,
-    baseUrl: request.baseUrl,
     requestId: typeof request.id === 'object' ? '' : request.id.toString(),
+    shouldRefreshCriticalCssCache,
+    shouldRefreshRenderCache,
+    url: request.url,
+    version: env.VERSION,
   };
 };
 

@@ -3,6 +3,6 @@ import type { IdempotencyConfig } from './services';
 export default {
   beforeCompute: (context) => context.device.type,
   paths: {
-    '/:lang': (context, params) => params.lang,
+    '/:lang': (context, parameters) => parameters.lang,
   },
 } as IdempotencyConfig;

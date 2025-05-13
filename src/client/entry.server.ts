@@ -1,26 +1,28 @@
-import { renderSSRHead } from '@unhead/ssr';
-import { renderToString } from 'vue/server-renderer';
-import { createMemoryHistory } from 'vue-router';
+import type { Context } from '@server';
+import type { Logger } from 'pino';
 
-import { Context } from '@server';
+import { createHead, renderSSRHead } from '@unhead/vue/server';
+import { createMemoryHistory } from 'vue-router';
+import { renderToString } from 'vue/server-renderer';
 
 import { createApp } from './create-app';
-import { replaceLogger, Logger } from './services';
 import { execRoutePreFetch } from './router';
 
 const render = async (context: Context, logger: Logger) => {
-  replaceLogger(logger);
-
-  const history = createMemoryHistory(context.baseUrl);
-  const { app, store, router, head } = await createApp(history, { context });
+  const { app, head, router, store } = await createApp({
+    head: createHead(),
+    history: createMemoryHistory(context.baseUrl),
+    initialState: { context },
+    logger,
+  });
 
   await execRoutePreFetch(router.currentRoute.value, undefined, true);
 
   return {
-    html: await renderToString(app),
-    head: await renderSSRHead(head),
-    state: store.state.value,
     currentRoute: router.currentRoute.value,
+    head: await renderSSRHead(head),
+    html: await renderToString(app),
+    state: store.state.value,
   };
 };
 

@@ -1,10 +1,10 @@
-import 'bootstrap';
+import { createHead } from '@unhead/vue/client';
+import { pino } from 'pino';
 import { createWebHistory } from 'vue-router';
 
 import './styles/main.scss';
-import { createApp, InitialState } from './create-app';
+import { createApp, type InitialState } from './create-app';
 import { execRoutePreFetch } from './router';
-import { logger } from './services';
 import { deserialize } from './utils';
 
 declare global {
@@ -16,7 +16,14 @@ declare global {
 (async () => {
   const initialState = deserialize<InitialState>(window.INITIAL_STATE);
   const history = createWebHistory(initialState.context.baseUrl);
-  const { app, router } = await createApp(history, initialState);
+  const logger = pino({ browser: { asObject: true } });
+  const head = createHead();
+  const { app, router, services } = await createApp({
+    head,
+    history,
+    initialState,
+    logger,
+  });
 
   app.mount('#app');
 
@@ -28,13 +35,12 @@ declare global {
       await execRoutePreFetch(to, from);
       return true;
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error(error);
       return false;
     }
   });
 
-  window.addEventListener('error', (error) => {
-    logger.error(error);
+  globalThis.addEventListener('error', (error) => {
+    services.logger.error(error);
   });
 })();

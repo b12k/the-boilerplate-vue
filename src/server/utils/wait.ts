@@ -1,6 +1,6 @@
 export const wait = (ms: number) =>
-  new Promise((resolve) => {
+  new Promise<void>((resolve) => {
     setTimeout(() => {
-      resolve(undefined);
+      resolve();
     }, ms);
   });
