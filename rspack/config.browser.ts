@@ -69,7 +69,6 @@ if (env.IS_PROD) {
           chunks: 'async',
           filename: getFilenameJs('vendor', env.IS_PROD),
           minChunks: 2,
-          // enforce: true,
           minSize: 0,
           name: getVendorName,
           test: /[/\\]node_modules[/\\]/,
@@ -78,7 +77,6 @@ if (env.IS_PROD) {
           chunks: 'all',
           filename: getFilenameJs('vendor', env.IS_PROD),
           name: getVendorName,
-          // enforce: true,
           test: /[/\\]node_modules[/\\]/,
         },
       },
@@ -96,6 +94,7 @@ if (env.IS_PROD) {
     },
     headers: {
       'Access-Control-Allow-Origin': '*',
+      'Service-Worker-Allowed': '/',
     },
     hot: true,
     port: env.WDS_PORT,

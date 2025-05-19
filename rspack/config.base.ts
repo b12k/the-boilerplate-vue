@@ -4,8 +4,6 @@ import env from './env';
 import { iconsLoader, tsLoader, vueLoader } from './loaders';
 import { definePlugin, vuePlugin } from './plugins';
 
-console.log('FOOOOOOOO', env.IS_PROD);
-
 export default defineConfig({
   cache: true,
   context: env.CONTEXT,

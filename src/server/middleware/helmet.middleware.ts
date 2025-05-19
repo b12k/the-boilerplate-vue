@@ -12,6 +12,7 @@ export const helmetMiddleware =
     const options: HelmetOptions = {
       contentSecurityPolicy: {
         directives: {
+          childSrc: ["'self'"],
           connectSrc: [
             "'self'",
             'https://gateway.umami.is',
@@ -31,6 +32,7 @@ export const helmetMiddleware =
             "'unsafe-eval'",
             'https://cloud.umami.is',
           ],
+          workerSrc: ["'self'"],
         },
       },
     };
