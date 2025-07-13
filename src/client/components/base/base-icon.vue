@@ -13,7 +13,7 @@
   <span class="icon" v-html="icons[props.icon]" />
 </template>
 
-<style lang="scss">
+<style lang="css">
   .icon {
     svg {
       height: 1em;

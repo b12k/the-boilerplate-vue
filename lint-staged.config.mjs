@@ -1,4 +1,4 @@
-const STYLES = '*.s?css';
+const STYLES = '*.css';
 const SCRIPTS = '*.[mc]?[jt]sx?';
 const VUE = '*.vue';
 const PACKAGE_JSON = 'package.json';

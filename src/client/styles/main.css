@@ -1,5 +1,1 @@
-html,
-body,
-#app {
-  height: 100%;
-}
+@import 'tailwindcss' source('../../../src');

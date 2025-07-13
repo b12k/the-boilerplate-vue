@@ -8,7 +8,7 @@
   <BaseFooter />
 </template>
 
-<style lang="scss">
+<style lang="css">
   #app {
     display: flex;
     flex-direction: column;

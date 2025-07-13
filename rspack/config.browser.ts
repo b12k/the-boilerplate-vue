@@ -4,7 +4,7 @@ import { defineConfig } from '@rspack/cli';
 
 import baseConfig from './config.base';
 import env from './env';
-import { createImageLoader, scssLoader } from './loaders';
+import { createImageLoader, cssLoader } from './loaders';
 import {
   bundleStatsWebpackPlugin,
   createManifestPlugin,
@@ -34,7 +34,7 @@ const config = defineConfig({
   module: {
     rules: [
       ...(baseConfig.module?.rules || []),
-      scssLoader,
+      cssLoader,
       createImageLoader(),
     ],
   },

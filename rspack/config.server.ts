@@ -4,7 +4,7 @@ import { defineConfig } from '@rspack/cli';
 
 import baseConfig from './config.base';
 import env from './env';
-import { createImageLoader, sassIgnoreLoader } from './loaders';
+import { createImageLoader, cssIgnoreLoader } from './loaders';
 import { createManifestPlugin, createProgressPlugin } from './plugins';
 
 const cache = {
@@ -27,7 +27,7 @@ const config = defineConfig({
     rules: [
       ...(baseConfig.module?.rules || []),
       createImageLoader(true),
-      sassIgnoreLoader,
+      cssIgnoreLoader,
     ],
   },
   optimization: {

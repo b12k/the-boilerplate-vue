@@ -32,14 +32,14 @@ export const iconsLoader = {
   type: 'asset/source',
 };
 
-export const scssLoader = {
-  test: /\.s?css$/,
+export const cssLoader = {
+  test: /\.css$/,
+  // type: 'css',
   type: 'javascript/auto',
   use: [
     env.IS_PROD ? CssExtractRspackPlugin.loader : 'vue-style-loader',
     { loader: 'css-loader', options: { sourceMap: env.IS_PROD } },
     { loader: 'postcss-loader', options: { sourceMap: env.IS_PROD } },
-    { loader: 'sass-loader', options: { sourceMap: env.IS_PROD } },
   ],
 };
 
@@ -71,7 +71,7 @@ export const createImageLoader = (isSSR = false) => {
   };
 };
 
-export const sassIgnoreLoader = {
-  test: /\.s?css$/,
+export const cssIgnoreLoader = {
+  test: /\.css$/,
   use: ['ignore-loader'],
 };
