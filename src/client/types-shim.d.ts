@@ -42,4 +42,5 @@ declare module 'pinia' {
   }
 }
 
+// eslint-disable-next-line unicorn/require-module-specifiers
 export {};
