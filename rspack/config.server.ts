@@ -1,4 +1,4 @@
-import type { ExperimentCacheOptions } from '@rspack/core';
+// import type { ExperimentCacheOptions } from '@rspack/core';
 
 import { defineConfig } from '@rspack/cli';
 
@@ -7,13 +7,13 @@ import env from './env';
 import { createImageLoader, cssIgnoreLoader } from './loaders';
 import { createManifestPlugin, createProgressPlugin } from './plugins';
 
-const cache = {
-  storage: {
-    directory: `.temp/rspack/server/${env.IS_PROD ? 'prod' : 'dev'}`,
-    type: 'filesystem',
-  },
-  type: 'persistent',
-} as ExperimentCacheOptions;
+// const cache = {
+//   storage: {
+//     directory: `.temp/rspack/server/${env.IS_PROD ? 'prod' : 'dev'}`,
+//     type: 'filesystem',
+//   },
+//   type: 'persistent',
+// } as ExperimentCacheOptions;
 
 const config = defineConfig({
   ...baseConfig,
@@ -21,7 +21,7 @@ const config = defineConfig({
     index: './src/client/entry.server.ts',
   },
   experiments: {
-    cache,
+    // cache,
   },
   module: {
     rules: [

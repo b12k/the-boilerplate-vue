@@ -1,4 +1,4 @@
-import type { ExperimentCacheOptions } from '@rspack/core';
+// import type { ExperimentCacheOptions } from '@rspack/core';
 
 import { defineConfig } from '@rspack/cli';
 
@@ -14,13 +14,13 @@ import {
 } from './plugins';
 import { getFilenameJs, getVendorName } from './utils';
 
-const cache = {
-  storage: {
-    directory: `.temp/rspack/browser/${env.IS_PROD ? 'prod' : 'dev'}`,
-    type: 'filesystem',
-  },
-  type: 'persistent',
-} as ExperimentCacheOptions;
+// const cache = {
+//   storage: {
+//     directory: `.temp/rspack/browser/${env.IS_PROD ? 'prod' : 'dev'}`,
+//     type: 'filesystem',
+//   },
+//   type: 'persistent',
+// } as ExperimentCacheOptions;
 
 const config = defineConfig({
   ...baseConfig,
@@ -28,7 +28,7 @@ const config = defineConfig({
     app: './src/client/entry.browser.ts',
   },
   experiments: {
-    cache,
+    // cache,
     css: false,
   },
   module: {

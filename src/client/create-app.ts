@@ -42,8 +42,8 @@ export const createApp = async ({
 
   store.state.value = initialState;
 
-  app.config.errorHandler = (error, instance, info) => {
-    services.logger.error(error, info, [instance]);
+  app.config.errorHandler = (error, _, info) => {
+    services.logger.error(error, info);
   };
 
   await router.push(initialState.context.url);
