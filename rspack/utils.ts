@@ -1,5 +1,5 @@
-import { type Module } from '@rspack/core';
-import { type ManifestPluginOptions } from 'rspack-manifest-plugin';
+import type { Module, ExperimentCacheOptions } from '@rspack/core';
+import type { ManifestPluginOptions } from 'rspack-manifest-plugin';
 
 export const uniqArray = <T>(array: Array<T>) => [...new Set(array)];
 
@@ -55,3 +55,12 @@ export const generateManifest: ManifestPluginOptions['generate'] = (
     },
   };
 };
+
+export const getCacheConfig = (target: 'server' | 'browser', isProd: boolean) =>
+  ({
+    storage: {
+      directory: `.temp/rspack/${target}/${isProd ? 'prod' : 'dev'}`,
+      type: 'filesystem',
+    },
+    type: 'persistent',
+  }) as ExperimentCacheOptions;
