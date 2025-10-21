@@ -1,5 +1,3 @@
-import type { ExperimentCacheOptions } from '@rspack/core';
-
 import { defineConfig } from '@rspack/cli';
 
 import baseConfig from './config.base';
