@@ -4,18 +4,16 @@ import perfectionistPlugin from 'eslint-plugin-perfectionist';
 import prettierPlugin from 'eslint-plugin-prettier/recommended';
 import unicornPlugin from 'eslint-plugin-unicorn';
 import vuePlugin from 'eslint-plugin-vue';
+import { defineConfig } from 'eslint/config';
 import globals from 'globals';
-import {
-  config as createTsConfig,
-  configs as tsConfigs,
-} from 'typescript-eslint';
+import { configs as tsEslintConfigs } from 'typescript-eslint';
 
-export default createTsConfig(
+export default defineConfig(
   {
     ignores: ['dist', '.temp', 'node_modules', '.pocketbase'],
   },
   jsPlugin.configs.recommended,
-  ...tsConfigs.recommended,
+  ...tsEslintConfigs.recommended,
   ...vuePlugin.configs['flat/strongly-recommended'],
   unicornPlugin.configs.all,
   importPluginFlatConfigs.recommended,
@@ -32,6 +30,18 @@ export default createTsConfig(
       parserOptions: {
         parser: '@typescript-eslint/parser',
       },
+    },
+  },
+  {
+    files: ['*.{js,cjs}'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+      sourceType: 'commonjs',
+    },
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
     },
   },
   {

@@ -10,7 +10,7 @@ import {
   cssExtractRspackPlugin,
   swcJsMinimizerRspackPlugin,
 } from './plugins';
-import { getFilenameJs, getVendorName } from './utils';
+import { getCacheConfig, getFilenameJs, getVendorName } from './utils';
 
 const config = defineConfig({
   ...baseConfig,
@@ -18,7 +18,7 @@ const config = defineConfig({
     app: './src/client/entry.browser.ts',
   },
   experiments: {
-    // cache: getCacheConfig('browser', env.IS_PROD),
+    cache: getCacheConfig('browser', env.IS_PROD),
     css: false,
   },
   module: {

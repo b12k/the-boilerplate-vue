@@ -4,7 +4,7 @@ import baseConfig from './config.base';
 import env from './env';
 import { createImageLoader, cssIgnoreLoader } from './loaders';
 import { createManifestPlugin, createProgressPlugin } from './plugins';
-// import { getCacheConfig } from './utils';
+import { getCacheConfig } from './utils';
 
 const config = defineConfig({
   ...baseConfig,
@@ -12,7 +12,7 @@ const config = defineConfig({
     index: './src/client/entry.server.ts',
   },
   experiments: {
-    // cache: getCacheConfig('server', env.IS_PROD),
+    cache: getCacheConfig('server', env.IS_PROD),
   },
   module: {
     rules: [

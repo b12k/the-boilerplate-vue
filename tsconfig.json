@@ -23,6 +23,7 @@
     "isolatedModules": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": false,
     "noImplicitAny": true,
     "noImplicitThis": true,
     "verbatimModuleSyntax": true,
@@ -34,6 +35,6 @@
       "@server": ["./src/server"]
     }
   },
-  "include": ["**/*.ts", "**/*.js", "**/*.vue"],
+  "include": ["**/*.ts", "**/*.d.ts", "**/*.js", "**/*.vue"],
   "exclude": ["node_modules", "dist", ".temp"]
 }
