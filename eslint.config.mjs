@@ -1,6 +1,6 @@
 import jsPlugin from '@eslint/js';
 import { flatConfigs as importPluginFlatConfigs } from 'eslint-plugin-import-x';
-import perfectionistPlugin from 'eslint-plugin-perfectionist';
+import { configs as perfectionistConfigs } from 'eslint-plugin-perfectionist';
 import prettierPlugin from 'eslint-plugin-prettier/recommended';
 import unicornPlugin from 'eslint-plugin-unicorn';
 import vuePlugin from 'eslint-plugin-vue';
@@ -18,7 +18,7 @@ export default defineConfig(
   unicornPlugin.configs.all,
   importPluginFlatConfigs.recommended,
   importPluginFlatConfigs.typescript,
-  perfectionistPlugin.configs['recommended-natural'],
+  perfectionistConfigs['recommended-natural'],
   prettierPlugin,
   {
     files: ['*.vue', '**/*.vue'],
