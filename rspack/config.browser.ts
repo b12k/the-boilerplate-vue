@@ -73,12 +73,8 @@ if (env.IS_PROD) {
     },
   };
 } else {
+  config.lazyCompilation = false;
   config.devServer = {
-    client: {
-      overlay: {
-        warnings: false,
-      },
-    },
     devMiddleware: {
       writeToDisk: true,
     },

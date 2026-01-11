@@ -1,5 +1,3 @@
-<script lang="ts" setup></script>
-
 <template>
   <main class="page-about container">
     <h1>About</h1>

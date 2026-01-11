@@ -40,7 +40,18 @@ declare global {
     }
   });
 
-  globalThis.addEventListener('error', (error) => {
-    services.logger.error(error);
-  });
+  app.config.errorHandler = (error, _, info) => {
+    services.logger.error(error, info);
+    if (!initialState.context.isProd) {
+      console.error(error);
+      setTimeout(() => {
+        window.dispatchEvent(
+          new ErrorEvent('error', {
+            error,
+            message: error instanceof Error ? error.message : String(error),
+          }),
+        );
+      });
+    }
+  };
 })();

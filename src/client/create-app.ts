@@ -44,6 +44,7 @@ export const createApp = async ({
 
   app.config.errorHandler = (error, _, info) => {
     services.logger.error(error, info);
+    throw error;
   };
 
   await router.push(initialState.context.url);
