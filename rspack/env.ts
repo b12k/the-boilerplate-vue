@@ -7,8 +7,10 @@ const CONTEXT = path.resolve(__dirname, '..');
 const OUTPUT_PATH = path.resolve(__dirname, '../dist');
 const OUTPUT_PUBLIC_PATH = IS_PROD ? '/' : `http://localhost:${WDS_PORT}/`;
 const WITH_STATS = process.env.WITH_STATS === 'true';
+const BUNDLER_CACHE = process.env.BUNDLER_CACHE === 'true';
 
 export default {
+  BUNDLER_CACHE,
   CONTEXT,
   ICONS_FOLDER_PATH,
   IS_PROD,

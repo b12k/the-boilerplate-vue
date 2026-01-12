@@ -5,6 +5,10 @@
   "repository": "https://github.com/b12k/the-boilerplate-vue",
   "license": "MIT",
   "author": "Bogdan Kolesnyk",
+  "sideEffects": [
+    "*.css",
+    "*.vue"
+  ],
   "scripts": {
     "🚀": "████████████████████████ ✋ SCRIPTS 👇 ████████████████████████████",
     "prepare": "run-p prepare:*",

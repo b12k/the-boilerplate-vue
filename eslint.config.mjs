@@ -45,6 +45,20 @@ export default defineConfig(
     },
   },
   {
+    files: ['**/index.ts', '**/index.tsx'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          message:
+            'Barrel files should only contain re-export statements (export { x } from "./y" or export * from "./y")',
+          selector:
+            'Program > :not(ExportNamedDeclaration[source], ExportAllDeclaration, ImportDeclaration)',
+        },
+      ],
+    },
+  },
+  {
     rules: {
       'import-x/no-extraneous-dependencies': [
         'error',

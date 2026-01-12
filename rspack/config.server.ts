@@ -12,7 +12,7 @@ const config = defineConfig({
     index: './src/client/entry.server.ts',
   },
   experiments: {
-    cache: getCacheConfig('server', env.IS_PROD),
+    cache: env.BUNDLER_CACHE && getCacheConfig('server', env.IS_PROD),
   },
   module: {
     rules: [
