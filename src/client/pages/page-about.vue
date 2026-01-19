@@ -1,9 +1,5 @@
-<script lang="ts" setup>
-  import { bar } from '../barrel';
-</script>
 <template>
   <main class="page-about container">
-    {{ bar }}
     <h1>About</h1>
     <div>
       Lorem ipsum dolor sit amet, consectetur adipisicing elit. Adipisci
