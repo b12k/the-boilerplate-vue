@@ -1,0 +1,24 @@
+<script>
+    const path = "/{{ env.LIVE_RELOAD_PATH }}";
+    const delay = 300;
+    const maxAttempts = 10;
+    let isServerUp = true;
+    (function connect(attempt) {
+      if (attempt === maxAttempts) return;
+
+      const sse = new EventSource(path);
+
+      sse.onmessage = function () {
+        if (isServerUp) return;
+        window.location.reload();
+      }
+
+      sse.onerror = function () {
+        sse.close();
+        isServerUp = false;
+        setTimeout(() => {
+          connect(attempt++);
+        }, delay);
+      }
+    })(0);
+</script>

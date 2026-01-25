@@ -30,11 +30,11 @@ export const routes: Array<RouteRecordRawNamed> = [
   },
   {
     name: 'CatchNotFound',
-    path: '/:uri(.*)*',
-    redirect: ({ params: { uri } }) => ({
+    path: '/:url(.*)*',
+    redirect: ({ params: { url } }) => ({
       path: '/404',
       query: {
-        uri: encodeURIComponent(uri.toString()),
+        uri: encodeURIComponent(url.toString()),
       },
     }),
   },

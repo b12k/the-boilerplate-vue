@@ -30,6 +30,7 @@
     "useDefineForClassFields": true,
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
+    "types": ["webpack-env"],
     "paths": {
       "@client": ["./src/client"],
       "@server": ["./src/server"]

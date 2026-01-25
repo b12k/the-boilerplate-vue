@@ -17,6 +17,7 @@ import { cacheService, loggerService } from './services';
 import {
   acceptedLanguages,
   getLanguage,
+  liveReload,
   printDevelopmentBanner,
 } from './utils';
 
@@ -39,6 +40,7 @@ void (async () => {
   app
     .set('view engine', 'njk')
     .set('etag', false)
+    .use(liveReload(env.LIVE_RELOAD_PATH))
     .use(loggerService)
     .use(cookieParser())
     .use(compression())

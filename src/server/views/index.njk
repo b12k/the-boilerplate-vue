@@ -40,4 +40,7 @@
       {% include "_env.njk" %}
     {% endif %}
   </body>
+  {% if env.LIVE_RELOAD_PATH %}
+    {% include "_live-reload.njk" %}
+  {% endif %}
 </html>
