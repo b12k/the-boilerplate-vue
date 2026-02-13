@@ -31,6 +31,9 @@ export default defineConfig(
         parser: '@typescript-eslint/parser',
       },
     },
+    rules: {
+      'no-useless-assignment': 'off',
+    },
   },
   {
     files: ['*.{js,cjs}'],
