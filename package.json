@@ -92,6 +92,7 @@
     "@eslint/js": "10.0.1",
     "@rspack/cli": "2.2.8",
     "@rspack/core": "2.2.8",
+    "@rspack/dev-server": "2.2.1",
     "@swc-node/register": "1.12.1",
     "@swc/cli": "0.8.1",
     "@swc/core": "1.16.2",
