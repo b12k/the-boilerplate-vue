@@ -69,12 +69,11 @@ export default defineConfig(
           devDependencies: ['!**/src/**/*'],
         },
       ],
-      'unicorn/no-array-for-each': 'off',
-      'unicorn/no-array-reduce': 'off',
-      'unicorn/prefer-global-this': 'off',
-      'unicorn/prefer-module': 'off',
-      'unicorn/prefer-top-level-await': 'off',
-      'unicorn/prevent-abbreviations': [
+      'unicorn/consistent-arrow-return-style': 'off',
+      'unicorn/consistent-boolean-name': 'off',
+      // conflicts with perfectionist/sort-classes (private vs public field order)
+      'unicorn/consistent-class-member-order': 'off',
+      'unicorn/name-replacements': [
         'error',
         {
           allowList: {
@@ -89,6 +88,19 @@ export default defineConfig(
           },
         },
       ],
+      'unicorn/no-array-for-each': 'off',
+      'unicorn/no-array-reduce': 'off',
+      'unicorn/no-barrel-files': 'off',
+      'unicorn/no-for-each': 'off',
+      'unicorn/prefer-global-this': 'off',
+      // ponytail: requires Iterator.concat typings (TS >= 6); TypeScript pinned to 5.9 for vue-tsc
+      'unicorn/prefer-iterator-concat': 'off',
+      'unicorn/prefer-module': 'off',
+      'unicorn/prefer-temporal': 'off',
+      'unicorn/prefer-top-level-await': 'off',
+      // ponytail: requires Uint8Array#toBase64 typings (TS >= 6); TypeScript pinned to 5.9 for vue-tsc
+      'unicorn/prefer-uint8array-base64': 'off',
+      'unicorn/try-complexity': 'off',
     },
   },
 );

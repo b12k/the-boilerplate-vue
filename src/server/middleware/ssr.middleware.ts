@@ -31,7 +31,6 @@ export const ssrMiddleware: RequestHandler = async (
       shouldRefreshRenderCache,
     } = context;
 
-    let isCriticalCssCached = false;
     let isRenderCached = false;
 
     const renderCacheKey =
@@ -106,6 +105,7 @@ export const ssrMiddleware: RequestHandler = async (
       stringToBase64((currentRoute.name || currentRoute.path).toString());
 
     let criticalCss: string | undefined;
+    let isCriticalCssCached = false;
 
     if (criticalCssCacheKey) {
       const cachedCriticalCss =
@@ -190,11 +190,10 @@ export const ssrMiddleware: RequestHandler = async (
     }
 
     if (renderCacheKey) {
-      const {
-        state: { context: renderedContext },
-      } = renderResult;
+      const { state } = renderResult;
+      const { context: renderedContext } = state;
       if (renderedContext.isContextPatched) {
-        renderResult.state.context = {
+        state.context = {
           ...renderedContext,
           ...renderedContext.cached,
           cached: undefined,

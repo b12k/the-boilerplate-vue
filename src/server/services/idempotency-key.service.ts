@@ -57,7 +57,8 @@ export const computeIdempotencyKey = (context: Context) => {
     ? config.afterCompute(context, parameters)
     : '';
 
-  if (keyAfterComputed === false) return false;
-
-  return hashKey(`${keyBeforeComputed}${computedKey}${keyAfterComputed}`);
+  return (
+    keyAfterComputed !== false &&
+    hashKey(`${keyBeforeComputed}${computedKey}${keyAfterComputed}`)
+  );
 };

@@ -38,9 +38,10 @@ export const buildContext = (request: Request) => {
       env.IS_OVERRIDDEN = 'false';
     }
   }
+  const uaParser = new UAParser(request.headers['user-agent']);
   const {
     device: { type: detectedDeviceType },
-  } = new UAParser(request.headers['user-agent']).getResult();
+  } = uaParser.getResult();
 
   const device: Device = {
     type: 'mobile',

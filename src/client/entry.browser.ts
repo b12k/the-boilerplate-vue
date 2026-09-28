@@ -42,16 +42,16 @@ declare global {
 
   app.config.errorHandler = (error, _, info) => {
     services.logger.error(error, info);
-    if (!initialState.context.isProd) {
-      console.error(error);
-      setTimeout(() => {
-        window.dispatchEvent(
-          new ErrorEvent('error', {
-            error,
-            message: error instanceof Error ? error.message : String(error),
-          }),
-        );
-      });
-    }
+    if (initialState.context.isProd) return;
+
+    console.error(error);
+    setTimeout(() => {
+      window.dispatchEvent(
+        new ErrorEvent('error', {
+          error,
+          message: Error.isError(error) ? error.message : String(error),
+        }),
+      );
+    });
   };
 })();

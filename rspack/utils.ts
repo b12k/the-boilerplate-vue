@@ -1,4 +1,4 @@
-import type { ExperimentCacheOptions, Module } from '@rspack/core';
+import type { Module, PersistentCacheOptions } from '@rspack/core';
 import type { ManifestPluginOptions } from 'rspack-manifest-plugin';
 
 export const uniqArray = <T>(array: Array<T>) => [...new Set(array)];
@@ -66,4 +66,4 @@ export const getCacheConfig = (
       type: 'filesystem',
     },
     type: 'persistent',
-  }) as ExperimentCacheOptions;
+  }) as PersistentCacheOptions;
