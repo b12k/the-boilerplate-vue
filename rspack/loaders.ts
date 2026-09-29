@@ -12,7 +12,7 @@ export const tsLoader = {
       },
       target: 'esnext',
     },
-    sourceMaps: env.IS_PROD,
+    sourceMaps: true,
   },
   test: /\.ts$/,
   type: 'javascript/auto',
@@ -34,12 +34,11 @@ export const iconsLoader = {
 
 export const cssLoader = {
   test: /\.css$/,
-  // type: 'css',
   type: 'javascript/auto',
   use: [
     env.IS_PROD ? CssExtractRspackPlugin.loader : 'vue-style-loader',
-    { loader: 'css-loader', options: { sourceMap: env.IS_PROD } },
-    { loader: 'postcss-loader', options: { sourceMap: env.IS_PROD } },
+    { loader: 'css-loader', options: { sourceMap: true } },
+    { loader: 'postcss-loader', options: { sourceMap: true } },
   ],
 };
 

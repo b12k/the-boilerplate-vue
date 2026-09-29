@@ -5,16 +5,18 @@ import { iconsLoader, tsLoader, vueLoader } from './loaders';
 import { definePlugin, vuePlugin } from './plugins';
 
 export default defineConfig({
-  cache: true,
   context: env.CONTEXT,
   devtool: env.IS_PROD ? 'source-map' : 'eval-source-map',
   mode: env.IS_PROD ? 'production' : 'development',
   module: {
     rules: [tsLoader, vueLoader, iconsLoader],
   },
+  output: {
+    path: env.OUTPUT_PATH,
+  },
   plugins: [definePlugin, vuePlugin],
   resolve: {
-    extensions: ['.ts', '.js'],
+    extensions: ['.ts', '.js', '.json'],
     tsConfig: './tsconfig.json',
   },
   stats: {

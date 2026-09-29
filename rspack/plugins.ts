@@ -8,14 +8,15 @@ import { BundleStatsWebpackPlugin } from 'bundle-stats-webpack-plugin';
 import { RspackManifestPlugin } from 'rspack-manifest-plugin';
 import { VueLoaderPlugin } from 'vue-loader';
 
+import env from './env';
 import { generateManifest } from './utils';
 
 export const vuePlugin = new VueLoaderPlugin();
 
 export const definePlugin = new DefinePlugin({
   __VUE_OPTIONS_API__: true,
-  __VUE_PROD_DEVTOOLS__: true,
-  __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: true,
+  __VUE_PROD_DEVTOOLS__: false,
+  __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: !env.IS_PROD,
 });
 
 export const cssExtractRspackPlugin = new CssExtractRspackPlugin({
