@@ -95,7 +95,6 @@ export default defineConfig(
       'unicorn/prefer-module': 'off',
       'unicorn/prefer-temporal': 'off',
       'unicorn/prefer-top-level-await': 'off',
-      'unicorn/try-complexity': 'off',
     },
   },
 );
