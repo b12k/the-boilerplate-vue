@@ -24,6 +24,7 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "allowImportingTsExtensions": false,
+    "noEmit": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
     "verbatimModuleSyntax": true,
