@@ -475,9 +475,6 @@ importers:
       stylelint-config-standard-scss:
         specifier: 17.0.0
         version: 17.0.0(postcss@8.5.28)(stylelint@17.15.0(supports-color@5.5.0)(typescript@5.9.3))
-      swc-register:
-        specifier: link:tools/swc-register
-        version: link:tools/swc-register
       tailwindcss:
         specifier: 4.3.3
         version: 4.3.3

@@ -1,7 +1,0 @@
-{
-  "name": "swc-register",
-  "version": "0.0.0",
-  "private": true,
-  "description": "Scoped @swc-node/register preload for the dev server",
-  "main": "index.js"
-}
