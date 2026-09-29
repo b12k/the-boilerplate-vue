@@ -147,6 +147,7 @@
     "stylelint-config-prettier-scss": "1.0.0",
     "stylelint-config-recommended-vue": "2.0.0",
     "stylelint-config-standard-scss": "17.0.0",
+    "swc-register": "link:tools/swc-register",
     "tailwindcss": "4.3.3",
     "ts-node": "10.9.2",
     "typescript": "5.9.3",
