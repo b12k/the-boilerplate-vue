@@ -86,7 +86,6 @@ export default defineConfig(
           },
         },
       ],
-      'unicorn/no-array-for-each': 'off',
       'unicorn/no-array-reduce': 'off',
       'unicorn/no-barrel-files': 'off',
       'unicorn/no-for-each': 'off',
