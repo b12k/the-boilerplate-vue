@@ -1,8 +1,7 @@
 import { type Request } from 'express';
 
-export const createRequestPropertyExtractor =
-  (request: Request) =>
-  (property: string, defaultValue = '') => {
+export const createRequestPropertyExtractor = (request: Request) => {
+  return (property: string, defaultValue = '') => {
     const { cookies } = request;
     const { headers, query } = request;
     return (cookies[property] ||
@@ -10,3 +9,4 @@ export const createRequestPropertyExtractor =
       query[property] ||
       defaultValue) as string;
   };
+};

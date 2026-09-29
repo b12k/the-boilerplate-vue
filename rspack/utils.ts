@@ -1,4 +1,4 @@
-import type { ExperimentCacheOptions, Module } from '@rspack/core';
+import type { Module, PersistentCacheOptions } from '@rspack/core';
 import type { ManifestPluginOptions } from 'rspack-manifest-plugin';
 
 export const uniqArray = <T>(array: Array<T>) => [...new Set(array)];
@@ -12,11 +12,11 @@ export const getVendorName = (module?: Module) => {
     /[/\\]node_modules[/\\](.*?)([/\\]|$)/,
   );
 
-  return matched ? matched[1].replace('@', '') : 'other';
+  return matched?.[1]?.replace('@', '') ?? 'other';
 };
 
-const reduceManifestFiles = (array: Array<string>) =>
-  array.reduce<{ css: Array<string>; js: Array<string> }>(
+const reduceManifestFiles = (array: Array<string>) => {
+  return array.reduce<{ css: Array<string>; js: Array<string> }>(
     (accumulator, next) => {
       if (/\.js$/.test(next)) {
         accumulator.js.push(next);
@@ -27,14 +27,13 @@ const reduceManifestFiles = (array: Array<string>) =>
     },
     { css: [], js: [] },
   );
+};
 
-export const generateManifest: ManifestPluginOptions['generate'] = (
-  _,
-  files,
-  entries,
-) => {
+export const generateManifest: NonNullable<
+  ManifestPluginOptions['generate']
+> = (_, files, entries) => {
   const initial = reduceManifestFiles(
-    entries.app
+    (entries['app'] ?? [])
       .map((entry) => {
         const entryFile = files.find((file) => file.path.match(entry));
         return entryFile?.path || '';
@@ -59,11 +58,12 @@ export const generateManifest: ManifestPluginOptions['generate'] = (
 export const getCacheConfig = (
   target: 'browser' | 'server',
   isProduction: boolean,
-) =>
-  ({
+) => {
+  return {
     storage: {
       directory: `.temp/rspack/${target}/${isProduction ? 'prod' : 'dev'}`,
       type: 'filesystem',
     },
     type: 'persistent',
-  }) as ExperimentCacheOptions;
+  } as PersistentCacheOptions;
+};

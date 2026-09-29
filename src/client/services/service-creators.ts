@@ -14,9 +14,11 @@ export function createServices(_: Context, logger: Logger) {
 }
 
 export function createServicesPiniaPlugin(services: Services) {
-  return () => ({
-    $services: services,
-  });
+  return () => {
+    return {
+      $services: services,
+    };
+  };
 }
 
 export function createServicesVuePlugin(services: Services): ObjectPlugin {

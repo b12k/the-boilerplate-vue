@@ -8,13 +8,11 @@ import { execRoutePreFetch } from './router';
 import { deserialize } from './utils';
 
 declare global {
-  interface Window {
-    INITIAL_STATE: string;
-  }
+  var INITIAL_STATE: string;
 }
 
 (async () => {
-  const initialState = deserialize<InitialState>(window.INITIAL_STATE);
+  const initialState = deserialize<InitialState>(globalThis.INITIAL_STATE);
   const history = createWebHistory(initialState.context.baseUrl);
   const logger = pino({ browser: { asObject: true } });
   const head = createHead();
@@ -42,16 +40,16 @@ declare global {
 
   app.config.errorHandler = (error, _, info) => {
     services.logger.error(error, info);
-    if (!initialState.context.isProd) {
-      console.error(error);
-      setTimeout(() => {
-        window.dispatchEvent(
-          new ErrorEvent('error', {
-            error,
-            message: error instanceof Error ? error.message : String(error),
-          }),
-        );
-      });
-    }
+    if (initialState.context.isProd) return;
+
+    console.error(error);
+    setTimeout(() => {
+      globalThis.dispatchEvent(
+        new ErrorEvent('error', {
+          error,
+          message: Error.isError(error) ? error.message : String(error),
+        }),
+      );
+    });
   };
 })();

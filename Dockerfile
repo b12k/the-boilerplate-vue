@@ -1,10 +1,12 @@
-FROM node:22-alpine AS base
-RUN corepack enable
+FROM node:26-alpine AS base
+RUN npm install -g corepack && corepack enable
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 WORKDIR /app
 COPY package.json ./package.json
 COPY pnpm-lock.yaml ./pnpm-lock.yaml
+COPY pnpm-workspace.yaml ./pnpm-workspace.yaml
 
 FROM base AS prod-deps
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --ignore-scripts --prod

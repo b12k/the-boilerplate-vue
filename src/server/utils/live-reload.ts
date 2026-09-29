@@ -1,8 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
 
-export const liveReload =
-  (liveReloadPath?: string) =>
-  (request: Request, response: Response, next: NextFunction) => {
+export const liveReload = (liveReloadPath?: string) => {
+  return (request: Request, response: Response, next: NextFunction) => {
     const isLiveReload =
       liveReloadPath &&
       request.method === 'GET' &&
@@ -18,3 +17,4 @@ export const liveReload =
 
     request.on('close', () => response.end());
   };
+};

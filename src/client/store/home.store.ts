@@ -11,9 +11,11 @@ export const useHomeStore = defineStore('home', {
       return this.counter * 2;
     },
   },
-  state: () => ({
-    counter: 6,
-  }),
+  state: () => {
+    return {
+      counter: 6,
+    };
+  },
 });
 
-if (module.hot) module.hot.dispose(() => window.location.reload());
+if (module.hot) module.hot.dispose(() => globalThis.location.reload());

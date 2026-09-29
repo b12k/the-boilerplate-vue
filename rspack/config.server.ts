@@ -8,11 +8,9 @@ import { getCacheConfig } from './utils';
 
 const config = defineConfig({
   ...baseConfig,
+  cache: env.IS_BUNDLER_CACHE_ENABLED && getCacheConfig('server', env.IS_PROD),
   entry: {
     index: './src/client/entry.server.ts',
-  },
-  experiments: {
-    cache: env.BUNDLER_CACHE && getCacheConfig('server', env.IS_PROD),
   },
   module: {
     rules: [

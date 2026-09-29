@@ -8,9 +8,11 @@ export const acceptedLanguages = env.ACCEPTED_LANGUAGES.split(',').map((l) =>
 
 export const getLanguage = (request: Request) => {
   const { cookies, params } = request;
+  const lang = params['lang'];
+  const cookieLang = cookies['lang'];
 
-  return ((acceptedLanguages.includes(params.lang) && params.lang) ||
-    (acceptedLanguages.includes(cookies.lang as string) && cookies.lang) ||
+  return ((lang && acceptedLanguages.includes(lang) && lang) ||
+    (cookieLang && acceptedLanguages.includes(cookieLang) && cookieLang) ||
     request.acceptsLanguages(acceptedLanguages) ||
     env.DEFAULT_LANGUAGE) as string;
 };

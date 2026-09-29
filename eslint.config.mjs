@@ -69,12 +69,9 @@ export default defineConfig(
           devDependencies: ['!**/src/**/*'],
         },
       ],
-      'unicorn/no-array-for-each': 'off',
-      'unicorn/no-array-reduce': 'off',
-      'unicorn/prefer-global-this': 'off',
-      'unicorn/prefer-module': 'off',
-      'unicorn/prefer-top-level-await': 'off',
-      'unicorn/prevent-abbreviations': [
+      // conflicts with perfectionist/sort-classes (private vs public field order)
+      'unicorn/consistent-class-member-order': 'off',
+      'unicorn/name-replacements': [
         'error',
         {
           allowList: {
@@ -89,6 +86,12 @@ export default defineConfig(
           },
         },
       ],
+      'unicorn/no-array-reduce': 'off',
+      'unicorn/no-barrel-files': 'off',
+      'unicorn/no-for-each': 'off',
+      // ponytail: client-side; Iterator.concat is browser-baseline only since 2026-03 (Chrome 146+/Safari 26.4+) and untyped in TS 6
+      'unicorn/prefer-iterator-concat': 'off',
+      'unicorn/prefer-top-level-await': 'off',
     },
   },
 );

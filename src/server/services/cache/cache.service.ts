@@ -12,14 +12,12 @@ export interface CacheClient {
 interface CacheClientConfig {
   criticalCssCacheSalt: string;
   criticalCssCacheTtl: number;
-  redisUrl?: string;
+  redisUrl?: string | undefined;
   renderCacheSalt: string;
   renderCacheTtl: number;
 }
 export class CacheService {
   public cacheType!: 'L' | 'R';
-
-  private cache!: CacheClient;
 
   private config!: CacheClientConfig;
 
@@ -62,7 +60,6 @@ export class CacheService {
         await client.connect();
         this.renderCache = client;
         this.criticalCssCache = client;
-        this.cache = client;
         this.isInitialized = true;
         this.cacheType = 'R';
         return;

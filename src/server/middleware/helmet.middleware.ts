@@ -1,9 +1,8 @@
 import { type RequestHandler } from 'express';
 import helmet, { type HelmetOptions } from 'helmet';
 
-export const helmetMiddleware =
-  (isEnabled: boolean): RequestHandler =>
-  (request, response, next) => {
+export const helmetMiddleware = (isEnabled: boolean): RequestHandler => {
+  return (request, response, next) => {
     if (!isEnabled) return next();
 
     const requestId =
@@ -39,3 +38,4 @@ export const helmetMiddleware =
 
     return helmet(options)(request, response, next);
   };
+};

@@ -23,20 +23,26 @@ export const cssExtractRspackPlugin = new CssExtractRspackPlugin({
   filename: 'public/css/[name].[contenthash:8].css',
 });
 
-export const createManifestPlugin = (isSSR = false) =>
-  new RspackManifestPlugin({
-    fileName: isSSR ? 'ssr/manifest.json' : 'public/manifest.json',
-    generate: isSSR ? undefined : generateManifest,
-    useEntryKeys: isSSR,
-  });
+export const createManifestPlugin = (isSSR = false) => {
+  return new RspackManifestPlugin(
+    isSSR
+      ? { fileName: 'ssr/manifest.json', useEntryKeys: true }
+      : {
+          fileName: 'public/manifest.json',
+          generate: generateManifest,
+          useEntryKeys: false,
+        },
+  );
+};
 
 export const swcJsMinimizerRspackPlugin = new SwcJsMinimizerRspackPlugin({
   extractComments: false,
 });
 
-export const createProgressPlugin = (isSSR = false) =>
-  new ProgressPlugin({
+export const createProgressPlugin = (isSSR = false) => {
+  return new ProgressPlugin({
     prefix: isSSR ? '[[[ Compile for SSR ]]]' : '[[[ Compile for Browser ]]]',
   });
+};
 
 export const bundleStatsWebpackPlugin = new BundleStatsWebpackPlugin();
