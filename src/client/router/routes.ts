@@ -34,7 +34,7 @@ export const routes: Array<RouteRecordRawNamed> = [
     redirect: ({ params: { url } }) => ({
       path: '/404',
       query: {
-        uri: encodeURIComponent(url.toString()),
+        uri: encodeURIComponent(url?.toString() ?? ''),
       },
     }),
   },

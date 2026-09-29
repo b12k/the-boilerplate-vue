@@ -49,7 +49,11 @@ export const computeIdempotencyKey = (context: Context) => {
 
   if (keyBeforeComputed === false) return false;
 
-  const computedKey = config.paths[matched.key](context, parameters);
+  const computeKey = config.paths[matched.key];
+
+  if (!computeKey) return false;
+
+  const computedKey = computeKey(context, parameters);
 
   if (!computedKey) return false;
 

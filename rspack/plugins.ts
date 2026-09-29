@@ -24,11 +24,15 @@ export const cssExtractRspackPlugin = new CssExtractRspackPlugin({
 });
 
 export const createManifestPlugin = (isSSR = false) =>
-  new RspackManifestPlugin({
-    fileName: isSSR ? 'ssr/manifest.json' : 'public/manifest.json',
-    generate: isSSR ? undefined : generateManifest,
-    useEntryKeys: isSSR,
-  });
+  new RspackManifestPlugin(
+    isSSR
+      ? { fileName: 'ssr/manifest.json', useEntryKeys: true }
+      : {
+          fileName: 'public/manifest.json',
+          generate: generateManifest,
+          useEntryKeys: false,
+        },
+  );
 
 export const swcJsMinimizerRspackPlugin = new SwcJsMinimizerRspackPlugin({
   extractComments: false,

@@ -12,7 +12,7 @@ export const getVendorName = (module?: Module) => {
     /[/\\]node_modules[/\\](.*?)([/\\]|$)/,
   );
 
-  return matched ? matched[1].replace('@', '') : 'other';
+  return matched?.[1]?.replace('@', '') ?? 'other';
 };
 
 const reduceManifestFiles = (array: Array<string>) =>
@@ -28,13 +28,11 @@ const reduceManifestFiles = (array: Array<string>) =>
     { css: [], js: [] },
   );
 
-export const generateManifest: ManifestPluginOptions['generate'] = (
-  _,
-  files,
-  entries,
-) => {
+export const generateManifest: NonNullable<
+  ManifestPluginOptions['generate']
+> = (_, files, entries) => {
   const initial = reduceManifestFiles(
-    entries.app
+    (entries['app'] ?? [])
       .map((entry) => {
         const entryFile = files.find((file) => file.path.match(entry));
         return entryFile?.path || '';

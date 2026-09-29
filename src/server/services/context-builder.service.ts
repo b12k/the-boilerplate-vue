@@ -68,7 +68,7 @@ export const buildContext = (request: Request) => {
     isEnvOverridden: env.IS_OVERRIDDEN === 'true',
     isProd: env.NODE_ENV !== 'development',
     isRenderCacheEnabled,
-    lang: request.params.lang,
+    lang: request.params['lang'],
     query: request.query,
     requestId: typeof request.id === 'object' ? '' : request.id.toString(),
     shouldRefreshCriticalCssCache,
@@ -79,4 +79,6 @@ export const buildContext = (request: Request) => {
 };
 
 export type BuildContext = ReturnType<typeof buildContext>;
-export type Context = BuildContext & { cached?: Partial<BuildContext> };
+export type Context = BuildContext & {
+  cached?: Partial<BuildContext> | undefined;
+};

@@ -10,7 +10,7 @@ export const getContext = () => {
 
   return context;
 };
-export const contextMiddleware: RequestHandler = (request, response, next) => {
+export const contextMiddleware: RequestHandler = (request, _response, next) => {
   try {
     return contextStorage.run(buildContext(request), () => next());
   } catch (error) {

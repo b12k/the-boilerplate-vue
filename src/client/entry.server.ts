@@ -22,7 +22,7 @@ const render = async (context: Context, logger: Logger) => {
     currentRoute: router.currentRoute.value,
     head: await renderSSRHead(head),
     html: await renderToString(app),
-    state: store.state.value,
+    state: store.state.value as unknown as { context: Context },
   };
 };
 

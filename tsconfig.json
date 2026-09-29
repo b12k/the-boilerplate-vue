@@ -1,11 +1,5 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "ts-node": {
-    "compilerOptions": {
-      "module": "CommonJS",
-      "verbatimModuleSyntax": false
-    }
-  },
   "vueCompilerOptions": {
     "target": 3.5
   },
@@ -13,30 +7,26 @@
     "jsx": "preserve",
     "jsxImportSource": "vue",
     "module": "ESNext",
-    "strict": true,
     "target": "ESNext",
-    "allowJs": true,
     "skipLibCheck": true,
-    "importHelpers": true,
-    "esModuleInterop": true,
-    "moduleResolution": "bundler",
     "isolatedModules": true,
-    "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true,
-    "allowImportingTsExtensions": false,
     "noEmit": true,
-    "noImplicitAny": true,
-    "noImplicitThis": true,
     "verbatimModuleSyntax": true,
-    "useDefineForClassFields": true,
-    "forceConsistentCasingInFileNames": true,
-    "baseUrl": ".",
+    "allowUnreachableCode": false,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "types": ["webpack-env"],
     "paths": {
       "@client": ["./src/client"],
       "@server": ["./src/server"]
     }
   },
-  "include": ["**/*.ts", "**/*.d.ts", "**/*.js", "**/*.vue"],
-  "exclude": ["node_modules", "dist", ".temp"]
+  "include": ["**/*.ts", "**/*.d.ts", "**/*.vue"],
+  "exclude": ["dist", ".temp"]
 }
