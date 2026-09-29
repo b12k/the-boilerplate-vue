@@ -6,6 +6,7 @@ ENV PATH="$PNPM_HOME:$PATH"
 WORKDIR /app
 COPY package.json ./package.json
 COPY pnpm-lock.yaml ./pnpm-lock.yaml
+COPY pnpm-workspace.yaml ./pnpm-workspace.yaml
 
 FROM base AS prod-deps
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --ignore-scripts --prod
