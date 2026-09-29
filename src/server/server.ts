@@ -60,12 +60,12 @@ void (async () => {
       acceptedLanguages.map((lang) => `/${lang}`),
       ssrMiddleware,
     )
-    .use('/{*splat}', (request, response) =>
-      response.status(404).render('404', {
+    .use('/{*splat}', (request, response) => {
+      return response.status(404).render('404', {
         lang: getLanguage(request),
         requestId: typeof request.id === 'object' ? '' : request.id.toString(),
-      }),
-    )
+      });
+    })
     .use(errorMiddleware)
     .listen(
       env.PORT,

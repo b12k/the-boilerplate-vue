@@ -1,8 +1,9 @@
-export const printDevelopmentBanner = (PORT: number) =>
-  console.log(`
+export const printDevelopmentBanner = (PORT: number) => {
+  return console.log(`
 ***********************************************
 *                                             *
 * 🚀 Server running on: http://localhost:${PORT} *
 *                                             *
 ***********************************************
 `);
+};

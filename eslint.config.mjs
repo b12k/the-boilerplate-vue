@@ -69,8 +69,6 @@ export default defineConfig(
           devDependencies: ['!**/src/**/*'],
         },
       ],
-      'unicorn/consistent-arrow-return-style': 'off',
-      'unicorn/consistent-boolean-name': 'off',
       // conflicts with perfectionist/sort-classes (private vs public field order)
       'unicorn/consistent-class-member-order': 'off',
       'unicorn/name-replacements': [

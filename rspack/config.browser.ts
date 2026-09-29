@@ -18,7 +18,8 @@ const config = defineConfig({
     app: './src/client/entry.browser.ts',
   },
   experiments: {
-    cache: env.BUNDLER_CACHE && getCacheConfig('browser', env.IS_PROD),
+    cache:
+      env.IS_BUNDLER_CACHE_ENABLED && getCacheConfig('browser', env.IS_PROD),
     css: false,
   },
   module: {
@@ -41,7 +42,7 @@ const config = defineConfig({
   ],
 });
 
-if (env.WITH_STATS) {
+if (env.IS_STATS_ENABLED) {
   config.plugins = [...(config.plugins || []), bundleStatsWebpackPlugin];
 }
 

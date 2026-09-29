@@ -15,8 +15,8 @@ export const getVendorName = (module?: Module) => {
   return matched?.[1]?.replace('@', '') ?? 'other';
 };
 
-const reduceManifestFiles = (array: Array<string>) =>
-  array.reduce<{ css: Array<string>; js: Array<string> }>(
+const reduceManifestFiles = (array: Array<string>) => {
+  return array.reduce<{ css: Array<string>; js: Array<string> }>(
     (accumulator, next) => {
       if (/\.js$/.test(next)) {
         accumulator.js.push(next);
@@ -27,6 +27,7 @@ const reduceManifestFiles = (array: Array<string>) =>
     },
     { css: [], js: [] },
   );
+};
 
 export const generateManifest: NonNullable<
   ManifestPluginOptions['generate']
@@ -57,11 +58,12 @@ export const generateManifest: NonNullable<
 export const getCacheConfig = (
   target: 'browser' | 'server',
   isProduction: boolean,
-) =>
-  ({
+) => {
+  return {
     storage: {
       directory: `.temp/rspack/${target}/${isProduction ? 'prod' : 'dev'}`,
       type: 'filesystem',
     },
     type: 'persistent',
-  }) as PersistentCacheOptions;
+  } as PersistentCacheOptions;
+};
