@@ -93,12 +93,12 @@ export default defineConfig(
       'unicorn/no-barrel-files': 'off',
       'unicorn/no-for-each': 'off',
       'unicorn/prefer-global-this': 'off',
-      // ponytail: requires Iterator.concat typings (TS >= 6); TypeScript pinned to 5.9 for vue-tsc
+      // ponytail: Iterator.concat is untyped in TS 6; runtime requires Node >= 26
       'unicorn/prefer-iterator-concat': 'off',
       'unicorn/prefer-module': 'off',
       'unicorn/prefer-temporal': 'off',
       'unicorn/prefer-top-level-await': 'off',
-      // ponytail: requires Uint8Array#toBase64 typings (TS >= 6); TypeScript pinned to 5.9 for vue-tsc
+      // ponytail: Uint8Array#toBase64 requires Node >= 26 (Dockerfile pins node:22)
       'unicorn/prefer-uint8array-base64': 'off',
       'unicorn/try-complexity': 'off',
     },
