@@ -93,7 +93,7 @@ export default defineConfig(
       'unicorn/no-barrel-files': 'off',
       'unicorn/no-for-each': 'off',
       'unicorn/prefer-global-this': 'off',
-      // ponytail: Iterator.concat is untyped in TS 6; runtime requires Node >= 26
+      // ponytail: client-side; Iterator.concat is browser-baseline only since 2026-03 (Chrome 146+/Safari 26.4+) and untyped in TS 6
       'unicorn/prefer-iterator-concat': 'off',
       'unicorn/prefer-module': 'off',
       'unicorn/prefer-temporal': 'off',
