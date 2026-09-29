@@ -8,13 +8,11 @@ import { execRoutePreFetch } from './router';
 import { deserialize } from './utils';
 
 declare global {
-  interface Window {
-    INITIAL_STATE: string;
-  }
+  var INITIAL_STATE: string;
 }
 
 (async () => {
-  const initialState = deserialize<InitialState>(window.INITIAL_STATE);
+  const initialState = deserialize<InitialState>(globalThis.INITIAL_STATE);
   const history = createWebHistory(initialState.context.baseUrl);
   const logger = pino({ browser: { asObject: true } });
   const head = createHead();
@@ -46,7 +44,7 @@ declare global {
 
     console.error(error);
     setTimeout(() => {
-      window.dispatchEvent(
+      globalThis.dispatchEvent(
         new ErrorEvent('error', {
           error,
           message: Error.isError(error) ? error.message : String(error),

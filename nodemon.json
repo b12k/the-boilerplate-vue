@@ -1,5 +1,5 @@
 {
   "watch": ["src/server", ".env"],
   "ext": "*",
-  "exec": "env-cmd node -r ./swc-register.js src/server/server.ts"
+  "exec": "env-cmd node -r ./swc-register.mjs src/server/server.ts"
 }

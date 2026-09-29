@@ -18,4 +18,4 @@ export const useHomeStore = defineStore('home', {
   },
 });
 
-if (module.hot) module.hot.dispose(() => window.location.reload());
+if (module.hot) module.hot.dispose(() => globalThis.location.reload());
