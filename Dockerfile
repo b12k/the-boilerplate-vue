@@ -1,5 +1,6 @@
-FROM node:22-alpine AS base
-RUN corepack enable
+FROM node:26-alpine AS base
+RUN npm install -g corepack && corepack enable
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 WORKDIR /app

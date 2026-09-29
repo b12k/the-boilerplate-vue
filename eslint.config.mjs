@@ -98,8 +98,6 @@ export default defineConfig(
       'unicorn/prefer-module': 'off',
       'unicorn/prefer-temporal': 'off',
       'unicorn/prefer-top-level-await': 'off',
-      // ponytail: Uint8Array#toBase64 requires Node >= 26 (Dockerfile pins node:22)
-      'unicorn/prefer-uint8array-base64': 'off',
       'unicorn/try-complexity': 'off',
     },
   },
