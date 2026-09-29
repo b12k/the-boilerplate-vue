@@ -93,7 +93,6 @@ export default defineConfig(
       // ponytail: client-side; Iterator.concat is browser-baseline only since 2026-03 (Chrome 146+/Safari 26.4+) and untyped in TS 6
       'unicorn/prefer-iterator-concat': 'off',
       'unicorn/prefer-module': 'off',
-      'unicorn/prefer-temporal': 'off',
       'unicorn/prefer-top-level-await': 'off',
     },
   },
