@@ -80,6 +80,10 @@ if (env.IS_PROD) {
     hot: true,
     port: env.WDS_PORT,
   };
+
+  config.lazyCompilation = {
+    serverUrl: `http://localhost:${env.WDS_PORT}`,
+  };
 }
 
 export default config;
