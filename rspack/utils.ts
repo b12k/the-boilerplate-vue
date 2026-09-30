@@ -35,7 +35,7 @@ export const generateManifest: NonNullable<
   const initial = reduceManifestFiles(
     (entries['app'] ?? [])
       .map((entry) => {
-        const entryFile = files.find((file) => file.path.match(entry));
+        const entryFile = files.find((file) => file.path.includes(entry));
         return entryFile?.path || '';
       })
       .filter(Boolean),

@@ -13,6 +13,22 @@ const config = defineConfig({
   entry: {
     index: './src/client/entry.server.ts',
   },
+  externals: [
+    ({ request }, callback) => {
+      const isExternal =
+        request &&
+        !request.startsWith('.') &&
+        !request.startsWith('@client') &&
+        !request.startsWith('@server');
+
+      return isExternal
+        ? callback(undefined, `commonjs ${request}`)
+        : callback();
+    },
+  ],
+  externalsPresets: {
+    node: true,
+  },
   module: {
     rules: [
       ...(baseConfig.module?.rules || []),

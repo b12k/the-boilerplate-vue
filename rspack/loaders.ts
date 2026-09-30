@@ -48,25 +48,17 @@ export const createImageLoader = (isSSR = false) => {
 
   return {
     exclude: env.ICONS_FOLDER_PATH,
-    test: /\.(png|gif|jpe?g|svg|webp)$/,
-    type: 'javascript/auto',
-    use: [
-      {
-        loader: 'url-loader',
-        options: {
-          esModule: false,
-          fallback: {
-            loader: 'file-loader',
-            options: {
-              emitFile: !isSSR,
-              esModule: false,
-            },
-          },
-          limit: 24_000,
-          name: `${basePath}public/images/[ext]/[name]${hash}.[ext]`,
-        },
+    generator: {
+      emit: !isSSR,
+      filename: `${basePath}public/images/[ext]/[name]${hash}.[ext]`,
+    },
+    parser: {
+      dataUrlCondition: {
+        maxSize: 24_000,
       },
-    ],
+    },
+    test: /\.(png|gif|jpe?g|svg|webp)$/,
+    type: 'asset',
   };
 };
 
