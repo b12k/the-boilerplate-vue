@@ -1,4 +1,7 @@
+import type { PathData } from '@rspack/core';
+
 import { CssExtractRspackPlugin } from '@rspack/core';
+import path from 'node:path';
 
 import env from './env';
 
@@ -12,7 +15,7 @@ export const tsLoader = {
       },
       target: 'esnext',
     },
-    sourceMaps: env.IS_PROD,
+    sourceMaps: true,
   },
   test: /\.ts$/,
   type: 'javascript/auto',
@@ -34,40 +37,32 @@ export const iconsLoader = {
 
 export const cssLoader = {
   test: /\.css$/,
-  // type: 'css',
   type: 'javascript/auto',
   use: [
     env.IS_PROD ? CssExtractRspackPlugin.loader : 'vue-style-loader',
-    { loader: 'css-loader', options: { sourceMap: env.IS_PROD } },
-    { loader: 'postcss-loader', options: { sourceMap: env.IS_PROD } },
+    { loader: 'css-loader', options: { sourceMap: true } },
+    { loader: 'postcss-loader', options: { sourceMap: true } },
   ],
 };
 
 export const createImageLoader = (isSSR = false) => {
-  const basePath = isSSR ? '/' : '';
-  const hash = isSSR ? '' : '.[contenthash:8]';
-
   return {
     exclude: env.ICONS_FOLDER_PATH,
-    test: /\.(png|gif|jpe?g|svg|webp)$/,
-    type: 'javascript/auto',
-    use: [
-      {
-        loader: 'url-loader',
-        options: {
-          esModule: false,
-          fallback: {
-            loader: 'file-loader',
-            options: {
-              emitFile: !isSSR,
-              esModule: false,
-            },
-          },
-          limit: 24_000,
-          name: `${basePath}public/images/[ext]/[name]${hash}.[ext]`,
-        },
+    generator: {
+      emit: !isSSR,
+      filename: (pathData: PathData) => {
+        const extension = path.extname(pathData.filename ?? '').slice(1);
+        return `public/images/${extension}/[name].[contenthash:8][ext]`;
       },
-    ],
+      publicPath: '/',
+    },
+    parser: {
+      dataUrlCondition: {
+        maxSize: 256_000,
+      },
+    },
+    test: /\.(png|gif|jpe?g|svg|webp)$/,
+    type: 'asset',
   };
 };
 

@@ -9,8 +9,25 @@ import { getCacheConfig } from './utils';
 const config = defineConfig({
   ...baseConfig,
   cache: env.IS_BUNDLER_CACHE_ENABLED && getCacheConfig('server', env.IS_PROD),
+  devtool: 'source-map',
   entry: {
     index: './src/client/entry.server.ts',
+  },
+  externals: [
+    ({ request }, callback) => {
+      const isExternal =
+        request &&
+        !request.startsWith('.') &&
+        !request.startsWith('@client') &&
+        !request.startsWith('@server');
+
+      return isExternal
+        ? callback(undefined, `commonjs ${request}`)
+        : callback();
+    },
+  ],
+  externalsPresets: {
+    node: true,
   },
   module: {
     rules: [

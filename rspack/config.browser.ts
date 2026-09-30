@@ -14,13 +14,9 @@ import { getCacheConfig, getFilenameJs, getVendorName } from './utils';
 
 const config = defineConfig({
   ...baseConfig,
+  cache: env.IS_BUNDLER_CACHE_ENABLED && getCacheConfig('browser', env.IS_PROD),
   entry: {
     app: './src/client/entry.browser.ts',
-  },
-  experiments: {
-    cache:
-      env.IS_BUNDLER_CACHE_ENABLED && getCacheConfig('browser', env.IS_PROD),
-    css: false,
   },
   module: {
     rules: [
@@ -32,7 +28,6 @@ const config = defineConfig({
   output: {
     chunkFilename: getFilenameJs('chunk', env.IS_PROD),
     filename: getFilenameJs('[name]', env.IS_PROD),
-    path: env.OUTPUT_PATH,
     publicPath: env.OUTPUT_PUBLIC_PATH,
   },
   plugins: [
@@ -74,7 +69,6 @@ if (env.IS_PROD) {
     },
   };
 } else {
-  config.lazyCompilation = false;
   config.devServer = {
     devMiddleware: {
       writeToDisk: true,
@@ -85,6 +79,10 @@ if (env.IS_PROD) {
     },
     hot: true,
     port: env.WDS_PORT,
+  };
+
+  config.lazyCompilation = {
+    serverUrl: `http://localhost:${env.WDS_PORT}`,
   };
 }
 

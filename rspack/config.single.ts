@@ -1,4 +1,4 @@
-import broswerConfig from './config.browser';
+import browserConfig from './config.browser';
 import serverConfig from './config.server';
 
-export default [broswerConfig, serverConfig];
+export default [browserConfig, serverConfig];

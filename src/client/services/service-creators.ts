@@ -2,15 +2,17 @@ import type { Context } from '@server';
 import type { Logger } from 'pino';
 import type { App, ObjectPlugin } from 'vue';
 
+import { markRaw } from 'vue';
+
 import { createApi } from './api.service';
 
 export type Services = ReturnType<typeof createServices>;
 
 export function createServices(_: Context, logger: Logger) {
-  return {
+  return markRaw({
     api: createApi(),
     logger,
-  };
+  });
 }
 
 export function createServicesPiniaPlugin(services: Services) {
