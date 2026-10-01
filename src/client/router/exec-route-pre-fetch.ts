@@ -1,27 +1,30 @@
-import { getMatchedComponents } from '@b12k/vue3-router-gmc';
-import {
-  type RouteLocationNormalized,
-  type RouteLocationNormalizedLoaded,
+import type {
+  RouteLocationNormalized,
+  RouteLocationNormalizedLoaded,
 } from 'vue-router';
 
-export const execRoutePreFetch = async (
+import { getMatchedComponents } from '@b12k/vue3-router-gmc';
+
+async function execRoutePreFetch(
   to: RouteLocationNormalized,
   from?: RouteLocationNormalizedLoaded,
-  isSsr?: boolean,
-) => {
+  isSsr = false,
+) {
   const { entering, staying } = await getMatchedComponents(to, from);
-  const enteringFetchDataPromises = entering.map(
-    ({ fetchData }) => fetchData && fetchData(to),
+  const enteringFetchDataPromises = entering.map(({ fetchData }) =>
+    fetchData?.(to),
   );
   const stayingReFetchDataPromises = staying.map(
     ({ fetchData, shouldReFetch }) =>
-      fetchData && shouldReFetch && fetchData(to),
+      (shouldReFetch ?? false) ? fetchData?.(to) : undefined,
   );
 
-  if (isSsr || !to.meta.noPreFetchAwait) {
-    await Promise.all([
-      ...enteringFetchDataPromises,
-      ...stayingReFetchDataPromises,
-    ]);
-  }
-};
+  if (!isSsr && (to.meta.noPreFetchAwait ?? false)) return;
+
+  await Promise.all([
+    ...enteringFetchDataPromises,
+    ...stayingReFetchDataPromises,
+  ]);
+}
+
+export { execRoutePreFetch };

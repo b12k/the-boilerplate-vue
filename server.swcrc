@@ -1,9 +1,19 @@
 {
-  "$schema": "https://json.schemastore.org/swcrc",
+  "$schema": "https://swc.rs/schema.json",
   "module": {
-    "type": "commonjs"
+    "type": "es6",
+    "resolveFully": true
   },
   "jsc": {
+    "baseUrl": ".",
+    "paths": {
+      "~/*": [
+        "./src/client/*"
+      ],
+      "@server/*": [
+        "./src/server/*"
+      ]
+    },
     "parser": {
       "syntax": "typescript"
     },

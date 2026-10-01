@@ -1,12 +1,14 @@
+import { loggerService } from '@server/services/logger.service';
+
 import { LruCache } from './lru.cache';
 import { RedisCache } from './redis.cache';
 
-export interface CacheClient {
+interface CacheClient {
   get: (
     key: string,
     isSlidingCache?: boolean,
   ) => Promise<string | undefined> | string | undefined;
-  set: (key: string, value: string, ttlSec?: number) => void;
+  set: (key: string, value: string, ttlSec?: number) => Promise<void> | void;
 }
 
 interface CacheClientConfig {
@@ -16,81 +18,77 @@ interface CacheClientConfig {
   renderCacheSalt: string;
   renderCacheTtl: number;
 }
-export class CacheService {
+class CacheService {
   public cacheType!: 'L' | 'R';
 
   private config!: CacheClientConfig;
 
   private criticalCssCache!: CacheClient;
 
-  private isInitialized = false;
-
   private renderCache!: CacheClient;
 
-  async getCriticalCss(key: string, isSlidingCache = false) {
-    if (!this.isInitialized) return;
+  public async getCriticalCss(key: string, isSlidingCache = false) {
+    const value = await this.criticalCssCache.get(this.saltCriticalCssKey(key));
 
-    const saltedKey = this.saltCriticalCssKey(key);
+    if (!value || !isSlidingCache) return value;
 
-    const value = await this.criticalCssCache.get(saltedKey);
-
-    if (value && isSlidingCache) this.setCriticalCss(key, value);
+    await this.setCriticalCss(key, value);
 
     return value;
   }
 
-  async getRender(key: string, isSlidingCache = false) {
-    if (!this.isInitialized) return;
+  public async getRender(key: string, isSlidingCache = false) {
+    const value = await this.renderCache.get(this.saltRenderKey(key));
 
-    const saltedKey = this.saltRenderKey(key);
+    if (!value || !isSlidingCache) return value;
 
-    const value = await this.renderCache.get(saltedKey);
-
-    if (value && isSlidingCache) this.setRender(key, value);
+    await this.setRender(key, value);
 
     return value;
   }
 
-  async initialize(config: CacheClientConfig) {
+  public async initialize(config: CacheClientConfig) {
     this.config = config;
-
-    if (config.redisUrl) {
-      try {
-        const client = new RedisCache(config.redisUrl, config.renderCacheTtl);
-        await client.connect();
-        this.renderCache = client;
-        this.criticalCssCache = client;
-        this.isInitialized = true;
-        this.cacheType = 'R';
-        return;
-      } catch {
-        console.error('[CacheService] Connection to redis server failed!');
-      }
+    if (!config.redisUrl) {
+      this.initializeLruCaches();
+      return;
     }
-    this.renderCache = new LruCache(config.renderCacheTtl);
-    this.criticalCssCache = new LruCache(config.criticalCssCacheTtl);
-    this.isInitialized = true;
-    this.cacheType = 'L';
+
+    try {
+      const client = new RedisCache(config.redisUrl, config.renderCacheTtl);
+      await client.connect();
+      this.renderCache = client;
+      this.criticalCssCache = client;
+      this.cacheType = 'R';
+    } catch (error) {
+      loggerService.logger.error(
+        error,
+        '[CacheService] Connection to redis server failed!',
+      );
+      this.initializeLruCaches();
+    }
   }
 
-  setCriticalCss(key: string, value: string) {
-    if (!this.isInitialized) return;
-
+  public async setCriticalCss(key: string, value: string) {
     const saltedKey = this.saltCriticalCssKey(key);
 
-    return this.criticalCssCache.set(
+    await this.criticalCssCache.set(
       saltedKey,
       value,
       this.config.criticalCssCacheTtl,
     );
   }
 
-  setRender(key: string, value: string) {
-    if (!this.isInitialized) return;
-
+  public async setRender(key: string, value: string) {
     const saltedKey = this.saltRenderKey(key);
 
-    return this.renderCache.set(saltedKey, value, this.config.renderCacheTtl);
+    await this.renderCache.set(saltedKey, value, this.config.renderCacheTtl);
+  }
+
+  private initializeLruCaches() {
+    this.renderCache = new LruCache(this.config.renderCacheTtl);
+    this.criticalCssCache = new LruCache(this.config.criticalCssCacheTtl);
+    this.cacheType = 'L';
   }
 
   private saltCriticalCssKey(key: string) {
@@ -102,4 +100,6 @@ export class CacheService {
   }
 }
 
-export const cacheService = new CacheService();
+const cacheService = new CacheService();
+
+export { type CacheClient, CacheService, cacheService };

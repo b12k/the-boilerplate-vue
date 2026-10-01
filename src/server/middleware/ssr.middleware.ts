@@ -1,34 +1,109 @@
-import type { RenderResult } from '@client';
-import type { Request, RequestHandler, Response } from 'express';
-
-import { diff } from 'deep-object-diff';
-import { render as nunjuksRender } from 'nunjucks';
-import { stringify } from 'safe-stable-stringify';
+import type { Context } from '@server';
+import type { Request, Response } from 'express';
 
 import {
-  type BuildContext,
   cacheService,
   computeIdempotencyKey,
-  type Context,
   getCriticalCss,
   loadSsrAssets,
-} from '../services';
-import { stringToBase64 } from '../utils';
+} from '@server/services';
+import { stringToBase64 } from '@server/utils';
+import { diff } from 'deep-object-diff';
+import nunjucks from 'nunjucks';
+import { stringify } from 'safe-stable-stringify';
+import { z } from 'zod';
+
+import type { RenderResult } from '~/index';
+
 import { getContext } from './context.middleware';
 
-export const ssrMiddleware: RequestHandler = async (
-  request,
-  response,
-  next,
-) => {
-  try {
-    await renderSsr(request, response);
-  } catch (error) {
-    next(error);
-  }
-};
+// Validate persisted JSON at the cache boundary; application types stay with their owners.
+const deviceSchema = z.object({
+  type: z.enum(['desktop', 'mobile', 'tablet']),
+});
+const querySchema = z.record(z.string(), z.unknown());
+const baseContextSchema = z
+  .object({
+    baseUrl: z.string(),
+    device: deviceSchema,
+    isCacheEnabled: z.boolean(),
+    isContextPatched: z.boolean(),
+    isCriticalCssCacheEnabled: z.boolean(),
+    isDebug: z.boolean(),
+    isEnvOverridden: z.boolean(),
+    isProd: z.boolean(),
+    isRenderCacheEnabled: z.boolean(),
+    lang: z.string().optional(),
+    query: querySchema,
+    requestId: z.string(),
+    shouldRefreshCriticalCssCache: z.boolean(),
+    shouldRefreshRenderCache: z.boolean(),
+    url: z.string(),
+    version: z.string(),
+  })
+  .transform((context) => ({ ...context, lang: context.lang }));
+const contextSchema = z
+  .object({
+    ...baseContextSchema.in.shape,
+    cached: baseContextSchema.optional(),
+  })
+  .transform((context) => ({ ...context, lang: context.lang }));
+const storeSchema = z.record(z.string(), z.unknown());
+const stateSchema = z.object({ context: contextSchema }).catchall(storeSchema);
+const routeMetaSchema = z.looseObject({ responseCode: z.number().optional() });
+const routeSchema = z.object({
+  meta: routeMetaSchema,
+  name: z.string(),
+  path: z.string(),
+});
+const headSchema = z.object({
+  bodyAttrs: z.string(),
+  bodyTags: z.string(),
+  bodyTagsOpen: z.string(),
+  headTags: z.string(),
+  htmlAttrs: z.string(),
+});
+const renderResultSchema: z.ZodType<RenderResult> = z.object({
+  currentRoute: routeSchema,
+  head: headSchema,
+  html: z.string(),
+  state: stateSchema,
+});
 
-const renderSsr = async (request: Request, response: Response) => {
+async function readCriticalCssCache(key: string | undefined) {
+  if (!key) return { hit: undefined, isPending: false };
+
+  const cachedCss = await cacheService.getCriticalCss(key);
+  const isPending = cachedCss === 'pending';
+  if (!cachedCss || isPending) return { hit: undefined, isPending };
+
+  return { hit: { css: cachedCss, key }, isPending };
+}
+
+async function readRenderCache(
+  key: false | string,
+  context: Context,
+  shouldRefresh: boolean,
+) {
+  if (key === false || shouldRefresh) return { hit: undefined };
+
+  const renderResultJson = await cacheService.getRender(key);
+  if (!renderResultJson) return { hit: undefined };
+
+  const renderResult = renderResultSchema.parse(JSON.parse(renderResultJson));
+  const cachedContext = renderResult.state.context;
+  const cachedContextDiff = diff(context, cachedContext);
+
+  if (Object.keys(cachedContextDiff).length === 0) return { hit: renderResult };
+
+  renderResult.state.context = context;
+  renderResult.state.context.isContextPatched = true;
+  renderResult.state.context.cached = cachedContext;
+
+  return { hit: renderResult };
+}
+
+async function renderSsr(request: Request, response: Response) {
   const responseStartedAt = Date.now();
   const context = getContext();
   const {
@@ -38,12 +113,12 @@ const renderSsr = async (request: Request, response: Response) => {
     shouldRefreshRenderCache,
   } = context;
 
-  let isRenderCached = false;
-
-  const renderCacheKey = isRenderCacheEnabled && computeIdempotencyKey(context);
+  const renderCacheKey = isRenderCacheEnabled
+    ? computeIdempotencyKey(context)
+    : false;
   const { manifest, render } = await loadSsrAssets();
 
-  // section Read Cache
+  // Section Read Cache
   /*
    *   ____                _     ____           _
    *  |  _ \ ___  __ _  __| |   / ___|__ _  ___| |__   ___
@@ -53,30 +128,14 @@ const renderSsr = async (request: Request, response: Response) => {
    *
    */
 
-  let renderResult: RenderResult | undefined;
+  const { hit: cachedRenderResult } = await readRenderCache(
+    renderCacheKey,
+    context,
+    shouldRefreshRenderCache,
+  );
+  const isRenderCached = Boolean(cachedRenderResult);
 
-  if (renderCacheKey && !shouldRefreshRenderCache) {
-    const renderResultJson = await cacheService.getRender(renderCacheKey);
-
-    if (renderResultJson) {
-      isRenderCached = true;
-
-      renderResult = JSON.parse(renderResultJson) as RenderResult;
-
-      const cachedContextDiff = diff(
-        context,
-        renderResult.state.context,
-      ) as Partial<BuildContext>;
-
-      if (cachedContextDiff) {
-        renderResult.state.context = context;
-        renderResult.state.context.isContextPatched = true;
-        renderResult.state.context.cached = cachedContextDiff;
-      }
-    }
-  }
-
-  // section Render
+  // Section Render
   /*
    *   ____                _
    *  |  _ \ ___ _ __   __| | ___ _ __
@@ -86,17 +145,12 @@ const renderSsr = async (request: Request, response: Response) => {
    *
    */
 
-  if (!renderResult) {
-    renderResult = await render({ ...context }, request.log);
-  }
-
-  if (!renderResult) {
-    throw new Error('[SSR-MIDDLEWARE] Missing render result');
-  }
+  const renderResult =
+    cachedRenderResult ?? (await render({ ...context }, request.log));
 
   const { currentRoute, head, html, state } = renderResult;
 
-  // section Critical CSS
+  // Section Critical CSS
   /*
    *    ____      _ _   _           _     ____ ____ ____
    *   / ___|_ __(_) |_(_) ___ __ _| |   / ___/ ___/ ___|
@@ -106,24 +160,16 @@ const renderSsr = async (request: Request, response: Response) => {
    *
    */
 
-  const criticalCssCacheKey =
-    isCriticalCssCacheEnabled &&
-    stringToBase64((currentRoute.name || currentRoute.path).toString());
+  const criticalCssCacheKey = isCriticalCssCacheEnabled
+    ? stringToBase64(currentRoute.name)
+    : undefined;
 
-  let criticalCss: string | undefined;
-  let isCriticalCssCached = false;
+  const { hit: criticalCssCacheHit, isPending } =
+    await readCriticalCssCache(criticalCssCacheKey);
+  let criticalCss = criticalCssCacheHit?.css;
+  const isCriticalCssCached = Boolean(criticalCssCacheHit);
 
-  if (criticalCssCacheKey) {
-    const cachedCriticalCss =
-      await cacheService.getCriticalCss(criticalCssCacheKey);
-
-    criticalCss =
-      cachedCriticalCss === 'pending' ? undefined : cachedCriticalCss;
-
-    isCriticalCssCached = Boolean(criticalCss);
-  }
-
-  // section Template
+  // Section Template
   /*
    *   _____                    _       _
    *  |_   _|__ _ __ ___  _ __ | | __ _| |_ ___
@@ -133,16 +179,18 @@ const renderSsr = async (request: Request, response: Response) => {
    *                     |_|
    */
 
-  const page = nunjuksRender('index.njk', {
+  const serializedState = stringify(state);
+
+  const page = nunjucks.render('index.njk', {
     context,
     criticalCss,
     head,
     html,
     manifest,
-    state: stringify(state),
+    state: serializedState.replaceAll('<', String.raw`\u003C`),
   });
 
-  // section Response
+  // Section Response
   /*
    *   ____
    *  |  _ \ ___  ___ _ __   ___  _ __  ___  ___
@@ -156,8 +204,8 @@ const renderSsr = async (request: Request, response: Response) => {
     response.setHeader('X-Cache', cacheService.cacheType);
   }
 
-  if (isCriticalCssCached) {
-    response.setHeader('X-Cache-Critical-Css', criticalCssCacheKey.toString());
+  if (criticalCssCacheHit) {
+    response.setHeader('X-Cache-Critical-Css', criticalCssCacheHit.key);
   }
 
   if (isRenderCached) {
@@ -166,10 +214,10 @@ const renderSsr = async (request: Request, response: Response) => {
 
   response
     .setHeader('X-Response-Time', Date.now() - responseStartedAt)
-    .status(Number(currentRoute.meta.responseCode) || 200)
+    .status(currentRoute.meta.responseCode ?? 200)
     .send(page);
 
-  // section Set Cache
+  // Section Set Cache
   /*
    *   ____       _       ____           _
    *  / ___|  ___| |_    / ___|__ _  ___| |__   ___
@@ -181,18 +229,18 @@ const renderSsr = async (request: Request, response: Response) => {
 
   if (
     criticalCssCacheKey &&
-    criticalCss !== 'pending' &&
+    !isPending &&
     (!criticalCss || shouldRefreshCriticalCssCache)
   ) {
-    cacheService.setCriticalCss(criticalCssCacheKey, 'pending');
+    await cacheService.setCriticalCss(criticalCssCacheKey, 'pending');
     criticalCss = await getCriticalCss(html, [
       ...manifest.css.initial,
       ...manifest.css.async,
     ]);
-    cacheService.setCriticalCss(criticalCssCacheKey, criticalCss);
+    await cacheService.setCriticalCss(criticalCssCacheKey, criticalCss);
   }
 
-  if (!renderCacheKey) return;
+  if (renderCacheKey === false) return;
 
   const { context: renderedContext } = state;
   if (renderedContext.isContextPatched) {
@@ -201,8 +249,14 @@ const renderSsr = async (request: Request, response: Response) => {
       ...renderedContext.cached,
       cached: undefined,
       isContextPatched: false,
-    } as Context;
+    };
   }
 
-  cacheService.setRender(renderCacheKey, JSON.stringify(renderResult));
-};
+  await cacheService.setRender(renderCacheKey, JSON.stringify(renderResult));
+}
+
+function ssrMiddleware(request: Request, response: Response) {
+  return renderSsr(request, response);
+}
+
+export { ssrMiddleware };

@@ -1,10 +1,10 @@
-import { defineConfig } from '@rspack/cli';
+import type { Configuration } from '@rspack/core';
 
-import env from './env';
+import { env } from './env';
 import { iconsLoader, tsLoader, vueLoader } from './loaders';
 import { definePlugin, vuePlugin } from './plugins';
 
-export default defineConfig({
+const baseConfig = {
   context: env.CONTEXT,
   devtool: env.IS_PROD ? 'source-map' : 'eval-source-map',
   mode: env.IS_PROD ? 'production' : 'development',
@@ -23,4 +23,6 @@ export default defineConfig({
     colors: true,
     preset: 'minimal',
   },
-});
+} satisfies Configuration;
+
+export { baseConfig };

@@ -1,14 +1,19 @@
 import type { Context } from '@server';
 import type { Logger } from 'pino';
 
-import { createHead, renderSSRHead } from '@unhead/vue/server';
+import { createHead } from '@unhead/vue/server';
 import { createMemoryHistory } from 'vue-router';
 import { renderToString } from 'vue/server-renderer';
 
 import { createApp } from './create-app';
 import { execRoutePreFetch } from './router';
+import { useContextStore } from './store';
 
-const render = async (context: Context, logger: Logger) => {
+type Render = typeof render;
+
+type RenderResult = Awaited<ReturnType<Render>>;
+
+async function render(context: Context, logger: Logger) {
   const { app, head, router, store } = await createApp({
     head: createHead(),
     history: createMemoryHistory(context.baseUrl),
@@ -19,16 +24,17 @@ const render = async (context: Context, logger: Logger) => {
   await execRoutePreFetch(router.currentRoute.value, undefined, true);
 
   return {
-    currentRoute: router.currentRoute.value,
-    head: await renderSSRHead(head),
+    currentRoute: {
+      meta: router.currentRoute.value.meta,
+      name:
+        router.currentRoute.value.name?.toString() ??
+        router.currentRoute.value.path,
+      path: router.currentRoute.value.path,
+    },
+    head: head.render(),
     html: await renderToString(app),
-    state: store.state.value as unknown as { context: Context },
+    state: { ...store.state.value, context: useContextStore(store).$state },
   };
-};
+}
 
-export type Render = (
-  context: Context,
-  logger: Logger,
-) => ReturnType<typeof render>;
-export type RenderResult = Awaited<ReturnType<typeof render>>;
-export default render;
+export { render, type Render, type RenderResult };

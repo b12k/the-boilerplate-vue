@@ -1,8 +1,9 @@
-// import type { Context } from '@server';
-export function createApi(/* context: Context */) {
+import type { Logger } from 'pino';
+
+function createApi(logger: Logger) {
   return {
-    get: () => {
-      console.log('👌');
-    },
+    get: () => logger.info('👌'),
   };
 }
+
+export { createApi };

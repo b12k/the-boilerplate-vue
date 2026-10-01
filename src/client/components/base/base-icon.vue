@@ -1,16 +1,18 @@
 <script lang="ts" setup>
-  import * as icons from '../../assets/icons';
+  import * as icons from '~/assets/icons';
 
   type IconName = keyof typeof icons;
 
-  const props = defineProps<{
+  const { icon } = defineProps<{
     icon: IconName;
   }>();
 </script>
 
 <template>
-  <!-- eslint-disable-next-line vue/no-v-html -->
-  <span class="icon" v-html="icons[props.icon]" />
+  <span
+    class="icon"
+    v-html="icons[icon]"
+  />
 </template>
 
 <style lang="css">

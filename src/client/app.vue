@@ -1,7 +1,7 @@
 <script lang="ts" setup>
   import { useHead } from '@unhead/vue';
 
-  import { LayoutHollyGrail } from './components';
+  import { LayoutHollyGrail } from '~/components';
 
   useHead({
     link: [

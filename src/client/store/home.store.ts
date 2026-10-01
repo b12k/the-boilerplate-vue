@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia';
 
-export const useHomeStore = defineStore('home', {
+const DOUBLE_FACTOR = 2;
+
+const useHomeStore = defineStore('home', {
   actions: {
     incrementCounter(this) {
       this.counter += 1;
@@ -8,14 +10,14 @@ export const useHomeStore = defineStore('home', {
   },
   getters: {
     doubledCounter(this) {
-      return this.counter * 2;
+      return this.counter * DOUBLE_FACTOR;
     },
   },
-  state: () => {
-    return {
-      counter: 6,
-    };
-  },
+  state: () => ({
+    counter: 6,
+  }),
 });
 
-if (module.hot) module.hot.dispose(() => globalThis.location.reload());
+import.meta.webpackHot?.dispose(() => location.reload());
+
+export { useHomeStore };

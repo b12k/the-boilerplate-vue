@@ -2,10 +2,10 @@ import { createClient } from 'redis';
 
 import type { CacheClient } from './cache.service';
 
-export class RedisCache implements CacheClient {
+class RedisCache implements CacheClient {
   private readonly client;
 
-  constructor(
+  public constructor(
     url: string,
     private readonly ttl: number,
   ) {
@@ -14,15 +14,19 @@ export class RedisCache implements CacheClient {
     });
   }
 
-  async connect() {
+  public async connect() {
     await this.client.connect();
   }
 
-  async get(key: string) {
-    return (await this.client.get(key)) || undefined;
+  public async get(key: string) {
+    return (await this.client.get(key)) ?? undefined;
   }
 
-  set(key: string, value: string, ttl = this.ttl) {
-    this.client.set(key, value, { EX: ttl });
+  public async set(key: string, value: string, ttl = this.ttl) {
+    await this.client.set(key, value, {
+      expiration: { type: 'EX', value: ttl },
+    });
   }
 }
+
+export { RedisCache };

@@ -1,12 +1,12 @@
-import { defineConfig } from '@rspack/cli';
+import type { Configuration } from '@rspack/core';
 
-import baseConfig from './config.base';
-import env from './env';
+import { baseConfig } from './config.base';
+import { env } from './env';
 import { createImageLoader, cssIgnoreLoader } from './loaders';
 import { createManifestPlugin, createProgressPlugin } from './plugins';
 import { getCacheConfig } from './utils';
 
-const config = defineConfig({
+const config = {
   ...baseConfig,
   cache: env.IS_BUNDLER_CACHE_ENABLED && getCacheConfig('server', env.IS_PROD),
   devtool: 'source-map',
@@ -14,16 +14,18 @@ const config = defineConfig({
     index: './src/client/entry.server.ts',
   },
   externals: [
-    ({ request }, callback) => {
-      const isExternal =
-        request &&
-        !request.startsWith('.') &&
-        !request.startsWith('@client') &&
-        !request.startsWith('@server');
+    ({ request }, resolveExternal) => {
+      if (
+        !request ||
+        request.startsWith('.') ||
+        request.startsWith('~/') ||
+        request.startsWith('@server')
+      ) {
+        resolveExternal();
+        return;
+      }
 
-      return isExternal
-        ? callback(undefined, `commonjs ${request}`)
-        : callback();
+      resolveExternal(undefined, `commonjs ${request}`);
     },
   ],
   externalsPresets: {
@@ -31,7 +33,7 @@ const config = defineConfig({
   },
   module: {
     rules: [
-      ...(baseConfig.module?.rules || []),
+      ...baseConfig.module.rules,
       createImageLoader(true),
       cssIgnoreLoader,
     ],
@@ -40,18 +42,19 @@ const config = defineConfig({
     minimize: false,
   },
   output: {
-    filename: './ssr/index.js',
+    chunkFilename: './ssr/[id].cjs',
+    filename: './ssr/index.cjs',
     library: {
       type: 'commonjs2',
     },
   },
   plugins: [
-    ...(baseConfig.plugins || []),
+    ...baseConfig.plugins,
     createManifestPlugin(true),
     createProgressPlugin(true),
   ],
   target: 'node',
   watch: !env.IS_PROD,
-});
+} satisfies Configuration;
 
 export default config;

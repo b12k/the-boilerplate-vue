@@ -1,42 +1,16 @@
 import type { Module, PersistentCacheOptions } from '@rspack/core';
-import type { ManifestPluginOptions } from 'rspack-manifest-plugin';
+import type { FileDescriptor } from 'rspack-manifest-plugin';
 
-export const uniqArray = <T>(array: Array<T>) => [...new Set(array)];
-
-export const getFilenameJs = (name: string, isProduction: boolean) =>
-  isProduction ? `public/js/${name}.[contenthash:8].js` : `public/js/[name].js`;
-
-export const getVendorName = (module?: Module) => {
-  // Source https://medium.com/hackernoon/the-100-correct-way-to-split-your-chunks-with-webpack-f8a9df5b7758
-  const matched = module?.context?.match(
-    /[/\\]node_modules[/\\](.*?)([/\\]|$)/,
-  );
-
-  return matched?.[1]?.replace('@', '') ?? 'other';
-};
-
-const reduceManifestFiles = (array: Array<string>) => {
-  return array.reduce<{ css: Array<string>; js: Array<string> }>(
-    (accumulator, next) => {
-      if (/\.js$/.test(next)) {
-        accumulator.js.push(next);
-      } else if (/\.css$/.test(next)) {
-        accumulator.css.push(next);
-      }
-      return accumulator;
-    },
-    { css: [], js: [] },
-  );
-};
-
-export const generateManifest: NonNullable<
-  ManifestPluginOptions['generate']
-> = (_, files, entries) => {
+function generateManifest(
+  _: Record<string, unknown>,
+  files: Array<FileDescriptor>,
+  entries: Record<string, Array<string>>,
+) {
   const initial = reduceManifestFiles(
     (entries['app'] ?? [])
       .map((entry) => {
         const entryFile = files.find((file) => file.path.includes(entry));
-        return entryFile?.path || '';
+        return entryFile?.path ?? '';
       })
       .filter(Boolean),
   );
@@ -53,17 +27,53 @@ export const generateManifest: NonNullable<
       initial: initial.js,
     },
   };
-};
+}
 
-export const getCacheConfig = (
-  target: 'browser' | 'server',
-  isProduction: boolean,
-) => {
+function getCacheConfig(target: 'browser' | 'server', isProduction: boolean) {
   return {
     storage: {
-      directory: `.temp/rspack/${target}/${isProduction ? 'prod' : 'dev'}`,
+      directory: `node_modules/.cache/rspack/${target}/${isProduction ? 'prod' : 'dev'}`,
       type: 'filesystem',
     },
     type: 'persistent',
-  } as PersistentCacheOptions;
+  } satisfies PersistentCacheOptions;
+}
+
+function getFilenameJs(name: string, isProduction: boolean) {
+  return isProduction
+    ? `public/js/${name}.[contenthash:8].js`
+    : `public/js/[name].js`;
+}
+
+function getVendorName(module?: Module) {
+  // Source https://medium.com/hackernoon/the-100-correct-way-to-split-your-chunks-with-webpack-f8a9df5b7758
+  const matched = module?.context?.match(
+    /[/\\]node_modules[/\\](?<packageName>.*?)(?:[/\\]|$)/u,
+  );
+
+  return matched?.groups?.['packageName']?.replace('@', '') ?? 'other';
+}
+
+function reduceManifestFiles(array: Array<string>) {
+  const files: { css: Array<string>; js: Array<string> } = { css: [], js: [] };
+  for (const file of array) {
+    if (file.endsWith('.js')) {
+      files.js.push(file);
+    } else if (file.endsWith('.css')) {
+      files.css.push(file);
+    }
+  }
+  return files;
+}
+
+function uniqArray<T>(array: Array<T>) {
+  return [...new Set(array)];
+}
+
+export {
+  generateManifest,
+  getCacheConfig,
+  getFilenameJs,
+  getVendorName,
+  uniqArray,
 };

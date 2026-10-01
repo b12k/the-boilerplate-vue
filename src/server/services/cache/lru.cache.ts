@@ -2,21 +2,25 @@ import { LRUCache } from 'lru-cache';
 
 import type { CacheClient } from './cache.service';
 
-export class LruCache implements CacheClient {
+const MS_PER_SEC = 1000;
+
+class LruCache implements CacheClient {
   private readonly client;
 
-  constructor(ttl: number) {
+  public constructor(ttl: number) {
     this.client = new LRUCache<string, string>({
       max: 10_000,
-      ttl: ttl * 1000,
+      ttl: ttl * MS_PER_SEC,
     });
   }
 
-  get(key: string) {
+  public get(key: string) {
     return this.client.get(key);
   }
 
-  set(key: string, value: string) {
+  public set(key: string, value: string) {
     this.client.set(key, value);
   }
 }
+
+export { LruCache };

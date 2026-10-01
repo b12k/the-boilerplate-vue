@@ -5,8 +5,6 @@
 
 .env
 .husky/_/*
-.temp/*
-!.temp/redis/.gitkeep
 
 dist
 node_modules

@@ -1,12 +1,22 @@
-import { type Request } from 'express';
+import type { Request } from 'express';
 
-export const createRequestPropertyExtractor = (request: Request) => {
+function createRequestPropertyExtractor(request: Request) {
   return (property: string, defaultValue = '') => {
     const { cookies } = request;
     const { headers, query } = request;
-    return (cookies[property] ||
-      headers[property] ||
-      query[property] ||
-      defaultValue) as string;
+    const cookie: unknown = cookies[property];
+    const candidates: Array<unknown> = [
+      cookie,
+      headers[property],
+      query[property],
+    ];
+    return (
+      candidates.find(
+        (candidate): candidate is string =>
+          typeof candidate === 'string' && candidate.length > 0,
+      ) ?? defaultValue
+    );
   };
-};
+}
+
+export { createRequestPropertyExtractor };

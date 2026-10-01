@@ -1,23 +1,21 @@
 import type { AxiosError } from 'axios';
+import type { NextFunction, Request, Response } from 'express';
 
-import { type ErrorRequestHandler } from 'express';
+import { env } from '@server/env';
 import { stringify } from 'safe-stable-stringify';
 
-import { env } from '../env';
 import { getContext } from './context.middleware';
 
-export const errorMiddleware: ErrorRequestHandler = (
+function errorMiddleware(
   error: AxiosError | Error,
-  request,
-  response,
-  next,
-) => {
-  if (!error) return next();
-
+  request: Request,
+  response: Response,
+  _next: NextFunction,
+) {
   const context = getContext();
 
   if (context.isDebug) {
-    return response.status(500).render('debug', {
+    response.status(500).render('debug', {
       details: stringify({
         context,
         env,
@@ -26,7 +24,10 @@ export const errorMiddleware: ErrorRequestHandler = (
       }),
       message: error.message,
     });
+    return;
   }
 
-  return response.status(500).render('500');
-};
+  response.status(500).render('500');
+}
+
+export { errorMiddleware };

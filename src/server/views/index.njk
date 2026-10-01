@@ -16,7 +16,7 @@
     {% for script in manifest.js.initial %}<script src="{{ script }}" defer></script>{% endfor %}
     {% for script in manifest.js.async %}<link rel="prefetch" as="script" href="{{ script }}">{% endfor %}
     <script nonce="{{ context.requestId }}">
-    window.INITIAL_STATE = '{{ state | safe }}';
+    window.INITIAL_STATE = {{ state | safe }};
     document.querySelectorAll('[data-async-css]').forEach((link) => {
       link.onload = () => {
         link.rel = 'stylesheet';

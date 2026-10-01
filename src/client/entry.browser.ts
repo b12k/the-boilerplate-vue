@@ -2,17 +2,18 @@ import { createHead } from '@unhead/vue/client';
 import { pino } from 'pino';
 import { createWebHistory } from 'vue-router';
 
-import './styles/main.css';
-import { createApp, type InitialState } from './create-app';
+import type { InitialState } from './create-app';
+
+import { createApp } from './create-app';
 import { execRoutePreFetch } from './router';
-import { deserialize } from './utils';
+import './styles/main.css';
 
 declare global {
-  var INITIAL_STATE: string;
+  var INITIAL_STATE: InitialState;
 }
 
-(async () => {
-  const initialState = deserialize<InitialState>(globalThis.INITIAL_STATE);
+async function startClient() {
+  const initialState = globalThis.INITIAL_STATE;
   const history = createWebHistory(initialState.context.baseUrl);
   const logger = pino({ browser: { asObject: true } });
   const head = createHead();
@@ -25,7 +26,7 @@ declare global {
 
   app.mount('#app');
 
-  let alreadyNavigatingTo: string | undefined;
+  let alreadyNavigatingTo = router.currentRoute.value.fullPath;
   router.beforeEach(async (to, from) => {
     if (alreadyNavigatingTo === to.fullPath) return false;
     alreadyNavigatingTo = to.fullPath;
@@ -33,7 +34,7 @@ declare global {
       await execRoutePreFetch(to, from);
       return true;
     } catch (error) {
-      console.error(error);
+      services.logger.error(error);
       return false;
     }
   });
@@ -42,14 +43,21 @@ declare global {
     services.logger.error(error, info);
     if (initialState.context.isProd) return;
 
-    console.error(error);
-    setTimeout(() => {
-      globalThis.dispatchEvent(
-        new ErrorEvent('error', {
-          error,
-          message: Error.isError(error) ? error.message : String(error),
-        }),
-      );
-    });
+    setTimeout(
+      () =>
+        dispatchEvent(
+          new ErrorEvent('error', {
+            error,
+            message: Error.isError(error) ? error.message : String(error),
+          }),
+        ),
+      0,
+    );
   };
-})();
+}
+
+try {
+  await startClient();
+} catch (error) {
+  dispatchEvent(new ErrorEvent('error', { error }));
+}

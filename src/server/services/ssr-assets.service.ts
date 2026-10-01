@@ -1,52 +1,49 @@
-import type { Render } from '@client';
-
+import { env } from '@server/env';
 import decache from 'decache';
+import { readFile } from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import path from 'node:path';
+import { z } from 'zod';
 
-import { env } from '../env';
+import type { Render } from '~/index';
 
-export interface AssetsManifest {
-  css: {
-    async: Array<string>;
-    initial: Array<string>;
-  };
-  js: {
-    async: Array<string>;
-    initial: Array<string>;
-  };
-}
+const filesSchema = z.object({
+  async: z.array(z.string()),
+  initial: z.array(z.string()),
+});
+const assetsSchema = z.object({
+  css: filesSchema,
+  js: filesSchema,
+});
+const ssrManifestSchema = z.record(z.string(), z.string());
+const rendererSchema = z.object({
+  render: z.custom<Render>((value: unknown) => typeof value === 'function'),
+});
 
-type ImportedModule<T> = { default: T };
+// Rspack emits the SSR renderer as CommonJS, including its development require cache.
+const requireRenderer = createRequire(import.meta.url);
 
-interface SsrAssets {
-  manifest: AssetsManifest;
-  render: Render;
-}
+type AssetsManifest = z.infer<typeof assetsSchema>;
 
-type SsrAssetsLoader = () => Promise<SsrAssets>;
+async function loadSsrAssets() {
+  const [manifestJson, ssrManifestJson] = await Promise.all([
+    readFile(env.CLIENT_MANIFEST_PATH, 'utf8'),
+    readFile(env.SSR_MANIFEST_PATH, 'utf8'),
+  ]);
+  const manifest = assetsSchema.parse(JSON.parse(manifestJson));
+  const ssrManifest = ssrManifestSchema.parse(JSON.parse(ssrManifestJson));
+  const rendererModule: unknown = requireRenderer(env.SSR_RENDERER_PATH);
+  const { render } = rendererSchema.parse(rendererModule);
 
-export const loadSsrAssets: SsrAssetsLoader = async () => {
-  const [{ default: manifest }, { default: ssrManifest }, { default: render }] =
-    (await Promise.all([
-      import(env.CLIENT_MANIFEST_PATH),
-      import(env.SSR_MANIFEST_PATH),
-      import(env.SSR_RENDERER_PATH),
-    ])) as [
-      ImportedModule<AssetsManifest>,
-      ImportedModule<AssetsManifest>,
-      ImportedModule<Render>,
-    ];
+  const assets = { manifest, render };
+  if (env.IS_PROD === 'true') return assets;
 
-  if (env.IS_PROD !== 'true') {
-    decache(env.CLIENT_MANIFEST_PATH);
-    decache(env.SSR_RENDERER_PATH);
-    Object.values(ssrManifest).forEach((entry) =>
-      decache(path.resolve(env.ASSETS_LOCATION_PATH, String(entry))),
-    );
+  decache(env.SSR_RENDERER_PATH);
+  for (const entry of Object.values(ssrManifest)) {
+    decache(path.resolve(env.ASSETS_LOCATION_PATH, entry));
   }
 
-  return {
-    manifest,
-    render,
-  };
-};
+  return assets;
+}
+
+export { type AssetsManifest, loadSsrAssets };

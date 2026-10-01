@@ -1,12 +1,16 @@
-import { type RequestHandler } from 'express';
-import helmet, { type HelmetOptions } from 'helmet';
+import type { RequestHandler } from 'express';
+import type { HelmetOptions } from 'helmet';
 
-export const helmetMiddleware = (isEnabled: boolean): RequestHandler => {
-  return (request, response, next) => {
-    if (!isEnabled) return next();
+import helmet from 'helmet';
 
-    const requestId =
-      typeof request.id === 'object' ? '' : request.id.toString();
+function helmetMiddleware(isEnabled: boolean) {
+  return ((request, response, next) => {
+    if (!isEnabled) {
+      next();
+      return;
+    }
+
+    const { requestId } = request;
 
     const options: HelmetOptions = {
       contentSecurityPolicy: {
@@ -36,6 +40,8 @@ export const helmetMiddleware = (isEnabled: boolean): RequestHandler => {
       },
     };
 
-    return helmet(options)(request, response, next);
-  };
-};
+    helmet(options)(request, response, next);
+  }) satisfies RequestHandler;
+}
+
+export { helmetMiddleware };

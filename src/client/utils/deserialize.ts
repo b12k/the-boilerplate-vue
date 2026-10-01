@@ -1,2 +1,6 @@
-export const deserialize = <T>(serializedJs: string): T =>
-  eval(`(${serializedJs})`) as T;
+function deserialize(serializedJson: string) {
+  const value: unknown = JSON.parse(serializedJson);
+  return value;
+}
+
+export { deserialize };

@@ -1,13 +1,16 @@
-import type { NextFunction, Request, Response } from 'express';
+import type { RequestHandler } from 'express';
 
-export const liveReload = (liveReloadPath?: string) => {
-  return (request: Request, response: Response, next: NextFunction) => {
+function liveReload(liveReloadPath = '') {
+  return ((request, response, next) => {
     const isLiveReload =
-      liveReloadPath &&
+      liveReloadPath.length > 0 &&
       request.method === 'GET' &&
       request.path === `/${liveReloadPath}`;
 
-    if (!isLiveReload) return next();
+    if (!isLiveReload) {
+      next();
+      return;
+    }
 
     response.setHeader('Content-Type', 'text/event-stream');
     response.setHeader('Connection', 'keep-alive');
@@ -16,5 +19,7 @@ export const liveReload = (liveReloadPath?: string) => {
     response.write('data:\n\n');
 
     request.on('close', () => response.end());
-  };
-};
+  }) satisfies RequestHandler;
+}
+
+export { liveReload };

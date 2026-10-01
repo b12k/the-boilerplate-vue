@@ -1,10 +1,9 @@
-export const overrideEnv = <T extends object>(
-  environment: T,
-  overrides: Partial<T>,
-): T => {
+function overrideEnv<T extends object>(env: T, overrides: Partial<T>) {
   return {
-    ...environment,
+    ...env,
     ...overrides,
     IS_OVERRIDDEN: 'true',
   };
-};
+}
+
+export { overrideEnv };

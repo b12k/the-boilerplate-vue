@@ -1,27 +1,20 @@
-import { type RouteRecordRaw } from 'vue-router';
-
-declare module 'vue-router' {
-  interface RouteMeta {
-    noPreFetchAwait?: boolean;
-    responseCode?: number;
-  }
-}
+import type { RouteRecordRaw } from 'vue-router';
 
 type RouteRecordRawNamed = RouteRecordRaw & { name: string };
 
-export const routes: Array<RouteRecordRawNamed> = [
+const routes: Array<RouteRecordRawNamed> = [
   {
-    component: () => import('../pages/page-home.vue'),
+    component: () => import('~/pages/page-home.vue'),
     name: 'home',
     path: '/',
   },
   {
-    component: () => import('../pages/page-about.vue'),
+    component: () => import('~/pages/page-about.vue'),
     name: 'about',
     path: '/about',
   },
   {
-    component: () => import('../pages/page-404.vue'),
+    component: () => import('~/pages/page-404.vue'),
     meta: {
       responseCode: 404,
     },
@@ -31,13 +24,13 @@ export const routes: Array<RouteRecordRawNamed> = [
   {
     name: 'CatchNotFound',
     path: '/:url(.*)*',
-    redirect: ({ params: { url } }) => {
-      return {
-        path: '/404',
-        query: {
-          uri: encodeURIComponent(url?.toString() ?? ''),
-        },
-      };
-    },
+    redirect: ({ params: { url } }) => ({
+      path: '/404',
+      query: {
+        uri: encodeURIComponent(url?.toString() ?? ''),
+      },
+    }),
   },
 ];
+
+export { routes };

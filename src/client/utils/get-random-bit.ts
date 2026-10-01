@@ -1,1 +1,7 @@
-export const getRandomBit = () => Number(Math.random() < 0.5);
+const BIT_THRESHOLD = 0.5;
+
+function getRandomBit() {
+  return Number(Math.random() < BIT_THRESHOLD);
+}
+
+export { getRandomBit };

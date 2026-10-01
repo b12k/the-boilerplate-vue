@@ -1,9 +1,13 @@
-export const printDevelopmentBanner = (PORT: number) => {
-  return console.log(`
+import { stdout } from 'node:process';
+
+function printDevelopmentBanner(PORT: number) {
+  stdout.write(`
 ***********************************************
 *                                             *
 * 🚀 Server running on: http://localhost:${PORT} *
 *                                             *
 ***********************************************
 `);
-};
+}
+
+export { printDevelopmentBanner };

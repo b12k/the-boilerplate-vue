@@ -1,8 +1,10 @@
 import type { IdempotencyConfig } from './services';
 
-export default {
+const idempotencyConfig: IdempotencyConfig = {
   beforeCompute: (context) => context.device.type,
   paths: {
     '/:lang': (_context, parameters) => parameters['lang'],
   },
-} as IdempotencyConfig;
+};
+
+export { idempotencyConfig };

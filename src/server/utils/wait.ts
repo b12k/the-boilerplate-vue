@@ -1,7 +1,7 @@
-export const wait = (ms: number) => {
-  return new Promise<void>((resolve) => {
-    setTimeout(() => {
-      resolve();
-    }, ms);
-  });
-};
+import { setTimeout } from 'node:timers/promises';
+
+function wait(ms: number) {
+  return setTimeout(ms);
+}
+
+export { wait };

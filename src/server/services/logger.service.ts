@@ -1,10 +1,9 @@
 import type { Request, Response } from 'express';
 
+import { env } from '@server/env';
 import { randomUUID } from 'node:crypto';
 import { pinoHttp } from 'pino-http';
 import pinoPretty from 'pino-pretty';
-
-import { env } from '../env';
 
 const pinoPrettyStream = pinoPretty({
   colorize: true,
@@ -12,11 +11,16 @@ const pinoPrettyStream = pinoPretty({
 
 const config = {
   genReqId: (request: Request, response: Response) => {
-    const requestId = request.headers['X-Request-Id'] || randomUUID();
+    const header = request.headers['x-request-id'];
+    const requestId =
+      typeof header === 'string' && header.length > 0 ? header : randomUUID();
+    request.requestId = requestId;
     response.setHeader('X-Request-Id', requestId);
     return requestId;
   },
-  level: env.LOG_LEVEL || 'silent',
+  level: env.LOG_LEVEL ?? 'silent',
 };
 
-export const loggerService = pinoHttp(config, pinoPrettyStream);
+const loggerService = pinoHttp(config, pinoPrettyStream);
+
+export { loggerService };

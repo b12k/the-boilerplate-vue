@@ -1,29 +1,27 @@
 import type { Context } from '@server';
 import type { Logger } from 'pino';
-import type { App, ObjectPlugin } from 'vue';
+import type { App } from 'vue';
 
 import { markRaw } from 'vue';
 
 import { createApi } from './api.service';
 
-export type Services = ReturnType<typeof createServices>;
+type Services = ReturnType<typeof createServices>;
 
-export function createServices(_: Context, logger: Logger) {
+function createServices(_: Context, logger: Logger) {
   return markRaw({
-    api: createApi(),
+    api: createApi(logger),
     logger,
   });
 }
 
-export function createServicesPiniaPlugin(services: Services) {
-  return () => {
-    return {
-      $services: services,
-    };
-  };
+function createServicesPiniaPlugin(services: Services) {
+  return () => ({
+    $services: services,
+  });
 }
 
-export function createServicesVuePlugin(services: Services): ObjectPlugin {
+function createServicesVuePlugin(services: Services) {
   return {
     install: (app: App) => {
       app.config.globalProperties.$services = services;
@@ -31,3 +29,10 @@ export function createServicesVuePlugin(services: Services): ObjectPlugin {
     },
   };
 }
+
+export {
+  createServices,
+  createServicesPiniaPlugin,
+  createServicesVuePlugin,
+  type Services,
+};

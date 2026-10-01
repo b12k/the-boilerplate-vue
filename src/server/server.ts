@@ -1,7 +1,7 @@
 import compression from '@nitedani/shrink-ray-current';
 import cookieParser from 'cookie-parser';
 import express, { static as serveStatic } from 'express';
-import { configure as nunjucksConfigure } from 'nunjucks';
+import nunjucks from 'nunjucks';
 import serveFavicon from 'serve-favicon';
 
 import { env } from './env';
@@ -21,7 +21,7 @@ import {
   printDevelopmentBanner,
 } from './utils';
 
-void (async () => {
+async function startServer() {
   await cacheService.initialize({
     criticalCssCacheSalt: env.CRITICAL_CSS_CACHE_SALT,
     criticalCssCacheTtl: Number(env.CRITICAL_CSS_CACHE_TTL),
@@ -32,10 +32,12 @@ void (async () => {
 
   const app = express();
 
-  nunjucksConfigure(env.VIEWS_PATH, {
-    autoescape: true,
-    express: app,
-  }).addGlobal('env', env);
+  nunjucks
+    .configure(env.VIEWS_PATH, {
+      autoescape: true,
+      express: app,
+    })
+    .addGlobal('env', env);
 
   app
     .set('view engine', 'njk')
@@ -60,15 +62,22 @@ void (async () => {
       acceptedLanguages.map((lang) => `/${lang}`),
       ssrMiddleware,
     )
-    .use('/{*splat}', (request, response) => {
-      return response.status(404).render('404', {
+    .use('/{*splat}', (request, response) =>
+      response.status(404).render('404', {
         lang: getLanguage(request),
-        requestId: typeof request.id === 'object' ? '' : request.id.toString(),
-      });
-    })
+        requestId: request.requestId,
+      }),
+    )
     .use(errorMiddleware)
-    .listen(
-      env.PORT,
-      () => env.IS_PROD !== 'true' && printDevelopmentBanner(Number(env.PORT)),
-    );
-})();
+    .listen(env.PORT, () => {
+      if (env.IS_PROD === 'true') return;
+      printDevelopmentBanner(Number(env.PORT));
+    });
+}
+
+try {
+  await startServer();
+} catch (error) {
+  loggerService.logger.fatal(error);
+  process.exitCode = 1;
+}

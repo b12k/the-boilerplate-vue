@@ -1,38 +1,46 @@
-import { type Request } from 'express';
+import type { Env } from '@server/env';
+import type { Request } from 'express';
+
+import { env as baseEnv } from '@server/env';
+import { createRequestPropertyExtractor, overrideEnv } from '@server/utils';
 import { UAParser } from 'ua-parser-js';
+import { z } from 'zod';
 
-import { env as _env, type Env } from '../env';
-import { createRequestPropertyExtractor, overrideEnv } from '../utils';
+type BuildContext = ReturnType<typeof buildContext>;
 
+type Context = BuildContext & {
+  cached?: BuildContext | undefined;
+};
 interface Device {
   type: 'desktop' | 'mobile' | 'tablet';
 }
-
-export const buildContext = (request: Request) => {
+function buildContext(request: Request) {
   const getRequestProperty = createRequestPropertyExtractor(request);
   const enableDebugProperty = getRequestProperty('ENABLE_DEBUG');
   const envOverridesProperty = getRequestProperty('ENV_OVERRIDES');
   const isCacheEnabled =
-    _env.CACHE === 'true' && getRequestProperty('CACHE') !== 'false';
+    baseEnv.CACHE === 'true' && getRequestProperty('CACHE') !== 'false';
   const isRenderCacheEnabled =
     isCacheEnabled &&
-    _env.RENDER_CACHE === 'true' &&
+    baseEnv.RENDER_CACHE === 'true' &&
     getRequestProperty('RENDER_CACHE') !== 'false';
   const isCriticalCssCacheEnabled =
     isCacheEnabled &&
-    _env.CRITICAL_CSS_CACHE === 'true' &&
+    baseEnv.CRITICAL_CSS_CACHE === 'true' &&
     getRequestProperty('CRITICAL_CSS_CACHE') !== 'false';
   const shouldRefreshRenderCache =
     getRequestProperty('REFRESH_RENDER_CACHE') === 'true';
   const shouldRefreshCriticalCssCache =
     getRequestProperty('REFRESH_CRITICAL_CSS_CACHE') === 'true';
   const isDebug =
-    _env.DEBUG === 'true' || _env.ENABLE_DEBUG === enableDebugProperty;
+    baseEnv.DEBUG === 'true' || baseEnv.ENABLE_DEBUG === enableDebugProperty;
 
-  let env: Env = _env;
+  let env: Env = baseEnv;
   if (isDebug && envOverridesProperty) {
     try {
-      const envOverrides = JSON.parse(envOverridesProperty) as Partial<Env>;
+      const envOverrides = z
+        .record(z.string(), z.string())
+        .parse(JSON.parse(envOverridesProperty));
       env = overrideEnv(env, envOverrides);
     } catch {
       env.IS_OVERRIDDEN = 'false';
@@ -43,20 +51,12 @@ export const buildContext = (request: Request) => {
     device: { type: detectedDeviceType },
   } = uaParser.getResult();
 
-  const device: Device = {
-    type: 'mobile',
-  };
-
-  switch (detectedDeviceType) {
-    case 'mobile':
-    case 'tablet': {
-      device.type = detectedDeviceType;
-      break;
-    }
-    default: {
-      device.type = 'desktop';
-    }
-  }
+  const deviceType =
+    detectedDeviceType === 'mobile' || detectedDeviceType === 'tablet'
+      ? detectedDeviceType
+      : 'desktop';
+  const device: Device = { type: deviceType };
+  const query: Record<string, unknown> = request.query;
 
   return {
     baseUrl: request.baseUrl,
@@ -69,16 +69,13 @@ export const buildContext = (request: Request) => {
     isProd: env.NODE_ENV !== 'development',
     isRenderCacheEnabled,
     lang: request.params['lang'],
-    query: request.query,
-    requestId: typeof request.id === 'object' ? '' : request.id.toString(),
+    query,
+    requestId: request.requestId,
     shouldRefreshCriticalCssCache,
     shouldRefreshRenderCache,
     url: request.url,
     version: env.VERSION,
   };
-};
+}
 
-export type BuildContext = ReturnType<typeof buildContext>;
-export type Context = BuildContext & {
-  cached?: Partial<BuildContext> | undefined;
-};
+export { buildContext, type BuildContext, type Context };
