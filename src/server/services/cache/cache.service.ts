@@ -15,10 +15,10 @@ interface CacheClient {
 
 interface CacheClientConfig {
   criticalCssCacheSalt: string;
-  criticalCssCacheTtl: number;
+  criticalCssCacheTtlSec: number;
   redisUrl?: string | undefined;
   renderCacheSalt: string;
-  renderCacheTtl: number;
+  renderCacheTtlSec: number;
 }
 class CacheService {
   public cacheType!: 'L' | 'R';
@@ -57,7 +57,7 @@ class CacheService {
     }
 
     try {
-      const client = new RedisCache(config.redisUrl, config.renderCacheTtl);
+      const client = new RedisCache(config.redisUrl, config.renderCacheTtlSec);
       await client.connect();
       this.renderCache = client;
       this.criticalCssCache = client;
@@ -77,19 +77,19 @@ class CacheService {
     await this.criticalCssCache.set(
       saltedKey,
       value,
-      this.config.criticalCssCacheTtl,
+      this.config.criticalCssCacheTtlSec,
     );
   }
 
   public async setRender(key: string, value: string) {
     const saltedKey = this.saltRenderKey(key);
 
-    await this.renderCache.set(saltedKey, value, this.config.renderCacheTtl);
+    await this.renderCache.set(saltedKey, value, this.config.renderCacheTtlSec);
   }
 
   private initializeLruCaches() {
-    this.renderCache = new LruCache(this.config.renderCacheTtl);
-    this.criticalCssCache = new LruCache(this.config.criticalCssCacheTtl);
+    this.renderCache = new LruCache(this.config.renderCacheTtlSec);
+    this.criticalCssCache = new LruCache(this.config.criticalCssCacheTtlSec);
     this.cacheType = 'L';
   }
 

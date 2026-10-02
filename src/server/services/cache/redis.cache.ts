@@ -7,7 +7,7 @@ class RedisCache implements CacheClient {
 
   public constructor(
     url: string,
-    private readonly ttl: number,
+    private readonly ttlSec: number,
   ) {
     this.client = createClient({
       url,
@@ -22,9 +22,9 @@ class RedisCache implements CacheClient {
     return (await this.client.get(key)) ?? undefined;
   }
 
-  public async set(key: string, value: string, ttl = this.ttl) {
+  public async set(key: string, value: string, ttlSec = this.ttlSec) {
     await this.client.set(key, value, {
-      expiration: { type: 'EX', value: ttl },
+      expiration: { type: 'EX', value: ttlSec },
     });
   }
 }

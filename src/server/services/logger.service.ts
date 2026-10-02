@@ -18,7 +18,7 @@ const config = {
     response.setHeader('X-Request-Id', requestId);
     return requestId;
   },
-  level: env.LOG_LEVEL ?? 'silent',
+  level: env.LOG_LEVEL,
 };
 
 const loggerService = pinoHttp(config, pinoPrettyStream);

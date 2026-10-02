@@ -1,5 +1,7 @@
 import type { RequestHandler } from 'express';
 
+import { env } from '@server/env';
+
 function liveReload(liveReloadPath = '') {
   return ((request, response, next) => {
     const isLiveReload =
@@ -7,7 +9,7 @@ function liveReload(liveReloadPath = '') {
       request.method === 'GET' &&
       request.path === `/${liveReloadPath}`;
 
-    if (!isLiveReload) {
+    if (!env.IS_PROD || !isLiveReload) {
       next();
       return;
     }

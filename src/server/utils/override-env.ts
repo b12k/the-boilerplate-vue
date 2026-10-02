@@ -1,4 +1,7 @@
-function overrideEnv<T extends object>(env: T, overrides: Partial<T>) {
+function overrideEnv<T extends object>(
+  env: T,
+  overrides: Readonly<Partial<T>>,
+) {
   return {
     ...env,
     ...overrides,

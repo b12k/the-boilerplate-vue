@@ -6,16 +6,17 @@ import { z } from 'zod';
 const configDirname = import.meta.dirname;
 const MAX_PORT = 65_535;
 const flagSchema = z
-  .enum(['true', 'false'])
-  .default('false')
-  .transform((flag) => flag === 'true');
+  .stringbool({ case: 'sensitive', falsy: ['false'], truthy: ['true'] })
+  .default(false);
 const portSchema = z.coerce.number().int().min(1).max(MAX_PORT);
 const developmentSchema = z.object({ WDS_PORT: portSchema });
 const envSchema = z
   .object({
-    IS_BUNDLER_CACHE_ENABLED: flagSchema,
+    IS_BUNDLER_CACHE_ON: flagSchema,
     IS_STATS_ENABLED: flagSchema,
-    NODE_ENV: z.string().default('production'),
+    NODE_ENV: z
+      .enum(['development', 'production', 'test'])
+      .default('production'),
     WDS_PORT: portSchema.optional(),
   })
   .transform(({ NODE_ENV, ...variables }) => {

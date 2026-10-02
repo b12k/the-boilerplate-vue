@@ -2,9 +2,7 @@ import type { Request } from 'express';
 
 import { env } from '@server/env';
 
-const acceptedLanguages = env.ACCEPTED_LANGUAGES.split(',').map((lang) =>
-  lang.trim(),
-);
+const acceptedLanguages = env.ACCEPTED_LANGUAGES;
 
 function getLanguage(request: Request) {
   const { cookies, params } = request;

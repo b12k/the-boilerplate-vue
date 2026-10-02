@@ -7,10 +7,10 @@ const MS_PER_SEC = 1000;
 class LruCache implements CacheClient {
   private readonly client;
 
-  public constructor(ttl: number) {
+  public constructor(ttlSec: number) {
     this.client = new LRUCache<string, string>({
       max: 10_000,
-      ttl: ttl * MS_PER_SEC,
+      ttl: ttlSec * MS_PER_SEC,
     });
   }
 

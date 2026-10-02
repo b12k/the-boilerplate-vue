@@ -24,10 +24,10 @@ import {
 async function startServer() {
   await cacheService.initialize({
     criticalCssCacheSalt: env.CRITICAL_CSS_CACHE_SALT,
-    criticalCssCacheTtl: Number(env.CRITICAL_CSS_CACHE_TTL),
+    criticalCssCacheTtlSec: env.CRITICAL_CSS_CACHE_TTL_SEC,
     redisUrl: env.REDIS_URL,
     renderCacheSalt: env.RENDER_CACHE_SALT,
-    renderCacheTtl: Number(env.RENDER_CACHE_TTL),
+    renderCacheTtlSec: env.RENDER_CACHE_TTL_SEC,
   });
 
   const app = express();
@@ -71,7 +71,7 @@ async function startServer() {
     .use(errorMiddleware)
     .listen(env.PORT, () => {
       if (env.IS_PROD) return;
-      printDevelopmentBanner(Number(env.PORT));
+      printDevelopmentBanner(env.PORT);
     });
 }
 

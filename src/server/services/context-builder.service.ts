@@ -16,30 +16,32 @@ interface Device {
 }
 function buildContext(request: Request) {
   const getRequestProperty = createRequestPropertyExtractor(request);
-  const enableDebugProperty = getRequestProperty('ENABLE_DEBUG');
+  const debugOnKeyProperty = getRequestProperty('DEBUG_ON_KEY');
   const envOverridesProperty = getRequestProperty('ENV_OVERRIDES');
   const isCacheEnabled =
-    baseEnv.CACHE === 'true' && getRequestProperty('CACHE') !== 'false';
+    baseEnv.IS_CACHE_ON && getRequestProperty('IS_CACHE_ON') !== 'false';
   const isRenderCacheEnabled =
     isCacheEnabled &&
-    baseEnv.RENDER_CACHE === 'true' &&
-    getRequestProperty('RENDER_CACHE') !== 'false';
+    baseEnv.IS_RENDER_CACHE_ON &&
+    getRequestProperty('IS_RENDER_CACHE_ON') !== 'false';
   const isCriticalCssCacheEnabled =
     isCacheEnabled &&
-    baseEnv.CRITICAL_CSS_CACHE === 'true' &&
-    getRequestProperty('CRITICAL_CSS_CACHE') !== 'false';
+    baseEnv.IS_CRITICAL_CSS_CACHE_ON &&
+    getRequestProperty('IS_CRITICAL_CSS_CACHE_ON') !== 'false';
   const shouldRefreshRenderCache =
     getRequestProperty('REFRESH_RENDER_CACHE') === 'true';
   const shouldRefreshCriticalCssCache =
     getRequestProperty('REFRESH_CRITICAL_CSS_CACHE') === 'true';
   const isDebug =
-    baseEnv.DEBUG === 'true' || baseEnv.ENABLE_DEBUG === enableDebugProperty;
+    baseEnv.IS_DEBUG_ON ||
+    (Boolean(baseEnv.DEBUG_ON_KEY) &&
+      baseEnv.DEBUG_ON_KEY === debugOnKeyProperty);
 
   let env: Env = baseEnv;
   if (isDebug && envOverridesProperty) {
     try {
       const envOverrides = z
-        .record(z.string(), z.string())
+        .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
         .parse(JSON.parse(envOverridesProperty));
       env = overrideEnv(env, envOverrides);
     } catch {

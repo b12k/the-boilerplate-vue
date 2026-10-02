@@ -8,7 +8,7 @@ import { getCacheConfig } from './utils';
 
 export default {
   ...baseConfig,
-  cache: env.IS_BUNDLER_CACHE_ENABLED && getCacheConfig('server', env.IS_PROD),
+  cache: env.IS_BUNDLER_CACHE_ON && getCacheConfig('server', env.IS_PROD),
   devtool: 'source-map',
   entry: {
     index: './src/app/server.entry.ts',

@@ -269,14 +269,14 @@ only production dependencies plus `dist`.
 
 `render.yaml` provides a starting point for a web service and Redis service.
 Supply the server environment through the platform, including `PORT`,
-`NODE_ENV`, `SERVER_ENV`, `DEFAULT_LANGUAGE`, `ACCEPTED_LANGUAGES`, and the
+`NODE_ENV`, `DEFAULT_LANGUAGE`, `ACCEPTED_LANGUAGES`, and the
 debug/cache settings appropriate for your deployment.
 
 ## 🔐 Production launch checklist
 
 Before launch, make the template yours:
 
-- Set `DEBUG=false` or remove it.
+- Set `IS_DEBUG_ON=false` or remove it.
 - Protect or remove request-triggered debug tooling.
 - Configure `ACCEPTED_LANGUAGES` and `DEFAULT_LANGUAGE`.
 - Review render-cache keys for every personalized page.
