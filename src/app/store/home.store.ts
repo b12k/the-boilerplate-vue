@@ -1,23 +1,26 @@
 import { defineStore } from 'pinia';
 
+import { hot } from './utils';
+
 const DOUBLE_FACTOR = 2;
 
-const useHomeStore = defineStore('home', {
-  actions: {
-    incrementCounter(this) {
-      this.counter += 1;
+const useHomeStore = hot(
+  defineStore('home', {
+    actions: {
+      incrementCounter(this) {
+        this.counter += 1;
+      },
     },
-  },
-  getters: {
-    doubledCounter(this) {
-      return this.counter * DOUBLE_FACTOR;
+    getters: {
+      doubledCounter(this) {
+        return this.counter * DOUBLE_FACTOR;
+      },
     },
-  },
-  state: () => ({
-    counter: 6,
+    state: () => ({
+      counter: 6,
+    }),
   }),
-});
-
-import.meta.webpackHot?.dispose(() => location.reload());
+  import.meta.webpackHot,
+);
 
 export { useHomeStore };

@@ -1,19 +1,19 @@
-import type { Context } from '@server/services';
-import type { InjectionKey } from 'vue';
-
 import { defineStore } from 'pinia';
 import { inject } from 'vue';
 
-const initialContextKey: InjectionKey<Context> = Symbol('initialContext');
+import { hot, initialContextKey } from './utils';
 
-const useContextStore = defineStore('context', {
-  state: () => {
-    const context = inject(initialContextKey);
-    if (context) return context;
-    throw new Error(
-      'Initial context must be provided before creating the store',
-    );
-  },
-});
+const useContextStore = hot(
+  defineStore('context', {
+    state: () => {
+      const context = inject(initialContextKey);
+      if (context) return context;
+      throw new Error(
+        'Initial context must be provided before creating the store',
+      );
+    },
+  }),
+  import.meta.webpackHot,
+);
 
-export { initialContextKey, useContextStore };
+export { useContextStore };

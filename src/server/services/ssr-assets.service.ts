@@ -34,7 +34,7 @@ async function loadSsrAssets() {
   const { render } = rendererSchema.parse(rendererModule);
 
   const assets = { manifest, render };
-  if (env.IS_PROD === 'true') return assets;
+  if (env.IS_PROD) return assets;
 
   decache(env.SSR_RENDERER_PATH);
   for (const entry of Object.values(ssrManifest)) {

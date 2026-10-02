@@ -3,15 +3,14 @@
   import { useHomeStore } from '@app/store';
   import { storeToRefs } from 'pinia';
 
-  const store = useHomeStore();
-  const { counter, doubledCounter } = storeToRefs(store);
-  const { incrementCounter } = store;
+  const homeStore = useHomeStore();
+  const { counter, doubledCounter } = storeToRefs(homeStore);
 </script>
 <template>
   <main class="page-home">
     <BaseIcon icon="ShakaBrah" />
     <div>
-      <button @click="incrementCounter">[[ increment ]]</button>
+      <button @click="homeStore.incrementCounter()">[[ increment ]]</button>
     </div>
     <p>{{ counter }} x 2 = {{ doubledCounter }}</p>
   </main>

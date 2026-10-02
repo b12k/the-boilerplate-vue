@@ -57,7 +57,7 @@ async function startServer() {
     )
     .use('/{:lang}', languageMiddleware)
     .use('/{:lang}', contextMiddleware)
-    .use(helmetMiddleware(env.IS_PROD === 'true'))
+    .use(helmetMiddleware(env.IS_PROD))
     .use(
       acceptedLanguages.map((lang) => `/${lang}`),
       ssrMiddleware,
@@ -70,7 +70,7 @@ async function startServer() {
     )
     .use(errorMiddleware)
     .listen(env.PORT, () => {
-      if (env.IS_PROD === 'true') return;
+      if (env.IS_PROD) return;
       printDevelopmentBanner(Number(env.PORT));
     });
 }

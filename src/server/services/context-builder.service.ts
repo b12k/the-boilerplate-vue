@@ -43,7 +43,7 @@ function buildContext(request: Request) {
         .parse(JSON.parse(envOverridesProperty));
       env = overrideEnv(env, envOverrides);
     } catch {
-      env.IS_OVERRIDDEN = 'false';
+      env.IS_OVERRIDDEN = false;
     }
   }
   const uaParser = new UAParser(request.headers['user-agent']);
@@ -65,7 +65,7 @@ function buildContext(request: Request) {
     isContextPatched: false,
     isCriticalCssCacheEnabled,
     isDebug,
-    isEnvOverridden: env.IS_OVERRIDDEN === 'true',
+    isEnvOverridden: env.IS_OVERRIDDEN,
     isProd: env.NODE_ENV !== 'development',
     isRenderCacheEnabled,
     lang: request.params['lang'],

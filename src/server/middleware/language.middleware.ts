@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 
+import { env } from '@server/env';
 import { acceptedLanguages, getLanguage } from '@server/utils';
 
 // Keep the selected language for 100 days.
@@ -22,7 +23,7 @@ function languageMiddleware(
     response.cookie('lang', lang, {
       maxAge: LANGUAGE_COOKIE_TTL_MS,
       sameSite: 'lax',
-      secure: true,
+      secure: env.IS_PROD,
     });
   }
 

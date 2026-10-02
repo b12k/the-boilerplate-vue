@@ -35,11 +35,11 @@ const { npm_package_version: VERSION, ...variables } = envSchema.parse(
   process.env,
 );
 
-const IS_PROD = String(variables.NODE_ENV !== 'development');
+const IS_PROD = variables.NODE_ENV !== 'development';
 
 const ASSETS_LOCATION_PATH = path.resolve(
   dirname,
-  IS_PROD === 'true' ? '../' : '../../dist',
+  IS_PROD ? '../' : '../../dist',
 );
 const PUBLIC_PATH = path.resolve(ASSETS_LOCATION_PATH, 'public');
 const CLIENT_MANIFEST_PATH = path.resolve(PUBLIC_PATH, 'manifest.json');
@@ -53,7 +53,7 @@ const FAVICON_PATH = path.resolve(PUBLIC_PATH, 'favicon.ico');
 const HOSTNAME = hostname();
 
 const env = {
-  IS_OVERRIDDEN: 'false',
+  IS_OVERRIDDEN: false,
   ...variables,
   ASSETS_LOCATION_PATH,
   CLIENT_MANIFEST_PATH,
