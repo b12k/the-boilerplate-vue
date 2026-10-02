@@ -12,17 +12,11 @@ import {
 } from './plugins';
 import { getCacheConfig, getFilenameJs, getVendorName } from './utils';
 
-const plugins: NonNullable<Configuration['plugins']> = [
-  ...baseConfig.plugins,
-  createManifestPlugin(),
-  createProgressPlugin(),
-];
-
-const config: Configuration = {
+export default {
   ...baseConfig,
   cache: env.IS_BUNDLER_CACHE_ENABLED && getCacheConfig('browser', env.IS_PROD),
   entry: {
-    app: './src/client/entry.browser.ts',
+    app: './src/app/browser.entry.ts',
   },
   module: {
     rules: [...baseConfig.module.rules, cssLoader, createImageLoader()],
@@ -32,52 +26,53 @@ const config: Configuration = {
     filename: getFilenameJs('[name]', env.IS_PROD),
     publicPath: env.OUTPUT_PUBLIC_PATH,
   },
-  plugins,
-};
-
-if (env.IS_STATS_ENABLED) {
-  plugins.push(bundleStatsWebpackPlugin);
-}
-
-if (env.IS_PROD) {
-  plugins.push(cssExtractRspackPlugin, swcJsMinimizerRspackPlugin);
-  config.optimization = {
-    runtimeChunk: 'single',
-    splitChunks: {
-      cacheGroups: {
-        async: {
-          chunks: 'async',
-          filename: getFilenameJs('vendor', env.IS_PROD),
-          minChunks: 2,
-          minSize: 0,
-          name: getVendorName,
-          test: /[/\\]node_modules[/\\]/u,
+  plugins: [
+    ...baseConfig.plugins,
+    createManifestPlugin(),
+    createProgressPlugin(),
+    ...(env.IS_STATS_ENABLED ? [bundleStatsWebpackPlugin] : []),
+    ...(env.IS_PROD
+      ? [cssExtractRspackPlugin, swcJsMinimizerRspackPlugin]
+      : []),
+  ],
+  ...(env.IS_PROD
+    ? {
+        optimization: {
+          runtimeChunk: 'single',
+          splitChunks: {
+            cacheGroups: {
+              async: {
+                chunks: 'async',
+                filename: getFilenameJs('vendor', env.IS_PROD),
+                minChunks: 2,
+                minSize: 0,
+                name: getVendorName,
+                test: /[/\\]node_modules[/\\]/u,
+              },
+              vendor: {
+                chunks: 'all',
+                filename: getFilenameJs('vendor', env.IS_PROD),
+                name: getVendorName,
+                test: /[/\\]node_modules[/\\]/u,
+              },
+            },
+          },
         },
-        vendor: {
-          chunks: 'all',
-          filename: getFilenameJs('vendor', env.IS_PROD),
-          name: getVendorName,
-          test: /[/\\]node_modules[/\\]/u,
+      }
+    : {
+        devServer: {
+          devMiddleware: {
+            writeToDisk: true,
+          },
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Service-Worker-Allowed': '/',
+          },
+          hot: true,
+          port: env.WDS_PORT,
         },
-      },
-    },
-  };
-} else {
-  config.devServer = {
-    devMiddleware: {
-      writeToDisk: true,
-    },
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Service-Worker-Allowed': '/',
-    },
-    hot: true,
-    port: env.WDS_PORT,
-  };
-
-  config.lazyCompilation = {
-    serverUrl: `http://localhost:${env.WDS_PORT}`,
-  };
-}
-
-export default config;
+        lazyCompilation: {
+          serverUrl: `http://localhost:${env.WDS_PORT}`,
+        },
+      }),
+} satisfies Configuration;

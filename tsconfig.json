@@ -25,8 +25,7 @@
     "noUnusedParameters": true,
     "types": ["webpack-env"],
     "paths": {
-      "~/*": ["./src/client/*"],
-      "@server": ["./src/server"],
+      "@app/*": ["./src/app/*"],
       "@server/*": ["./src/server/*"]
     }
   },

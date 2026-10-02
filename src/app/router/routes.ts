@@ -4,17 +4,17 @@ type RouteRecordRawNamed = RouteRecordRaw & { name: string };
 
 const routes: Array<RouteRecordRawNamed> = [
   {
-    component: () => import('~/pages/page-home.vue'),
+    component: () => import('@app/pages/page-home.vue'),
     name: 'home',
     path: '/',
   },
   {
-    component: () => import('~/pages/page-about.vue'),
+    component: () => import('@app/pages/page-about.vue'),
     name: 'about',
     path: '/about',
   },
   {
-    component: () => import('~/pages/page-404.vue'),
+    component: () => import('@app/pages/page-404.vue'),
     meta: {
       responseCode: 404,
     },

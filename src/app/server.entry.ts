@@ -1,5 +1,6 @@
-import type { Context } from '@server';
+import type { Context } from '@server/services';
 import type { Logger } from 'pino';
+import type { AsyncReturnType } from 'type-fest';
 
 import { createHead } from '@unhead/vue/server';
 import { createMemoryHistory } from 'vue-router';
@@ -11,7 +12,7 @@ import { useContextStore } from './store';
 
 type Render = typeof render;
 
-type RenderResult = Awaited<ReturnType<Render>>;
+type RenderResult = AsyncReturnType<Render>;
 
 async function render(context: Context, logger: Logger) {
   const { app, head, router, store } = await createApp({

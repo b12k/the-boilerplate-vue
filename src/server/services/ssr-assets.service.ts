@@ -1,11 +1,11 @@
+import type { Render } from '@app/server.entry';
+
 import { env } from '@server/env';
 import decache from 'decache';
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { z } from 'zod';
-
-import type { Render } from '~/index';
 
 const filesSchema = z.object({
   async: z.array(z.string()),
@@ -22,8 +22,6 @@ const rendererSchema = z.object({
 
 // Rspack emits the SSR renderer as CommonJS, including its development require cache.
 const requireRenderer = createRequire(import.meta.url);
-
-type AssetsManifest = z.infer<typeof assetsSchema>;
 
 async function loadSsrAssets() {
   const [manifestJson, ssrManifestJson] = await Promise.all([
@@ -46,4 +44,4 @@ async function loadSsrAssets() {
   return assets;
 }
 
-export { type AssetsManifest, loadSsrAssets };
+export { loadSsrAssets };

@@ -1,4 +1,4 @@
-import type { Context } from '@server';
+import type { Context } from '@server/services';
 import type { InjectionKey } from 'vue';
 
 import { defineStore } from 'pinia';

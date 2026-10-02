@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-  import { BaseFooter, BaseHeader } from '~/components/base';
+  import { BaseFooter, BaseHeader } from '@app/components/base';
 </script>
 
 <template>

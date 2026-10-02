@@ -1,3 +1,5 @@
+import type { Promisable } from 'type-fest';
+
 import { loggerService } from '@server/services/logger.service';
 
 import { LruCache } from './lru.cache';
@@ -7,8 +9,8 @@ interface CacheClient {
   get: (
     key: string,
     isSlidingCache?: boolean,
-  ) => Promise<string | undefined> | string | undefined;
-  set: (key: string, value: string, ttlSec?: number) => Promise<void> | void;
+  ) => Promisable<string | undefined>;
+  set: (key: string, value: string, ttlSec?: number) => Promisable<void>;
 }
 
 interface CacheClientConfig {
@@ -102,4 +104,4 @@ class CacheService {
 
 const cacheService = new CacheService();
 
-export { type CacheClient, CacheService, cacheService };
+export { type CacheClient, cacheService };

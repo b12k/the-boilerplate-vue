@@ -1,6 +1,7 @@
-import type { Context } from '@server';
+import type { Context } from '@server/services';
 
 import { idempotencyConfig } from '@server/idempotency.config';
+import { mapValues } from 'es-toolkit/object';
 import { createHash } from 'node:crypto';
 import { match } from 'path-to-regexp';
 
@@ -22,6 +23,14 @@ interface IdempotencyConfig {
   paths: Record<string, ComputeKeyFunction>;
 }
 
+function hashKey(key: string) {
+  return createHash('sha256').update(key).digest('base64');
+}
+
+function trimSlashes(path: string) {
+  return path.replaceAll(/^\/|\/$/gu, '');
+}
+
 function computeIdempotencyKey(context: Context) {
   const { baseUrl, url } = context;
   const fullUrl = trimSlashes(baseUrl + url);
@@ -38,12 +47,9 @@ function computeIdempotencyKey(context: Context) {
 
   if (!matched) return false;
 
-  const parameters: Record<string, string> = {};
-  for (const [name, parameter] of Object.entries(matched.params)) {
-    parameters[name] = Array.isArray(parameter)
-      ? parameter.join('/')
-      : String(parameter);
-  }
+  const parameters = mapValues(matched.params, (parameter) =>
+    Array.isArray(parameter) ? parameter.join('/') : String(parameter),
+  );
 
   const keyBeforeComputed = idempotencyConfig.beforeCompute
     ? idempotencyConfig.beforeCompute(context, parameters)
@@ -64,14 +70,6 @@ function computeIdempotencyKey(context: Context) {
   if (keyAfterComputed === false) return false;
 
   return hashKey(`${keyBeforeComputed}${computedKey}${keyAfterComputed}`);
-}
-
-function hashKey(key: string) {
-  return createHash('sha256').update(key).digest('base64');
-}
-
-function trimSlashes(path: string) {
-  return path.replaceAll(/^\/|\/$/gu, '');
 }
 
 export { computeIdempotencyKey, type IdempotencyConfig };

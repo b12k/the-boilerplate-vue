@@ -78,4 +78,4 @@ function buildContext(request: Request) {
   };
 }
 
-export { buildContext, type BuildContext, type Context };
+export { buildContext, type Context };

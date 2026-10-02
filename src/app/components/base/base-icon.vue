@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-  import * as icons from '~/assets/icons';
+  import * as icons from '@app/assets/icons';
 
   type IconName = keyof typeof icons;
 

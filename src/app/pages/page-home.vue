@@ -1,8 +1,7 @@
 <script setup lang="ts">
+  import { BaseIcon } from '@app/components/base';
+  import { useHomeStore } from '@app/store';
   import { storeToRefs } from 'pinia';
-
-  import { BaseIcon } from '~/components';
-  import { useHomeStore } from '~/store';
 
   const store = useHomeStore();
   const { counter, doubledCounter } = storeToRefs(store);

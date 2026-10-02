@@ -1,4 +1,5 @@
-import type { Context } from '@server';
+import type { RenderResult } from '@app/server.entry';
+import type { Context } from '@server/services';
 import type { Request, Response } from 'express';
 
 import {
@@ -8,67 +9,11 @@ import {
   loadSsrAssets,
 } from '@server/services';
 import { stringToBase64 } from '@server/utils';
-import { diff } from 'deep-object-diff';
+import { isEqual } from 'es-toolkit/predicate';
 import nunjucks from 'nunjucks';
 import { stringify } from 'safe-stable-stringify';
-import { z } from 'zod';
-
-import type { RenderResult } from '~/index';
 
 import { getContext } from './context.middleware';
-
-// Validate persisted JSON at the cache boundary; application types stay with their owners.
-const deviceSchema = z.object({
-  type: z.enum(['desktop', 'mobile', 'tablet']),
-});
-const querySchema = z.record(z.string(), z.unknown());
-const baseContextSchema = z
-  .object({
-    baseUrl: z.string(),
-    device: deviceSchema,
-    isCacheEnabled: z.boolean(),
-    isContextPatched: z.boolean(),
-    isCriticalCssCacheEnabled: z.boolean(),
-    isDebug: z.boolean(),
-    isEnvOverridden: z.boolean(),
-    isProd: z.boolean(),
-    isRenderCacheEnabled: z.boolean(),
-    lang: z.string().optional(),
-    query: querySchema,
-    requestId: z.string(),
-    shouldRefreshCriticalCssCache: z.boolean(),
-    shouldRefreshRenderCache: z.boolean(),
-    url: z.string(),
-    version: z.string(),
-  })
-  .transform((context) => ({ ...context, lang: context.lang }));
-const contextSchema = z
-  .object({
-    ...baseContextSchema.in.shape,
-    cached: baseContextSchema.optional(),
-  })
-  .transform((context) => ({ ...context, lang: context.lang }));
-const storeSchema = z.record(z.string(), z.unknown());
-const stateSchema = z.object({ context: contextSchema }).catchall(storeSchema);
-const routeMetaSchema = z.looseObject({ responseCode: z.number().optional() });
-const routeSchema = z.object({
-  meta: routeMetaSchema,
-  name: z.string(),
-  path: z.string(),
-});
-const headSchema = z.object({
-  bodyAttrs: z.string(),
-  bodyTags: z.string(),
-  bodyTagsOpen: z.string(),
-  headTags: z.string(),
-  htmlAttrs: z.string(),
-});
-const renderResultSchema: z.ZodType<RenderResult> = z.object({
-  currentRoute: routeSchema,
-  head: headSchema,
-  html: z.string(),
-  state: stateSchema,
-});
 
 async function readCriticalCssCache(key: string | undefined) {
   if (!key) return { hit: undefined, isPending: false };
@@ -90,11 +35,11 @@ async function readRenderCache(
   const renderResultJson = await cacheService.getRender(key);
   if (!renderResultJson) return { hit: undefined };
 
-  const renderResult = renderResultSchema.parse(JSON.parse(renderResultJson));
+  // This middleware reads only the RenderResult JSON it writes to the cache.
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+  const renderResult = JSON.parse(renderResultJson) as RenderResult;
   const cachedContext = renderResult.state.context;
-  const cachedContextDiff = diff(context, cachedContext);
-
-  if (Object.keys(cachedContextDiff).length === 0) return { hit: renderResult };
+  if (isEqual(context, cachedContext)) return { hit: renderResult };
 
   renderResult.state.context = context;
   renderResult.state.context.isContextPatched = true;

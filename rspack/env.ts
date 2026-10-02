@@ -1,28 +1,51 @@
 import path from 'node:path';
+import { z } from 'zod';
 
-/* oxlint-disable node/no-process-env -- Rspack configuration reads environment variables only in this module. */
+/* oxlint-disable node/no-process-env -- Rspack environment variables are read and validated only in this module. */
 
-const __dirname = import.meta.dirname;
+const configDirname = import.meta.dirname;
+const MAX_PORT = 65_535;
+const flagSchema = z
+  .enum(['true', 'false'])
+  .default('false')
+  .transform((flag) => flag === 'true');
+const portSchema = z.coerce.number().int().min(1).max(MAX_PORT);
+const developmentSchema = z.object({ WDS_PORT: portSchema });
+const envSchema = z
+  .object({
+    IS_BUNDLER_CACHE_ENABLED: flagSchema,
+    IS_STATS_ENABLED: flagSchema,
+    NODE_ENV: z.string().default('production'),
+    WDS_PORT: portSchema.optional(),
+  })
+  .transform(({ NODE_ENV, ...variables }) => {
+    if (NODE_ENV !== 'development') {
+      return { ...variables, IS_PROD: true as const };
+    }
+    return {
+      ...variables,
+      ...developmentSchema.parse(variables),
+      IS_PROD: false as const,
+    };
+  });
+const variables = envSchema.parse(process.env);
 
-const IS_PROD = process.env['NODE_ENV'] !== 'development';
-const WDS_PORT = Number(process.env['WDS_PORT']);
-const ICONS_FOLDER_PATH = path.resolve(__dirname, '../src/client/assets/icons');
-const CONTEXT = path.resolve(__dirname, '..');
-const OUTPUT_PATH = path.resolve(__dirname, '../dist');
-const OUTPUT_PUBLIC_PATH = IS_PROD ? '/' : `http://localhost:${WDS_PORT}/`;
-const IS_STATS_ENABLED = process.env['IS_STATS_ENABLED'] === 'true';
-const IS_BUNDLER_CACHE_ENABLED =
-  process.env['IS_BUNDLER_CACHE_ENABLED'] === 'true';
+const ICONS_FOLDER_PATH = path.resolve(
+  configDirname,
+  '../src/app/assets/icons',
+);
+const CONTEXT = path.resolve(configDirname, '..');
+const OUTPUT_PATH = path.resolve(configDirname, '../dist');
+const OUTPUT_PUBLIC_PATH = variables.IS_PROD
+  ? '/'
+  : `http://localhost:${variables.WDS_PORT}/`;
 
 const env = {
+  ...variables,
   CONTEXT,
   ICONS_FOLDER_PATH,
-  IS_BUNDLER_CACHE_ENABLED,
-  IS_PROD,
-  IS_STATS_ENABLED,
   OUTPUT_PATH,
   OUTPUT_PUBLIC_PATH,
-  WDS_PORT,
 };
 
 export { env };

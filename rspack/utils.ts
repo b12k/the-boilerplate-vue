@@ -1,6 +1,20 @@
 import type { Module, PersistentCacheOptions } from '@rspack/core';
 import type { FileDescriptor } from 'rspack-manifest-plugin';
 
+import { uniq } from 'es-toolkit/array';
+
+function reduceManifestFiles(array: Array<string>) {
+  const files: { css: Array<string>; js: Array<string> } = { css: [], js: [] };
+  for (const file of array) {
+    if (file.endsWith('.js')) {
+      files.js.push(file);
+    } else if (file.endsWith('.css')) {
+      files.css.push(file);
+    }
+  }
+  return files;
+}
+
 function generateManifest(
   _: Record<string, unknown>,
   files: Array<FileDescriptor>,
@@ -19,7 +33,7 @@ function generateManifest(
   );
   return {
     css: {
-      async: uniqArray(async.css),
+      async: uniq(async.css),
       initial: initial.css,
     },
     js: {
@@ -54,26 +68,4 @@ function getVendorName(module?: Module) {
   return matched?.groups?.['packageName']?.replace('@', '') ?? 'other';
 }
 
-function reduceManifestFiles(array: Array<string>) {
-  const files: { css: Array<string>; js: Array<string> } = { css: [], js: [] };
-  for (const file of array) {
-    if (file.endsWith('.js')) {
-      files.js.push(file);
-    } else if (file.endsWith('.css')) {
-      files.css.push(file);
-    }
-  }
-  return files;
-}
-
-function uniqArray<T>(array: Array<T>) {
-  return [...new Set(array)];
-}
-
-export {
-  generateManifest,
-  getCacheConfig,
-  getFilenameJs,
-  getVendorName,
-  uniqArray,
-};
+export { generateManifest, getCacheConfig, getFilenameJs, getVendorName };

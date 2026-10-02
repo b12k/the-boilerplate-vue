@@ -6,20 +6,20 @@ import { createImageLoader, cssIgnoreLoader } from './loaders';
 import { createManifestPlugin, createProgressPlugin } from './plugins';
 import { getCacheConfig } from './utils';
 
-const config = {
+export default {
   ...baseConfig,
   cache: env.IS_BUNDLER_CACHE_ENABLED && getCacheConfig('server', env.IS_PROD),
   devtool: 'source-map',
   entry: {
-    index: './src/client/entry.server.ts',
+    index: './src/app/server.entry.ts',
   },
   externals: [
     ({ request }, resolveExternal) => {
       if (
         !request ||
         request.startsWith('.') ||
-        request.startsWith('~/') ||
-        request.startsWith('@server')
+        request.startsWith('@app/') ||
+        request.startsWith('@server/')
       ) {
         resolveExternal();
         return;
@@ -56,5 +56,3 @@ const config = {
   target: 'node',
   watch: !env.IS_PROD,
 } satisfies Configuration;
-
-export default config;

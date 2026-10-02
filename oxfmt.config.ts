@@ -1,6 +1,6 @@
-import { defineConfig } from 'oxfmt';
+import type { OxfmtConfig } from 'oxfmt';
 
-export default defineConfig({
+export default {
   arrowParens: 'always',
   bracketSpacing: true,
   endOfLine: 'lf',
@@ -17,10 +17,10 @@ export default defineConfig({
     sortScripts: true,
   },
   sortTailwindcss: {
-    stylesheet: './src/client/styles/main.css',
+    stylesheet: './src/app/styles/main.css',
   },
   tabWidth: 2,
   trailingComma: 'all',
   useTabs: false,
   vueIndentScriptAndStyle: true,
-});
+} satisfies OxfmtConfig;

@@ -1,6 +1,6 @@
+import type { Configuration } from '@rspack/core';
+
 import browserConfig from './config.browser';
 import serverConfig from './config.server';
 
-const config = [browserConfig, serverConfig];
-
-export default config;
+export default [browserConfig, serverConfig] satisfies Array<Configuration>;

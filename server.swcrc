@@ -7,8 +7,8 @@
   "jsc": {
     "baseUrl": ".",
     "paths": {
-      "~/*": [
-        "./src/client/*"
+      "@app/*": [
+        "./src/app/*"
       ],
       "@server/*": [
         "./src/server/*"

@@ -1,4 +1,4 @@
-import type { Context } from '@server';
+import type { Context } from '@server/services';
 import type { VueHeadClient } from '@unhead/vue';
 import type { StateTree } from 'pinia';
 import type { Logger } from 'pino';
@@ -64,4 +64,4 @@ async function createApp({
   };
 }
 
-export { createApp, type CreateAppConfig, type InitialState };
+export { createApp, type InitialState };

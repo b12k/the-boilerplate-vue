@@ -4,4 +4,3 @@ export * from './live-reload';
 export * from './override-env';
 export * from './print-development-banner';
 export * from './string-to-base64';
-export * from './wait';

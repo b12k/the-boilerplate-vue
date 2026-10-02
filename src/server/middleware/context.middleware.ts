@@ -1,4 +1,4 @@
-import type { Context } from '@server';
+import type { Context } from '@server/services';
 import type { NextFunction, Request, Response } from 'express';
 
 import { buildContext } from '@server/services';

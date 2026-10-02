@@ -1,54 +1,44 @@
 import { hostname } from 'node:os';
 import path from 'node:path';
-import Surenv from 'surenv';
+import { z } from 'zod';
 
-const __dirname = import.meta.dirname;
+/* oxlint-disable node/no-process-env -- Server environment variables are read and validated only in this module. */
+
+const { dirname } = import.meta;
 const DAY_SEC = 86_400;
 
-// CommonJS exposes the constructor under default when loaded by Node's ESM loader.
-function isDefaultModule(
-  module: typeof Surenv | { default: typeof Surenv },
-): module is { default: typeof Surenv } {
-  return typeof module === 'object' && 'default' in module;
-}
-const EnvReader = isDefaultModule(Surenv) ? Surenv.default : Surenv;
-const { optional, required } = new EnvReader();
+const requiredStringSchema = z.string().min(1);
+const optionalStringSchema = z.string().optional();
+const envSchema = z.object({
+  ACCEPTED_LANGUAGES: requiredStringSchema,
+  CACHE: optionalStringSchema,
+  CRITICAL_CSS_CACHE: optionalStringSchema,
+  CRITICAL_CSS_CACHE_SALT: optionalStringSchema,
+  CRITICAL_CSS_CACHE_TTL: z.string().default(DAY_SEC.toString()),
+  DEBUG: optionalStringSchema,
+  DEFAULT_LANGUAGE: requiredStringSchema,
+  ENABLE_DEBUG: requiredStringSchema,
+  LIVE_RELOAD_PATH: optionalStringSchema,
+  LOG_LEVEL: optionalStringSchema,
+  NODE_ENV: requiredStringSchema,
+  npm_package_version: requiredStringSchema,
+  PORT: requiredStringSchema,
+  REDIS_URL: optionalStringSchema,
+  RENDER_CACHE: optionalStringSchema,
+  RENDER_CACHE_SALT: optionalStringSchema,
+  RENDER_CACHE_TTL: z.string().default(DAY_SEC.toString()),
+  SERVER_ENV: requiredStringSchema,
+  WDS_PORT: optionalStringSchema,
+});
 
-const { npm_package_version: VERSION, ...requiredEnv } = required(
-  'PORT',
-  'ENABLE_DEBUG',
-  'NODE_ENV',
-  'SERVER_ENV',
-  'DEFAULT_LANGUAGE',
-  'ACCEPTED_LANGUAGES',
-  'npm_package_version',
+const { npm_package_version: VERSION, ...variables } = envSchema.parse(
+  process.env,
 );
 
-const {
-  CRITICAL_CSS_CACHE_SALT = VERSION,
-  CRITICAL_CSS_CACHE_TTL = DAY_SEC.toString(),
-  RENDER_CACHE_SALT = VERSION,
-  RENDER_CACHE_TTL = DAY_SEC.toString(),
-  ...optionalEnv
-} = optional(
-  'CACHE',
-  'DEBUG',
-  'WDS_PORT',
-  'LOG_LEVEL',
-  'REDIS_URL',
-  'RENDER_CACHE',
-  'LIVE_RELOAD_PATH',
-  'RENDER_CACHE_TTL',
-  'RENDER_CACHE_SALT',
-  'CRITICAL_CSS_CACHE',
-  'CRITICAL_CSS_CACHE_TTL',
-  'CRITICAL_CSS_CACHE_SALT',
-);
-
-const IS_PROD = String(requiredEnv.NODE_ENV !== 'development');
+const IS_PROD = String(variables.NODE_ENV !== 'development');
 
 const ASSETS_LOCATION_PATH = path.resolve(
-  __dirname,
+  dirname,
   IS_PROD === 'true' ? '../' : '../../dist',
 );
 const PUBLIC_PATH = path.resolve(ASSETS_LOCATION_PATH, 'public');
@@ -58,24 +48,21 @@ const SSR_MANIFEST_PATH = path.resolve(
   ASSETS_LOCATION_PATH,
   'ssr/manifest.json',
 );
-const VIEWS_PATH = path.resolve(__dirname, 'views');
+const VIEWS_PATH = path.resolve(dirname, 'views');
 const FAVICON_PATH = path.resolve(PUBLIC_PATH, 'favicon.ico');
 const HOSTNAME = hostname();
 
 const env = {
   IS_OVERRIDDEN: 'false',
-  ...requiredEnv,
-  ...optionalEnv,
+  ...variables,
   ASSETS_LOCATION_PATH,
   CLIENT_MANIFEST_PATH,
-  CRITICAL_CSS_CACHE_SALT,
-  CRITICAL_CSS_CACHE_TTL,
+  CRITICAL_CSS_CACHE_SALT: variables.CRITICAL_CSS_CACHE_SALT ?? VERSION,
   FAVICON_PATH,
   HOSTNAME,
   IS_PROD,
   PUBLIC_PATH,
-  RENDER_CACHE_SALT,
-  RENDER_CACHE_TTL,
+  RENDER_CACHE_SALT: variables.RENDER_CACHE_SALT ?? VERSION,
   SSR_MANIFEST_PATH,
   SSR_RENDERER_PATH,
   VERSION,

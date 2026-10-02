@@ -1,4 +1,4 @@
-import type { Context } from '@server';
+import type { Context } from '@server/services';
 import type { Logger } from 'pino';
 import type { App } from 'vue';
 

@@ -1,11 +1,12 @@
+import type { OxlintConfig } from 'oxlint';
+
 import { configs } from 'eslint-plugin-perfectionist';
-import { defineConfig } from 'oxlint';
 
 const MAX_FUNCTION_LINES = 150;
 const MAX_STATEMENTS = 50;
 const MAX_PARAMETERS = 4;
 
-export default defineConfig({
+export default {
   categories: {
     correctness: 'error',
     nursery: 'error',
@@ -30,7 +31,7 @@ export default defineConfig({
       env: {
         browser: true,
       },
-      files: ['src/client/**'],
+      files: ['src/app/**'],
     },
     {
       env: {
@@ -81,6 +82,7 @@ export default defineConfig({
     ],
     'import/no-named-export': 'off',
     'import/no-namespace': 'off',
+    'import/no-relative-parent-imports': 'off',
     'import/no-unassigned-import': [
       'error',
       {
@@ -115,22 +117,42 @@ export default defineConfig({
     // Prefer the native Unicorn equivalents when rules overlap.
     'no-negated-condition': 'off',
     'no-nested-ternary': 'off',
+    'no-restricted-imports': [
+      'error',
+      {
+        patterns: [
+          {
+            message:
+              'Use an alias instead of importing up two or more directories.',
+            regex: String.raw`^(?:\./)*\.\./\.\.(?:/|$)`,
+          },
+        ],
+      },
+    ],
     // These bans conflict with Unicorn's preferred syntax.
     'no-ternary': 'off',
     'no-undefined': 'off',
-    'no-underscore-dangle': [
-      'error',
-      {
-        allow: ['__dirname'],
-      },
-    ],
-    'no-use-before-define': ['error', { functions: false }],
     'node/no-top-level-await': 'off',
     'one-var': ['error', 'never'],
     'oxc/no-async-await': 'off',
     'oxc/no-barrel-file': 'off',
     'oxc/no-optional-chaining': 'off',
     'oxc/no-rest-spread-properties': 'off',
+    // Declare functions before their callers; sort independent declarations naturally.
+    'perfectionist/sort-modules': [
+      'error',
+      {
+        customGroups: [
+          {
+            fallbackSort: { type: 'natural' },
+            groupName: 'function',
+            selector: 'function',
+            type: 'usage',
+          },
+        ],
+        type: 'natural',
+      },
+    ],
     // Perfectionist owns ordering.
     'sort-imports': 'off',
     'sort-keys': 'off',
@@ -168,4 +190,4 @@ export default defineConfig({
     ],
     'typescript/strict-void-return': 'off',
   },
-});
+} satisfies OxlintConfig;

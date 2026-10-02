@@ -1,6 +1,5 @@
+import type { Services } from '@app/services';
 import type { RouteLocationNormalized } from 'vue-router';
-
-import type { Services } from './services';
 
 declare module 'vue' {
   interface ComponentCustomOptions {
