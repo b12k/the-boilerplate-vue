@@ -1,34 +1,47 @@
-import type { RenderResult } from '@client';
-import type { Request, RequestHandler, Response } from 'express';
-
-import { diff } from 'deep-object-diff';
-import { render as nunjuksRender } from 'nunjucks';
-import { stringify } from 'safe-stable-stringify';
+import type { RenderResult } from '@app/server.entry';
+import type { Context } from '@server/services';
+import type { Request, Response } from 'express';
 
 import {
-  type BuildContext,
   cacheService,
   computeIdempotencyKey,
-  type Context,
   getCriticalCss,
   loadSsrAssets,
-} from '../services';
-import { stringToBase64 } from '../utils';
+} from '@server/services';
+import { parseJson, stringToBase64 } from '@server/utils';
+import { isEqual } from 'es-toolkit/predicate';
+import nunjucks from 'nunjucks';
+import { stringify } from 'safe-stable-stringify';
+
 import { getContext } from './context.middleware';
 
-export const ssrMiddleware: RequestHandler = async (
-  request,
-  response,
-  next,
-) => {
-  try {
-    await renderSsr(request, response);
-  } catch (error) {
-    next(error);
-  }
-};
+async function readCriticalCssCache(key: string | undefined) {
+  const cachedCss = key ? await cacheService.getCriticalCss(key) : undefined;
+  return key && cachedCss !== undefined ? { css: cachedCss, key } : undefined;
+}
 
-const renderSsr = async (request: Request, response: Response) => {
+async function readRenderCache(
+  key: false | string,
+  context: Context,
+  shouldRefresh: boolean,
+) {
+  if (key === false || shouldRefresh) return { hit: undefined };
+
+  const renderResultJson = await cacheService.getRender(key);
+  if (!renderResultJson) return { hit: undefined };
+
+  const renderResult = parseJson<RenderResult>(renderResultJson);
+  const cachedContext = renderResult.state.context;
+  if (isEqual(context, cachedContext)) return { hit: renderResult };
+
+  renderResult.state.context = context;
+  renderResult.state.context.isContextPatched = true;
+  renderResult.state.context.cached = cachedContext;
+
+  return { hit: renderResult };
+}
+
+export async function ssrMiddleware(request: Request, response: Response) {
   const responseStartedAt = Date.now();
   const context = getContext();
   const {
@@ -37,127 +50,42 @@ const renderSsr = async (request: Request, response: Response) => {
     shouldRefreshCriticalCssCache,
     shouldRefreshRenderCache,
   } = context;
-
-  let isRenderCached = false;
-
-  const renderCacheKey = isRenderCacheEnabled && computeIdempotencyKey(context);
+  const renderCacheKey = isRenderCacheEnabled
+    ? computeIdempotencyKey(context)
+    : false;
   const { manifest, render } = await loadSsrAssets();
-
-  // section Read Cache
-  /*
-   *   ____                _     ____           _
-   *  |  _ \ ___  __ _  __| |   / ___|__ _  ___| |__   ___
-   *  | |_) / _ \/ _` |/ _` |  | |   / _` |/ __| '_ \ / _ \
-   *  |  _ <  __/ (_| | (_| |  | |__| (_| | (__| | | |  __/
-   *  |_| \_\___|\__,_|\__,_|   \____\__,_|\___|_| |_|\___|
-   *
-   */
-
-  let renderResult: RenderResult | undefined;
-
-  if (renderCacheKey && !shouldRefreshRenderCache) {
-    const renderResultJson = await cacheService.getRender(renderCacheKey);
-
-    if (renderResultJson) {
-      isRenderCached = true;
-
-      renderResult = JSON.parse(renderResultJson) as RenderResult;
-
-      const cachedContextDiff = diff(
-        context,
-        renderResult.state.context,
-      ) as Partial<BuildContext>;
-
-      if (cachedContextDiff) {
-        renderResult.state.context = context;
-        renderResult.state.context.isContextPatched = true;
-        renderResult.state.context.cached = cachedContextDiff;
-      }
-    }
-  }
-
-  // section Render
-  /*
-   *   ____                _
-   *  |  _ \ ___ _ __   __| | ___ _ __
-   *  | |_) / _ \ '_ \ / _` |/ _ \ '__|
-   *  |  _ <  __/ | | | (_| |  __/ |
-   *  |_| \_\___|_| |_|\__,_|\___|_|
-   *
-   */
-
-  if (!renderResult) {
-    renderResult = await render({ ...context }, request.log);
-  }
-
-  if (!renderResult) {
-    throw new Error('[SSR-MIDDLEWARE] Missing render result');
-  }
-
+  const { hit: cachedRenderResult } = await readRenderCache(
+    renderCacheKey,
+    context,
+    shouldRefreshRenderCache,
+  );
+  const isRenderCached = Boolean(cachedRenderResult);
+  const renderResult =
+    cachedRenderResult ?? (await render({ ...context }, request.log));
   const { currentRoute, head, html, state } = renderResult;
+  const criticalCssCacheKey = isCriticalCssCacheEnabled
+    ? stringToBase64(currentRoute.name)
+    : undefined;
 
-  // section Critical CSS
-  /*
-   *    ____      _ _   _           _     ____ ____ ____
-   *   / ___|_ __(_) |_(_) ___ __ _| |   / ___/ ___/ ___|
-   *  | |   | '__| | __| |/ __/ _` | |  | |   \___ \___ \
-   *  | |___| |  | | |_| | (_| (_| | |  | |___ ___) |__) |
-   *   \____|_|  |_|\__|_|\___\__,_|_|   \____|____/____/
-   *
-   */
-
-  const criticalCssCacheKey =
-    isCriticalCssCacheEnabled &&
-    stringToBase64((currentRoute.name || currentRoute.path).toString());
-
-  let criticalCss: string | undefined;
-  let isCriticalCssCached = false;
-
-  if (criticalCssCacheKey) {
-    const cachedCriticalCss =
-      await cacheService.getCriticalCss(criticalCssCacheKey);
-
-    criticalCss =
-      cachedCriticalCss === 'pending' ? undefined : cachedCriticalCss;
-
-    isCriticalCssCached = Boolean(criticalCss);
-  }
-
-  // section Template
-  /*
-   *   _____                    _       _
-   *  |_   _|__ _ __ ___  _ __ | | __ _| |_ ___
-   *    | |/ _ \ '_ ` _ \| '_ \| |/ _` | __/ _ \
-   *    | |  __/ | | | | | |_) | | (_| | ||  __/
-   *    |_|\___|_| |_| |_| .__/|_|\__,_|\__\___|
-   *                     |_|
-   */
-
-  const page = nunjuksRender('index.njk', {
+  const criticalCssCacheHit = await readCriticalCssCache(criticalCssCacheKey);
+  const criticalCss = criticalCssCacheHit?.css;
+  const isCriticalCssCached = Boolean(criticalCssCacheHit);
+  const serializedState = stringify(state);
+  const page = nunjucks.render('index.njk', {
     context,
     criticalCss,
     head,
     html,
     manifest,
-    state: stringify(state),
+    nonce: request.nonce,
+    state: serializedState.replaceAll('<', String.raw`\u003C`),
   });
-
-  // section Response
-  /*
-   *   ____
-   *  |  _ \ ___  ___ _ __   ___  _ __  ___  ___
-   *  | |_) / _ \/ __| '_ \ / _ \| '_ \/ __|/ _ \
-   *  |  _ <  __/\__ \ |_) | (_) | | | \__ \  __/
-   *  |_| \_\___||___/ .__/ \___/|_| |_|___/\___|
-   *                 |_|
-   */
-
   if (isCriticalCssCached || isRenderCached) {
     response.setHeader('X-Cache', cacheService.cacheType);
   }
 
-  if (isCriticalCssCached) {
-    response.setHeader('X-Cache-Critical-Css', criticalCssCacheKey.toString());
+  if (criticalCssCacheHit) {
+    response.setHeader('X-Cache-Critical-Css', criticalCssCacheHit.key);
   }
 
   if (isRenderCached) {
@@ -166,43 +94,38 @@ const renderSsr = async (request: Request, response: Response) => {
 
   response
     .setHeader('X-Response-Time', Date.now() - responseStartedAt)
-    .status(Number(currentRoute.meta.responseCode) || 200)
+    .status(currentRoute.meta.responseCode ?? 200)
     .send(page);
 
-  // section Set Cache
-  /*
-   *   ____       _       ____           _
-   *  / ___|  ___| |_    / ___|__ _  ___| |__   ___
-   *  \___ \ / _ \ __|  | |   / _` |/ __| '_ \ / _ \
-   *   ___) |  __/ |_   | |__| (_| | (__| | | |  __/
-   *  |____/ \___|\__|   \____\__,_|\___|_| |_|\___|
-   *
-   */
+  if (renderCacheKey !== false && !isRenderCached) {
+    try {
+      await cacheService.setRender(
+        renderCacheKey,
+        JSON.stringify(renderResult),
+      );
+    } catch (error) {
+      request.log.error(error, 'Failed to cache SSR render');
+    }
+  }
 
   if (
     criticalCssCacheKey &&
-    criticalCss !== 'pending' &&
-    (!criticalCss || shouldRefreshCriticalCssCache)
+    (!isCriticalCssCached || shouldRefreshCriticalCssCache)
   ) {
-    cacheService.setCriticalCss(criticalCssCacheKey, 'pending');
-    criticalCss = await getCriticalCss(html, [
-      ...manifest.css.initial,
-      ...manifest.css.async,
-    ]);
-    cacheService.setCriticalCss(criticalCssCacheKey, criticalCss);
+    try {
+      const pendingCss = await cacheService.setCriticalCssPending(
+        criticalCssCacheKey,
+        criticalCss,
+      );
+      if (!pendingCss) return;
+
+      const css = await getCriticalCss(html, [
+        ...manifest.css.initial,
+        ...manifest.css.async,
+      ]);
+      await cacheService.setCriticalCss(criticalCssCacheKey, css, pendingCss);
+    } catch (error) {
+      request.log.error(error, 'Failed to generate critical CSS');
+    }
   }
-
-  if (!renderCacheKey) return;
-
-  const { context: renderedContext } = state;
-  if (renderedContext.isContextPatched) {
-    state.context = {
-      ...renderedContext,
-      ...renderedContext.cached,
-      cached: undefined,
-      isContextPatched: false,
-    } as Context;
-  }
-
-  cacheService.setRender(renderCacheKey, JSON.stringify(renderResult));
-};
+}

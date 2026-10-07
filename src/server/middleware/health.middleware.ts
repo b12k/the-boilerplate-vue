@@ -1,10 +1,10 @@
-import { type RequestHandler } from 'express';
+import type { Request, Response } from 'express';
 
 const startedAt = Date.now();
 
-export const healthMiddleware: RequestHandler = (_, response) => {
+export function healthMiddleware(_: Request, response: Response) {
   response.send({
     status: 'OK',
     uptime: Date.now() - startedAt,
   });
-};
+}

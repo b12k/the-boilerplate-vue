@@ -1,7 +1,8 @@
 import compression from '@nitedani/shrink-ray-current';
 import cookieParser from 'cookie-parser';
 import express, { static as serveStatic } from 'express';
-import { configure as nunjucksConfigure } from 'nunjucks';
+import { once } from 'node:events';
+import nunjucks from 'nunjucks';
 import serveFavicon from 'serve-favicon';
 
 import { env } from './env';
@@ -11,6 +12,7 @@ import {
   healthMiddleware,
   helmetMiddleware,
   languageMiddleware,
+  sourceMapsMiddleware,
   ssrMiddleware,
 } from './middleware';
 import { cacheService, loggerService } from './services';
@@ -21,54 +23,65 @@ import {
   printDevelopmentBanner,
 } from './utils';
 
-void (async () => {
+async function startServer() {
   await cacheService.initialize({
-    criticalCssCacheSalt: env.CRITICAL_CSS_CACHE_SALT,
-    criticalCssCacheTtl: Number(env.CRITICAL_CSS_CACHE_TTL),
+    criticalCssCacheBudgetSec: env.CACHE_CRITICAL_CSS_BUDGET_SEC,
+    criticalCssCacheSalt: env.CACHE_CRITICAL_CSS_SALT,
+    criticalCssCacheTtlSec: env.CACHE_CRITICAL_CSS_TTL_SEC,
     redisUrl: env.REDIS_URL,
-    renderCacheSalt: env.RENDER_CACHE_SALT,
-    renderCacheTtl: Number(env.RENDER_CACHE_TTL),
+    renderCacheSalt: env.CACHE_RENDER_SALT,
+    renderCacheTtlSec: env.CACHE_RENDER_TTL_SEC,
   });
 
   const app = express();
 
-  nunjucksConfigure(env.VIEWS_PATH, {
-    autoescape: true,
-    express: app,
-  }).addGlobal('env', env);
+  nunjucks
+    .configure(env.VIEWS_PATH, {
+      autoescape: true,
+      express: app,
+    })
+    .addGlobal('env', env);
 
   app
     .set('view engine', 'njk')
     .set('etag', false)
-    .use(liveReload(env.LIVE_RELOAD_PATH))
+    .use(liveReload)
     .use(loggerService)
     .use(cookieParser())
     .use(compression())
     .use(serveFavicon(env.FAVICON_PATH))
     .use('/health', healthMiddleware)
+    .use('/{:lang}', languageMiddleware)
+    .use('/{:lang}', contextMiddleware)
     .use(
       '/public',
+      sourceMapsMiddleware,
       serveStatic(env.PUBLIC_PATH, {
         etag: false,
         maxAge: '7d',
       }),
     )
-    .use('/{:lang}', languageMiddleware)
-    .use('/{:lang}', contextMiddleware)
-    .use(helmetMiddleware(env.IS_PROD === 'true'))
+    .use(helmetMiddleware)
     .use(
       acceptedLanguages.map((lang) => `/${lang}`),
       ssrMiddleware,
     )
-    .use('/{*splat}', (request, response) => {
-      return response.status(404).render('404', {
+    .use('/{*splat}', (request, response) =>
+      response.status(404).render('404', {
         lang: getLanguage(request),
-        requestId: typeof request.id === 'object' ? '' : request.id.toString(),
-      });
-    })
-    .use(errorMiddleware)
-    .listen(
-      env.PORT,
-      () => env.IS_PROD !== 'true' && printDevelopmentBanner(Number(env.PORT)),
-    );
-})();
+        nonce: request.nonce,
+      }),
+    )
+    .use(errorMiddleware);
+
+  const server = app.listen(env.PORT);
+  await once(server, 'listening');
+  if (!env.IS_PROD) printDevelopmentBanner(env.PORT);
+}
+
+try {
+  await startServer();
+} catch (error) {
+  loggerService.logger.fatal(error);
+  process.exitCode = 1;
+}

@@ -1,52 +1,42 @@
-import type { Render } from '@client';
+import type { Render } from '@app/server.entry';
 
+import { env } from '@server/env';
+import { parseJson } from '@server/utils';
 import decache from 'decache';
+import { readFile } from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 
-import { env } from '../env';
+type ClientManifest = Record<
+  'css' | 'js',
+  { async: Array<string>; initial: Array<string> }
+>;
 
-export interface AssetsManifest {
-  css: {
-    async: Array<string>;
-    initial: Array<string>;
+// Rspack emits the SSR renderer as CommonJS, including its development require cache.
+const requireRenderer = createRequire(import.meta.url);
+
+async function loadSsrAssets() {
+  const [manifestJson, ssrManifestJson] = await Promise.all([
+    readFile(env.CLIENT_MANIFEST_PATH, 'utf8'),
+    readFile(env.SSR_MANIFEST_PATH, 'utf8'),
+  ]);
+  const manifest = parseJson<ClientManifest>(manifestJson);
+  const ssrManifest = parseJson<Record<string, string>>(ssrManifestJson);
+  // This CommonJS module is built from the typed app entry in this codebase.
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+  const { render } = requireRenderer(env.SSR_RENDERER_PATH) as {
+    render: Render;
   };
-  js: {
-    async: Array<string>;
-    initial: Array<string>;
-  };
-}
 
-type ImportedModule<T> = { default: T };
+  const assets = { manifest, render };
+  if (env.IS_PROD) return assets;
 
-interface SsrAssets {
-  manifest: AssetsManifest;
-  render: Render;
-}
-
-type SsrAssetsLoader = () => Promise<SsrAssets>;
-
-export const loadSsrAssets: SsrAssetsLoader = async () => {
-  const [{ default: manifest }, { default: ssrManifest }, { default: render }] =
-    (await Promise.all([
-      import(env.CLIENT_MANIFEST_PATH),
-      import(env.SSR_MANIFEST_PATH),
-      import(env.SSR_RENDERER_PATH),
-    ])) as [
-      ImportedModule<AssetsManifest>,
-      ImportedModule<AssetsManifest>,
-      ImportedModule<Render>,
-    ];
-
-  if (env.IS_PROD !== 'true') {
-    decache(env.CLIENT_MANIFEST_PATH);
-    decache(env.SSR_RENDERER_PATH);
-    Object.values(ssrManifest).forEach((entry) =>
-      decache(path.resolve(env.ASSETS_LOCATION_PATH, String(entry))),
-    );
+  decache(env.SSR_RENDERER_PATH);
+  for (const entry of Object.values(ssrManifest)) {
+    decache(path.resolve(env.ASSETS_LOCATION_PATH, entry));
   }
 
-  return {
-    manifest,
-    render,
-  };
-};
+  return assets;
+}
+
+export { type ClientManifest, loadSsrAssets };

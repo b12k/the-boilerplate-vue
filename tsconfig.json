@@ -25,10 +25,10 @@
     "noUnusedParameters": true,
     "types": ["webpack-env"],
     "paths": {
-      "@client": ["./src/client"],
-      "@server": ["./src/server"]
+      "@app/*": ["./src/app/*"],
+      "@server/*": ["./src/server/*"]
     }
   },
   "include": ["**/*.ts", "**/*.d.ts", "**/*.vue"],
-  "exclude": ["dist", ".temp"]
+  "exclude": ["dist"]
 }

@@ -3,4 +3,5 @@ export * from './error.middleware';
 export * from './health.middleware';
 export * from './helmet.middleware';
 export * from './language.middleware';
+export * from './source-maps.middleware';
 export * from './ssr.middleware';

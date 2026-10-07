@@ -1,10 +1,10 @@
-<script>
+<script nonce="{{ nonce }}">
     const path = "/{{ env.LIVE_RELOAD_PATH }}";
     const delay = 300;
     const maxAttempts = 10;
     let isServerUp = true;
     (function connect(attempt) {
-      if (attempt === maxAttempts) return;
+      if (attempt >= maxAttempts) return;
 
       const sse = new EventSource(path);
 
@@ -17,7 +17,7 @@
         sse.close();
         isServerUp = false;
         setTimeout(() => {
-          connect(attempt++);
+          connect(attempt + 1);
         }, delay);
       }
     })(0);

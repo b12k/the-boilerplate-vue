@@ -15,14 +15,11 @@
     {% for style in manifest.css.async %}<link rel="prefetch" as="style" href="{{ style }}">{% endfor %}
     {% for script in manifest.js.initial %}<script src="{{ script }}" defer></script>{% endfor %}
     {% for script in manifest.js.async %}<link rel="prefetch" as="script" href="{{ script }}">{% endfor %}
-    <script nonce="{{ context.requestId }}">
-    window.INITIAL_STATE = '{{ state | safe }}';
-    document.querySelectorAll('[data-async-css]').forEach((link) => {
-      link.onload = () => {
+    <script nonce="{{ nonce }}">
+      window.INITIAL_STATE = {{ state | safe }};
+      document.querySelectorAll('[data-async-css]').forEach((link) => {
         link.rel = 'stylesheet';
-        link.onload = null;
-      }
-    });
+      });
     </script>
     <noscript>
       {% for style in manifest.css.initial %}<link rel="stylesheet" href="{{ style }}">{% endfor %}
@@ -40,7 +37,7 @@
       {% include "_env.njk" %}
     {% endif %}
   </body>
-  {% if env.LIVE_RELOAD_PATH %}
+  {% if not env.IS_PROD and env.LIVE_RELOAD_PATH %}
     {% include "_live-reload.njk" %}
   {% endif %}
 </html>

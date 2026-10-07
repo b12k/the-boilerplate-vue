@@ -1,20 +1,31 @@
-import { type RequestHandler } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 
-import { acceptedLanguages, getLanguage } from '../utils';
+import { env } from '@server/env';
+import { acceptedLanguages, getLanguage } from '@server/utils';
 
-export const languageMiddleware: RequestHandler = (request, response, next) => {
+// Keep the selected language for 100 days.
+const LANGUAGE_COOKIE_TTL_MS = 8_640_000_000;
+
+export function languageMiddleware(
+  request: Request,
+  response: Response,
+  next: NextFunction,
+) {
   const { params } = request;
-  const lang = params['lang'];
+  const { lang } = params;
 
-  if (lang && acceptedLanguages.includes(lang)) {
-    response.cookie('lang', lang, {
-      maxAge: 100 * 24 * 60 * 60 * 1000,
-      sameSite: 'lax',
-      secure: true,
-    });
-  } else if (!lang) {
-    return response.redirect(302, `/${getLanguage(request)}`);
+  if (!lang) {
+    response.redirect(302, `/${getLanguage(request)}`);
+    return;
   }
 
-  return next();
-};
+  if (typeof lang === 'string' && acceptedLanguages.includes(lang)) {
+    response.cookie('lang', lang, {
+      maxAge: LANGUAGE_COOKIE_TTL_MS,
+      sameSite: 'lax',
+      secure: env.IS_PROD,
+    });
+  }
+
+  next();
+}

@@ -1,7 +1,7 @@
-import { defineConfig } from '@rspack/cli';
+import type { Configuration } from '@rspack/core';
 
-import baseConfig from './config.base';
-import env from './env';
+import { baseConfig } from './config.base';
+import { env } from './env';
 import { createImageLoader, cssLoader } from './loaders';
 import {
   bundleStatsWebpackPlugin,
@@ -12,18 +12,14 @@ import {
 } from './plugins';
 import { getCacheConfig, getFilenameJs, getVendorName } from './utils';
 
-const config = defineConfig({
+export default {
   ...baseConfig,
-  cache: env.IS_BUNDLER_CACHE_ENABLED && getCacheConfig('browser', env.IS_PROD),
+  cache: env.BUNDLER_CACHE && getCacheConfig('browser', env.IS_PROD),
   entry: {
-    app: './src/client/entry.browser.ts',
+    app: './src/app/browser.entry.ts',
   },
   module: {
-    rules: [
-      ...(baseConfig.module?.rules || []),
-      cssLoader,
-      createImageLoader(),
-    ],
+    rules: [...baseConfig.module.rules, cssLoader, createImageLoader()],
   },
   output: {
     chunkFilename: getFilenameJs('chunk', env.IS_PROD),
@@ -31,59 +27,52 @@ const config = defineConfig({
     publicPath: env.OUTPUT_PUBLIC_PATH,
   },
   plugins: [
-    ...(baseConfig.plugins || []),
+    ...baseConfig.plugins,
     createManifestPlugin(),
     createProgressPlugin(),
+    ...(env.STATS_ENABLED ? [bundleStatsWebpackPlugin] : []),
+    ...(env.IS_PROD
+      ? [cssExtractRspackPlugin, swcJsMinimizerRspackPlugin]
+      : []),
   ],
-});
-
-if (env.IS_STATS_ENABLED) {
-  config.plugins = [...(config.plugins || []), bundleStatsWebpackPlugin];
-}
-
-if (env.IS_PROD) {
-  config.plugins = [
-    ...(config.plugins || []),
-    cssExtractRspackPlugin,
-    swcJsMinimizerRspackPlugin,
-  ];
-  config.optimization = {
-    runtimeChunk: 'single',
-    splitChunks: {
-      cacheGroups: {
-        async: {
-          chunks: 'async',
-          filename: getFilenameJs('vendor', env.IS_PROD),
-          minChunks: 2,
-          minSize: 0,
-          name: getVendorName,
-          test: /[/\\]node_modules[/\\]/,
+  ...(env.IS_PROD
+    ? {
+        optimization: {
+          runtimeChunk: 'single',
+          splitChunks: {
+            cacheGroups: {
+              async: {
+                chunks: 'async',
+                filename: getFilenameJs('vendor', env.IS_PROD),
+                minChunks: 2,
+                minSize: 0,
+                name: getVendorName,
+                test: /[/\\]node_modules[/\\]/u,
+              },
+              vendor: {
+                chunks: 'all',
+                filename: getFilenameJs('vendor', env.IS_PROD),
+                name: getVendorName,
+                test: /[/\\]node_modules[/\\]/u,
+              },
+            },
+          },
         },
-        vendor: {
-          chunks: 'all',
-          filename: getFilenameJs('vendor', env.IS_PROD),
-          name: getVendorName,
-          test: /[/\\]node_modules[/\\]/,
+      }
+    : {
+        devServer: {
+          devMiddleware: {
+            writeToDisk: true,
+          },
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Service-Worker-Allowed': '/',
+          },
+          hot: true,
+          ...(env.WDS_PORT !== undefined && { port: env.WDS_PORT }),
         },
-      },
-    },
-  };
-} else {
-  config.devServer = {
-    devMiddleware: {
-      writeToDisk: true,
-    },
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Service-Worker-Allowed': '/',
-    },
-    hot: true,
-    port: env.WDS_PORT,
-  };
-
-  config.lazyCompilation = {
-    serverUrl: `http://localhost:${env.WDS_PORT}`,
-  };
-}
-
-export default config;
+        lazyCompilation: env.WDS_PORT
+          ? { serverUrl: `http://localhost:${env.WDS_PORT}` }
+          : true,
+      }),
+} satisfies Configuration;
