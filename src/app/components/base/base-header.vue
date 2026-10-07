@@ -1,54 +1,66 @@
 <script setup lang="ts">
   import { useStore } from '@app/store';
+  import { tv } from 'tailwind-variants';
+
+  import UiLogo from '../atoms/ui-logo.vue';
+  import { container } from '../ui.styles';
 
   const contextStore = useStore('context');
+  const styles = tv({
+    slots: {
+      base: 'border-b border-line',
+      inner:
+        'flex min-h-25 flex-wrap items-center justify-between gap-x-4 gap-y-2 py-4 md:min-h-22 md:flex-nowrap md:gap-6 md:py-0',
+      language:
+        'rounded-md border border-line px-3 py-2 font-mono text-xs hover:bg-panel',
+      link: 'border-b-2 border-transparent py-3 text-sm text-muted hover:text-ink',
+      nav: 'order-3 flex w-full items-center gap-6 md:order-none md:w-auto md:gap-8',
+    },
+  })();
 </script>
 
 <template>
-  <header class="site-header">
-    <div class="header-inner">
+  <header :class="styles.base()">
+    <div :class="container({ class: styles.inner() })">
       <RouterLink
         to="/"
-        class="wordmark"
         aria-label="Vue Boilerplate home"
       >
-        <span
-          class="brand-mark"
-          aria-hidden="true"
-        >
-          [v]
-        </span>
-        boilerplate
-        <span class="wordmark-dot">.</span>
+        <UiLogo />
       </RouterLink>
-      <nav aria-label="Main navigation">
+      <nav
+        aria-label="Main navigation"
+        :class="styles.nav()"
+      >
         <RouterLink
           to="/"
-          exact-active-class="nav-active"
+          :class="styles.link()"
+          exact-active-class="border-accent! text-ink!"
         >
           Overview
         </RouterLink>
         <RouterLink
           to="/about"
-          active-class="nav-active"
+          :class="styles.link()"
+          active-class="border-accent! text-ink!"
         >
           Architecture
         </RouterLink>
         <RouterLink
           to="/lab"
-          active-class="nav-active"
+          :class="styles.link()"
+          active-class="border-accent! text-ink!"
         >
           Data Lab
           <span aria-hidden="true">↗</span>
         </RouterLink>
       </nav>
       <a
-        class="language-link"
+        :class="styles.language()"
         :href="contextStore.lang === 'en' ? '/de' : '/en'"
         aria-label="Change language"
       >
-        {{ String(contextStore.lang ?? '').toUpperCase() }}
-        <span aria-hidden="true">↔</span>
+        {{ String(contextStore.lang ?? '').toUpperCase() }} ↔
       </a>
     </div>
   </header>

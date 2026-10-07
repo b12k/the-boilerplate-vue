@@ -1,4 +1,9 @@
 <script setup lang="ts">
+  import PageIntro from '@app/components/molecules/page-intro.vue';
+  import ArchitectureSection from '@app/components/organisms/architecture-section.vue';
+  import CardSection from '@app/components/organisms/card-section.vue';
+  import ServerPanel from '@app/components/organisms/server-panel.vue';
+  import PageShell from '@app/components/templates/page-shell.vue';
   import { useStore } from '@app/store';
   import { useHead } from '@unhead/vue';
   import { storeToRefs } from 'pinia';
@@ -13,89 +18,23 @@
 </script>
 
 <template>
-  <main class="page-about page-shell">
-    <section class="page-intro">
-      <span class="eyebrow">02 / ARCHITECTURE</span>
-      <h1>
+  <PageShell>
+    <PageIntro eyebrow="02 / ARCHITECTURE">
+      <template #title>
         A foundation you
         <br />
         can follow.
-      </h1>
-      <p>
-        Keep the framework familiar. Keep the application layers explicit. This
-        demo uses the same code path for server rendering and client navigation.
-      </p>
-    </section>
-    <section class="architecture-grid">
-      <div>
-        <span class="eyebrow">FROM ROUTE TO PAGE</span>
-        <h2>
-          Five steps.
-          <br />
-          One data flow.
-        </h2>
-        <p class="section-description">
-          The content on this page came from the mock API. Its route loader
-          wrote the response into a request-scoped Pinia store before SSR
-          rendered it.
-        </p>
-        <RouterLink
-          class="text-link"
-          to="/lab"
-        >
-          Run the flow yourself
-          <span aria-hidden="true">↗</span>
-        </RouterLink>
-      </div>
-      <ol class="architecture-list">
-        <li
-          v-for="(layer, index) in architecture?.layers"
-          :key="layer.name"
-        >
-          <span class="flow-number">0{{ index + 1 }}</span>
-          <div>
-            <h3>{{ layer.name }}</h3>
-            <p>{{ layer.description }}</p>
-            <code>{{ layer.file }}</code>
-          </div>
-        </li>
-      </ol>
-    </section>
-    <section class="section-block">
-      <div class="section-heading">
-        <div>
-          <span class="eyebrow">DESIGN PRINCIPLES</span>
-          <h2>Less ceremony. More clarity.</h2>
-        </div>
-      </div>
-      <div class="principle-grid">
-        <article
-          v-for="principle in architecture?.principles"
-          :key="principle.name"
-          class="feature-card"
-        >
-          <h3 class="principle-name">{{ principle.name }}</h3>
-          <p>{{ principle.description }}</p>
-        </article>
-      </div>
-    </section>
-    <section class="state-panel">
-      <div>
-        <span class="eyebrow">BEYOND THE COMPONENT</span>
-        <h2>The server is part of the design.</h2>
-        <p>
-          Render caching, critical CSS, request context and production builds
-          are part of this foundation. Their configuration stays explicit.
-        </p>
-      </div>
-      <div class="server-features">
-        <span>SSR render cache</span>
-        <span>Critical CSS cache</span>
-        <span>Language-aware URLs</span>
-        <span>Unhead metadata</span>
-        <span>Lazy route chunks</span>
-        <span>Typed service injection</span>
-      </div>
-    </section>
-  </main>
+      </template>
+      Keep the framework familiar. Keep the application layers explicit. This
+      demo uses the same code path for server rendering and client navigation.
+    </PageIntro>
+    <ArchitectureSection :layers="architecture.layers" />
+    <CardSection
+      :cards="architecture.principles"
+      eyebrow="DESIGN PRINCIPLES"
+      heading="mono"
+      title="Less ceremony. More clarity."
+    />
+    <ServerPanel />
+  </PageShell>
 </template>

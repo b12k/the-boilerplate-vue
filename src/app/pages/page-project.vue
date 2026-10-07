@@ -1,4 +1,8 @@
 <script setup lang="ts">
+  import UiLink from '@app/components/atoms/ui-link.vue';
+  import PageIntro from '@app/components/molecules/page-intro.vue';
+  import ProjectDetail from '@app/components/organisms/project-detail.vue';
+  import PageShell from '@app/components/templates/page-shell.vue';
   import { useStore } from '@app/store';
   import { useHead } from '@unhead/vue';
   import { storeToRefs } from 'pinia';
@@ -19,81 +23,35 @@
 </script>
 
 <template>
-  <main class="page-project page-shell">
-    <RouterLink
-      class="text-link back-link"
+  <PageShell>
+    <UiLink
       to="/"
+      appearance="text"
+      class="mt-10"
     >
       ← Back to Overview
-    </RouterLink>
+    </UiLink>
     <template v-if="project">
-      <section class="page-intro">
-        <span class="eyebrow">
-          EXAMPLE APPLICATION / {{ project.category }}
-        </span>
-        <h1>
+      <PageIntro :eyebrow="'EXAMPLE APPLICATION / ' + project.category">
+        <template #title>
           {{ project.name }}
-          <span class="project-heading-dot">.</span>
-        </h1>
-        <p>{{ project.description }}</p>
-      </section>
-      <section class="project-detail-grid">
-        <div class="project-blueprint">
-          <span class="eyebrow">A SMALL PRODUCT BLUEPRINT</span>
-          <div class="blueprint-mark">{{ project.name.slice(0, 1) }}</div>
-          <span class="tag">MOCK PROJECT DATA</span>
-        </div>
-        <div>
-          <span class="eyebrow">FOUNDATION FEATURES</span>
-          <h2>
-            Ready for your
-            <br />
-            application logic.
-          </h2>
-          <ul class="detail-features">
-            <li
-              v-for="feature in project.features"
-              :key="feature"
-            >
-              <span class="flow-check">✓</span>
-              {{ feature }}
-            </li>
-          </ul>
-          <p class="section-description">
-            The route parameter selects this record. fetchData calls the
-            injected API service and writes its response to Pinia. Moving to
-            another project runs prefetch again.
-          </p>
-          <div class="button-row">
-            <RouterLink
-              class="button button-secondary"
-              :to="'/projects/' + (project.id === 'atlas' ? 'relay' : 'atlas')"
-            >
-              Open another project ↗
-            </RouterLink>
-            <RouterLink
-              class="text-link"
-              to="/lab"
-            >
-              Inspect the store
-            </RouterLink>
-          </div>
-        </div>
-      </section>
+          <span class="text-accent">.</span>
+        </template>
+        {{ project.description }}
+      </PageIntro>
+      <ProjectDetail :project="project" />
     </template>
-    <section
-      v-else
-      class="page-intro"
-    >
-      <span class="eyebrow">MOCK API RESULT</span>
-      <h1>No project found.</h1>
-      <p>This identifier has no record in the demo dataset.</p>
-      <RouterLink
-        class="button button-primary"
+    <template v-else>
+      <PageIntro eyebrow="MOCK API RESULT">
+        <template #title>No project found.</template>
+        This identifier has no record in the demo dataset.
+      </PageIntro>
+      <UiLink
         to="/"
+        appearance="primary"
       >
         Explore the examples
-      </RouterLink>
-    </section>
-  </main>
+      </UiLink>
+    </template>
+  </PageShell>
 </template>

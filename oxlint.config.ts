@@ -46,6 +46,10 @@ export default {
         vue: true,
       },
       files: ['**/*.vue'],
+      rules: {
+        // Keep component APIs small while allowing explicit data and style variants.
+        'vue/max-props': ['error', { maxProps: 5 }],
+      },
     },
     {
       files: ['src/server/**', 'rspack/**', '*.mjs', '*.ts'],
