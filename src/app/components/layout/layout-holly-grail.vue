@@ -12,7 +12,7 @@
   #app {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    min-height: 100dvh;
 
     main {
       flex: 1;

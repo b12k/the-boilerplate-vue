@@ -40,6 +40,7 @@ async function createApp({
   const router = createRouter({
     history,
     routes,
+    scrollBehavior: (_, __, savedPosition) => savedPosition ?? { top: 0 },
   });
 
   store.use(createServicesPiniaPlugin(services));

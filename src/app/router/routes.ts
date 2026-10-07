@@ -14,6 +14,17 @@ export const routes: Array<RouteRecordRawNamed> = [
     path: '/about',
   },
   {
+    component: () => import('@app/pages/page-lab.vue'),
+    meta: { noPreFetchAwait: true },
+    name: 'lab',
+    path: '/lab',
+  },
+  {
+    component: () => import('@app/pages/page-project.vue'),
+    name: 'project',
+    path: '/projects/:projectId',
+  },
+  {
     component: () => import('@app/pages/page-404.vue'),
     meta: {
       responseCode: 404,
