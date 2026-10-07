@@ -3,10 +3,8 @@
 
   import { tv } from 'tailwind-variants';
 
-  import UiBadge from '../atoms/ui-badge.vue';
-  import UiButton from '../atoms/ui-button.vue';
-  import UiEyebrow from '../atoms/ui-eyebrow.vue';
-  import RunResult from '../molecules/run-result.vue';
+  import { UiBadge, UiButton, UiEyebrow } from '../atoms';
+  import { RunResult } from '../molecules';
 
   defineProps<{
     error: string;

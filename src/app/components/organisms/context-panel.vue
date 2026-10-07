@@ -1,9 +1,8 @@
 <script setup lang="ts">
   import { tv } from 'tailwind-variants';
 
-  import UiEyebrow from '../atoms/ui-eyebrow.vue';
-  import UiLink from '../atoms/ui-link.vue';
-  import StateTable from '../molecules/state-table.vue';
+  import { UiEyebrow, UiLink } from '../atoms';
+  import { StateTable } from '../molecules';
 
   defineProps<{ rows: Array<{ label: string; value: number | string }> }>();
   const styles = tv({

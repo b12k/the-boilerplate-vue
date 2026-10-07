@@ -2,7 +2,7 @@
   import { useStore } from '@app/store';
   import { tv } from 'tailwind-variants';
 
-  import UiLogo from '../atoms/ui-logo.vue';
+  import { UiLogo } from '../atoms';
   import { container } from '../ui.styles';
 
   const contextStore = useStore('context');

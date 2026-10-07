@@ -2,8 +2,7 @@
   import { BaseIcon } from '@app/components/base';
   import { tv } from 'tailwind-variants';
 
-  import UiButton from '../atoms/ui-button.vue';
-  import UiEyebrow from '../atoms/ui-eyebrow.vue';
+  import { UiButton, UiEyebrow } from '../atoms';
 
   defineProps<{ counter: number; doubledCounter: number }>();
   defineEmits<{ increment: [] }>();

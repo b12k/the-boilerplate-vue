@@ -3,9 +3,8 @@
 
   import { tv } from 'tailwind-variants';
 
-  import UiBadge from '../atoms/ui-badge.vue';
-  import ProjectCard from '../molecules/project-card.vue';
-  import SectionHeading from '../molecules/section-heading.vue';
+  import { UiBadge } from '../atoms';
+  import { ProjectCard, SectionHeading } from '../molecules';
 
   defineProps<{ projects: Array<DemoProject> }>();
   const styles = tv({

@@ -3,7 +3,7 @@
 
   import { tv } from 'tailwind-variants';
 
-  import UiEyebrow from '../atoms/ui-eyebrow.vue';
+  import { UiEyebrow } from '../atoms';
 
   defineProps<{ project: DemoProject }>();
   const styles = tv({

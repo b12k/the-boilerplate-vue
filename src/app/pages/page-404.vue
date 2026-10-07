@@ -1,7 +1,5 @@
 <script setup lang="ts">
-  import UiLink from '@app/components/atoms/ui-link.vue';
-  import PageIntro from '@app/components/molecules/page-intro.vue';
-  import PageShell from '@app/components/templates/page-shell.vue';
+  import { PageIntro, PageShell, UiLink } from '@app/components';
   import { useHead } from '@unhead/vue';
 
   useHead({ title: 'Page not found — Vue Boilerplate' });

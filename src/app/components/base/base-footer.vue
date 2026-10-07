@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { tv } from 'tailwind-variants';
 
-  import UiLogo from '../atoms/ui-logo.vue';
+  import { UiLogo } from '../atoms';
   import { container } from '../ui.styles';
 
   const styles = tv({

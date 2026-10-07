@@ -3,9 +3,7 @@
 
   import { tv } from 'tailwind-variants';
 
-  import UiBadge from '../atoms/ui-badge.vue';
-  import UiEyebrow from '../atoms/ui-eyebrow.vue';
-  import UiLink from '../atoms/ui-link.vue';
+  import { UiBadge, UiEyebrow, UiLink } from '../atoms';
 
   defineProps<{ project: DemoProject }>();
   const styles = tv({

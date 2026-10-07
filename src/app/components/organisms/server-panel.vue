@@ -1,8 +1,7 @@
 <script setup lang="ts">
   import { tv } from 'tailwind-variants';
 
-  import UiBadge from '../atoms/ui-badge.vue';
-  import UiEyebrow from '../atoms/ui-eyebrow.vue';
+  import { UiBadge, UiEyebrow } from '../atoms';
 
   const features = [
     'SSR render cache',

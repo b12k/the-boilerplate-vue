@@ -1,9 +1,11 @@
 <script setup lang="ts">
-  import CardSection from '@app/components/organisms/card-section.vue';
-  import CounterPanel from '@app/components/organisms/counter-panel.vue';
-  import HeroSection from '@app/components/organisms/hero-section.vue';
-  import ProjectsSection from '@app/components/organisms/projects-section.vue';
-  import PageShell from '@app/components/templates/page-shell.vue';
+  import {
+    CardSection,
+    CounterPanel,
+    HeroSection,
+    PageShell,
+    ProjectsSection,
+  } from '@app/components';
   import { useStore } from '@app/store';
   import { useHead } from '@unhead/vue';
   import { storeToRefs } from 'pinia';

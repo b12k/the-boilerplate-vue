@@ -1,9 +1,11 @@
 <script setup lang="ts">
-  import PageIntro from '@app/components/molecules/page-intro.vue';
-  import CardSection from '@app/components/organisms/card-section.vue';
-  import ContextPanel from '@app/components/organisms/context-panel.vue';
-  import RequestConsole from '@app/components/organisms/request-console.vue';
-  import PageShell from '@app/components/templates/page-shell.vue';
+  import {
+    CardSection,
+    ContextPanel,
+    PageIntro,
+    PageShell,
+    RequestConsole,
+  } from '@app/components';
   import { useStore } from '@app/store';
   import { useHead } from '@unhead/vue';
   import { storeToRefs } from 'pinia';

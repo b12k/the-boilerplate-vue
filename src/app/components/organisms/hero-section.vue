@@ -1,9 +1,7 @@
 <script setup lang="ts">
   import { tv } from 'tailwind-variants';
 
-  import UiBadge from '../atoms/ui-badge.vue';
-  import UiEyebrow from '../atoms/ui-eyebrow.vue';
-  import UiLink from '../atoms/ui-link.vue';
+  import { UiBadge, UiEyebrow, UiLink } from '../atoms';
 
   const steps = [
     {

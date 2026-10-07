@@ -3,8 +3,7 @@
 
   import { tv } from 'tailwind-variants';
 
-  import UiEyebrow from '../atoms/ui-eyebrow.vue';
-  import UiLink from '../atoms/ui-link.vue';
+  import { UiEyebrow, UiLink } from '../atoms';
 
   defineProps<{ layers: DemoArchitecture['layers'] }>();
   const styles = tv({

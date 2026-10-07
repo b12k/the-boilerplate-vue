@@ -1,8 +1,7 @@
 <script setup lang="ts">
   import { tv } from 'tailwind-variants';
 
-  import InfoCard from '../molecules/info-card.vue';
-  import SectionHeading from '../molecules/section-heading.vue';
+  import { InfoCard, SectionHeading } from '../molecules';
 
   const {
     cards,

@@ -1,8 +1,5 @@
 <script setup lang="ts">
-  import UiLink from '@app/components/atoms/ui-link.vue';
-  import PageIntro from '@app/components/molecules/page-intro.vue';
-  import ProjectDetail from '@app/components/organisms/project-detail.vue';
-  import PageShell from '@app/components/templates/page-shell.vue';
+  import { PageIntro, PageShell, ProjectDetail, UiLink } from '@app/components';
   import { useStore } from '@app/store';
   import { useHead } from '@unhead/vue';
   import { storeToRefs } from 'pinia';
