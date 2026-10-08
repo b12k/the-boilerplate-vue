@@ -193,9 +193,6 @@ importers:
       helmet:
         specifier: 8.3.0
         version: 8.3.0
-      lru-cache:
-        specifier: 11.5.3
-        version: 11.5.3
       nunjucks:
         specifier: 3.2.4
         version: 3.2.4(chokidar@5.0.0)

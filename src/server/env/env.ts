@@ -12,6 +12,13 @@ if (!result.success) {
   throw new Error(z.prettifyError(result.error));
 }
 const envVariables = result.data;
+const redisUrl = new URL(
+  `redis://${envVariables.REDIS_HOST}:${envVariables.REDIS_PORT}`,
+);
+if (envVariables.REDIS_PASSWORD) {
+  redisUrl.username = 'default';
+  redisUrl.password = encodeURIComponent(envVariables.REDIS_PASSWORD);
+}
 const { version: VERSION } = parseJson<{ version: string }>(
   await readFile(new URL('../../../package.json', import.meta.url), 'utf8'),
 );
@@ -43,6 +50,7 @@ const env = {
   IS_OVERRIDDEN: false,
   IS_PROD,
   PUBLIC_PATH,
+  REDIS_URL: redisUrl.href,
   SSR_MANIFEST_PATH,
   SSR_RENDERER_PATH,
   VERSION,

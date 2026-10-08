@@ -17,7 +17,7 @@ export class RedisCache implements CacheClient {
     this.client = createClient({
       disableOfflineQueue: true,
       socket: {
-        // Initial failure must let CacheService fall back to LRU.
+        // Initial failure must let the server continue SSR without cache.
         reconnectStrategy: () =>
           this.hasConnected ? RECONNECT_DELAY_MS : false,
       },

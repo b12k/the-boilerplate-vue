@@ -28,7 +28,8 @@ async function startServer() {
     cacheSalt: env.CACHE_SALT,
     criticalCssCacheBudgetSec: env.CACHE_CRITICAL_CSS_BUDGET_SEC,
     criticalCssCacheTtlSec: env.CACHE_CRITICAL_CSS_TTL_SEC,
-    redisUrl: env.REDIS_URL,
+    redisUrl:
+      env.CACHE_RENDER || env.CACHE_CRITICAL_CSS ? env.REDIS_URL : undefined,
     renderCacheTtlSec: env.CACHE_RENDER_TTL_SEC,
   });
 

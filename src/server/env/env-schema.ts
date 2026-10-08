@@ -38,7 +38,9 @@ export const envSchema = z
     LOG_LEVEL: logLevelSchema.default('info'),
     NODE_ENV: nonEmptyStringSchema,
     PORT: positiveNumberSchema,
-    REDIS_URL: z.url().optional(),
+    REDIS_HOST: nonEmptyStringSchema,
+    REDIS_PASSWORD: z.string(),
+    REDIS_PORT: positiveNumberSchema,
     SERVE_SOURCE_MAPS: z.stringbool().default(false),
   })
   .refine(

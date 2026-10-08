@@ -3,7 +3,6 @@ import type { Promisable } from 'type-fest';
 import { loggerService } from '@server/services/logger.service';
 import { randomUUID } from 'node:crypto';
 
-import { LruCache } from './lru.cache';
 import { RedisCache } from './redis.cache';
 
 const PENDING_CSS_PREFIX = 'pending:';
@@ -32,49 +31,42 @@ interface CacheClientConfig {
   renderCacheTtlSec: number;
 }
 class CacheService {
-  public cacheType!: 'L' | 'R';
+  public readonly cacheType = 'R';
+
+  private client?: CacheClient;
 
   private config!: CacheClientConfig;
 
-  private criticalCssCache!: CacheClient;
-
-  private renderCache!: CacheClient;
-
   public async getCriticalCss(key: string) {
-    const css = await this.criticalCssCache.get(this.saltCriticalCssKey(key));
+    const css = await this.client?.get(this.saltCriticalCssKey(key));
     return css === 'pending' || css?.startsWith(PENDING_CSS_PREFIX)
       ? undefined
       : css;
   }
 
   public getRender(key: string) {
-    return this.renderCache.get(this.saltRenderKey(key));
+    return this.client?.get(this.saltRenderKey(key));
   }
 
   public async initialize(config: CacheClientConfig) {
     this.config = config;
-    if (!config.redisUrl) {
-      this.initializeLruCaches();
-      return;
-    }
+    if (!config.redisUrl) return;
+
+    const client = new RedisCache(config.redisUrl, config.renderCacheTtlSec);
+    this.client = client;
 
     try {
-      const client = new RedisCache(config.redisUrl, config.renderCacheTtlSec);
       await client.connect();
-      this.renderCache = client;
-      this.criticalCssCache = client;
-      this.cacheType = 'R';
     } catch (error) {
       loggerService.logger.error(
         error,
         '[CacheService] Connection to redis server failed!',
       );
-      this.initializeLruCaches();
     }
   }
 
   public async setCriticalCss(key: string, css: string, pendingCss: string) {
-    await this.criticalCssCache.setIfValue(
+    await this.client?.setIfValue(
       this.saltCriticalCssKey(key),
       css,
       pendingCss,
@@ -88,12 +80,8 @@ class CacheService {
     const budgetSec = this.config.criticalCssCacheBudgetSec;
     const isPending =
       cachedCss === undefined
-        ? await this.criticalCssCache.setIfAbsent(
-            saltedKey,
-            pendingCss,
-            budgetSec,
-          )
-        : await this.criticalCssCache.setIfValue(
+        ? await this.client?.setIfAbsent(saltedKey, pendingCss, budgetSec)
+        : await this.client?.setIfValue(
             saltedKey,
             pendingCss,
             cachedCss,
@@ -105,13 +93,7 @@ class CacheService {
   public async setRender(key: string, value: string) {
     const saltedKey = this.saltRenderKey(key);
 
-    await this.renderCache.set(saltedKey, value, this.config.renderCacheTtlSec);
-  }
-
-  private initializeLruCaches() {
-    this.renderCache = new LruCache(this.config.renderCacheTtlSec);
-    this.criticalCssCache = new LruCache(this.config.criticalCssCacheTtlSec);
-    this.cacheType = 'L';
+    await this.client?.set(saltedKey, value, this.config.renderCacheTtlSec);
   }
 
   private saltCriticalCssKey(key: string) {
