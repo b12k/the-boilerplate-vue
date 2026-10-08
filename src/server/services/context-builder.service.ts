@@ -63,7 +63,6 @@ function buildContext(request: Request) {
     isRenderCacheEnabled: env.CACHE_RENDER,
     lang: request.params['lang'],
     query,
-    requestId: request.requestId,
     shouldRefreshCriticalCssCache,
     shouldRefreshRenderCache,
     url: request.url,

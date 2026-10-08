@@ -13,7 +13,7 @@ const config = {
     const requestId =
       typeof header === 'string' && header.length > 0 ? header : randomUUID();
     request.requestId = requestId;
-    response.setHeader('X-Request-Id', requestId);
+    response.setHeader('X-Request-ID', requestId);
     return requestId;
   },
   level: env.LOG_LEVEL,

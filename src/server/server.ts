@@ -44,8 +44,8 @@ async function startServer() {
   app
     .set('view engine', 'njk')
     .set('etag', false)
-    .use(liveReload)
     .use(loggerService)
+    .use(liveReload)
     .use(cookieParser())
     .use(compression())
     .use(serveFavicon(env.FAVICON_PATH))
