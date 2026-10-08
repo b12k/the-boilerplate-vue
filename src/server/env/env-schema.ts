@@ -28,10 +28,8 @@ export const envSchema = z
     CACHE_CRITICAL_CSS_BUDGET_SEC: positiveNumberSchema.default(
       DEFAULT_CRITICAL_CSS_BUDGET_SEC,
     ),
-    CACHE_CRITICAL_CSS_SALT: nonEmptyStringSchema.optional(),
     CACHE_CRITICAL_CSS_TTL_SEC: positiveNumberSchema.default(CACHE_TTL_SEC),
     CACHE_RENDER: z.stringbool().default(false),
-    CACHE_RENDER_SALT: nonEmptyStringSchema.optional(),
     CACHE_RENDER_TTL_SEC: positiveNumberSchema.default(CACHE_TTL_SEC),
     DEBUG: z.stringbool().default(false),
     DEBUG_ON_KEY: z.uuid().optional(),

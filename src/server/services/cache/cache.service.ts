@@ -25,11 +25,10 @@ interface CacheClient {
 }
 
 interface CacheClientConfig {
+  cacheSalt: string;
   criticalCssCacheBudgetSec: number;
-  criticalCssCacheSalt: string;
   criticalCssCacheTtlSec: number;
   redisUrl?: string | undefined;
-  renderCacheSalt: string;
   renderCacheTtlSec: number;
 }
 class CacheService {
@@ -116,11 +115,11 @@ class CacheService {
   }
 
   private saltCriticalCssKey(key: string) {
-    return ['[CRITICAL-CSS]', this.config.criticalCssCacheSalt, key].join(':');
+    return ['[CRITICAL-CSS]', this.config.cacheSalt, key].join(':');
   }
 
   private saltRenderKey(key: string) {
-    return ['[RENDER]', this.config.renderCacheSalt, key].join(':');
+    return ['[RENDER]', this.config.cacheSalt, key].join(':');
   }
 }
 

@@ -36,12 +36,7 @@ const HOSTNAME = hostname();
 const env = {
   ...envVariables,
   ASSETS_LOCATION_PATH,
-  CACHE_CRITICAL_CSS_SALT: IS_PROD
-    ? (envVariables.CACHE_CRITICAL_CSS_SALT ?? VERSION)
-    : Date.now().toString(),
-  CACHE_RENDER_SALT: IS_PROD
-    ? (envVariables.CACHE_RENDER_SALT ?? VERSION)
-    : Date.now().toString(),
+  CACHE_SALT: IS_PROD ? VERSION : Date.now().toString(),
   CLIENT_MANIFEST_PATH,
   FAVICON_PATH,
   HOSTNAME,

@@ -25,11 +25,10 @@ import {
 
 async function startServer() {
   await cacheService.initialize({
+    cacheSalt: env.CACHE_SALT,
     criticalCssCacheBudgetSec: env.CACHE_CRITICAL_CSS_BUDGET_SEC,
-    criticalCssCacheSalt: env.CACHE_CRITICAL_CSS_SALT,
     criticalCssCacheTtlSec: env.CACHE_CRITICAL_CSS_TTL_SEC,
     redisUrl: env.REDIS_URL,
-    renderCacheSalt: env.CACHE_RENDER_SALT,
     renderCacheTtlSec: env.CACHE_RENDER_TTL_SEC,
   });
 
