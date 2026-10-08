@@ -1,0 +1,26 @@
+[
+  {
+    "mode": "dev",
+    "missingManifestStatus": 500,
+    "errorBody": "",
+    "healthWhileAssetsMissing": 200,
+    "syntheticBearerVisibleInLogs": true,
+    "syntheticCookieVisibleInLogs": true
+  },
+  {
+    "mode": "start:local",
+    "missingManifestStatus": 500,
+    "errorBody": "",
+    "healthWhileAssetsMissing": 200,
+    "syntheticBearerVisibleInLogs": true,
+    "syntheticCookieVisibleInLogs": true
+  },
+  {
+    "mode": "Docker",
+    "missingManifestStatus": 500,
+    "errorBody": "",
+    "healthWhileAssetsMissing": 200,
+    "syntheticBearerVisibleInLogs": true,
+    "syntheticCookieVisibleInLogs": true
+  }
+]
