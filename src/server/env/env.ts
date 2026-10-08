@@ -1,7 +1,9 @@
+import { readFile } from 'node:fs/promises';
 import { hostname } from 'node:os';
 import path from 'node:path';
 import { z } from 'zod';
 
+import { parseJson } from '../utils/parse-json';
 import { envSchema } from './env-schema';
 
 /* oxlint-disable node/no-process-env -- Server environment variables are read and validated only in this module. */
@@ -9,7 +11,10 @@ const result = envSchema.safeParse(process.env);
 if (!result.success) {
   throw new Error(z.prettifyError(result.error));
 }
-const { npm_package_version: VERSION, ...envVariables } = result.data;
+const envVariables = result.data;
+const { version: VERSION } = parseJson<{ version: string }>(
+  await readFile(new URL('../../../package.json', import.meta.url), 'utf8'),
+);
 const { dirname } = import.meta;
 const serverDirname = path.resolve(dirname, '..');
 const IS_PROD = envVariables.NODE_ENV !== 'development';

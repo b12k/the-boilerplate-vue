@@ -39,7 +39,6 @@ export const envSchema = z
     LIVE_RELOAD_PATH: nonEmptyStringSchema.optional(),
     LOG_LEVEL: logLevelSchema.default('info'),
     NODE_ENV: nonEmptyStringSchema,
-    npm_package_version: nonEmptyStringSchema,
     PORT: positiveNumberSchema,
     REDIS_URL: z.url().optional(),
     SERVE_SOURCE_MAPS: z.stringbool().default(false),
