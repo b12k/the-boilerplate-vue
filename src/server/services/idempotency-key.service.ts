@@ -33,12 +33,12 @@ function trimSlashes(path: string) {
 
 function computeIdempotencyKey(context: Context) {
   const { baseUrl, url } = context;
-  const fullUrl = trimSlashes(baseUrl + url);
+  const pathname = trimSlashes((baseUrl + url).split('?')[0] ?? '');
   const matched = Object.entries(idempotencyConfig.paths)
     .map(([key, computeKey]) => {
       const matchedPath = match(trimSlashes(key), {
         decode: decodeURIComponent,
-      })(fullUrl);
+      })(pathname);
       return matchedPath === false
         ? undefined
         : { computeKey, params: matchedPath.params };
