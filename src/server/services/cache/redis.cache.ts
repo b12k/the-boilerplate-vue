@@ -91,6 +91,21 @@ export class RedisCache implements CacheClient {
     }
   }
 
+  public async deleteIfValue(key: string, expectedValue: string) {
+    if (!this.client?.isReady) return false;
+
+    try {
+      const result = await this.client.delEx(key, {
+        condition: 'IFEQ',
+        matchValue: expectedValue,
+      });
+      return result === 1;
+    } catch (error) {
+      RedisCache.logError(error);
+      return false;
+    }
+  }
+
   public async get(key: string) {
     // oxlint-disable-next-line unicorn/no-useless-undefined -- Cache misses must be explicit on every return path.
     if (!this.client?.isReady) return undefined;
@@ -147,12 +162,12 @@ export class RedisCache implements CacheClient {
     if (!this.client?.isReady) return false;
 
     try {
-      // Replace only the expected cache value atomically.
-      const result = await this.client.eval(
-        'if redis.call("GET", KEYS[1]) == ARGV[1] then redis.call("SET", KEYS[1], ARGV[2], "PX", ARGV[3]) return 1 end return 0',
-        { arguments: [expectedValue, value, ttlMs.toString()], keys: [key] },
-      );
-      return result === 1;
+      const result = await this.client.set(key, value, {
+        condition: 'IFEQ',
+        expiration: { type: 'PX', value: ttlMs },
+        matchValue: expectedValue,
+      });
+      return result === 'OK';
     } catch (error) {
       RedisCache.logError(error);
       return false;

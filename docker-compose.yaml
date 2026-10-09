@@ -1,6 +1,6 @@
 services:
   cache:
-    image: redis:alpine
+    image: redis:8.10.2-alpine
     restart: always
     ports:
       - ${REDIS_PORT}:6379

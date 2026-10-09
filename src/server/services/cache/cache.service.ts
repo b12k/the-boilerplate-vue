@@ -7,9 +7,9 @@ import { RedisCache } from './redis.cache';
 
 const PENDING = 'pending';
 const PENDING_TTL_MARGIN_MS = 1000;
-const MS_PER_SECOND = 1000;
 
 interface CacheClient {
+  deleteIfValue: (key: string, expectedValue: string) => Promisable<boolean>;
   get: (key: string) => Promisable<string | undefined>;
   set: (key: string, value: string, ttlSec?: number) => Promisable<void>;
   setIfAbsent: (
@@ -36,6 +36,10 @@ class CacheService {
 
   private static saltRenderKey(key: string) {
     return ['[RENDER]', env.CACHE_SALT, key].join(':');
+  }
+
+  public async deleteRenderPending(key: string) {
+    await this.client?.deleteIfValue(CacheService.saltRenderKey(key), PENDING);
   }
 
   public async getCriticalCss(key: string) {
@@ -68,11 +72,10 @@ class CacheService {
   }
 
   public async setCriticalCss(key: string, css: string) {
-    await this.client?.setIfValue(
+    await this.client?.set(
       CacheService.saltCriticalCssKey(key),
       css,
-      PENDING,
-      env.CACHE_CRITICAL_CSS_TTL_SEC * MS_PER_SECOND,
+      env.CACHE_CRITICAL_CSS_TTL_SEC,
     );
   }
 
@@ -87,11 +90,10 @@ class CacheService {
   }
 
   public setRender(key: string, render: string) {
-    return this.client?.setIfValue(
+    return this.client?.set(
       CacheService.saltRenderKey(key),
       render,
-      PENDING,
-      env.CACHE_RENDER_TTL_SEC * MS_PER_SECOND,
+      env.CACHE_RENDER_TTL_SEC,
     );
   }
 

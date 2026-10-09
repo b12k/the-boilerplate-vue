@@ -2,6 +2,7 @@ import type { AxiosError } from 'axios';
 import type { NextFunction, Request, Response } from 'express';
 
 import { env } from '@server/env';
+import { SsrResponseTimeoutError } from '@server/utils';
 import { stringify } from 'safe-stable-stringify';
 
 import { getOptionalContext } from './context.middleware';
@@ -15,7 +16,21 @@ export function errorMiddleware(
   response: Response,
   next: NextFunction,
 ) {
-  request.log.error(error);
+  if (error instanceof SsrResponseTimeoutError) {
+    request.log.error(
+      {
+        budgetMs: error.budgetMs,
+        code: error.code,
+        elapsedMs: error.elapsedMs,
+        err: error,
+        requestId: request.requestId,
+        route: request.originalUrl,
+      },
+      error.message,
+    );
+  } else {
+    request.log.error(error);
+  }
   if (response.headersSent) {
     next(error);
     return;
