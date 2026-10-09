@@ -2,9 +2,10 @@ import { z } from 'zod';
 
 // One day
 const CACHE_TTL_SEC = 86_400;
-const DEFAULT_CRITICAL_CSS_BUDGET_SEC = 10;
+const DEFAULT_CRITICAL_CSS_BUDGET_MS = 10_000;
 const DEFAULT_REDIS_CONNECTION_RETRIES = 5;
 const DEFAULT_REDIS_READ_TIMEOUT_MS = 1000;
+const DEFAULT_SSR_RESPONSE_BUDGET_MS = 30_000;
 const LANG_CHARS_COUNT = 2;
 
 const languageSchema = z.string().trim().length(LANG_CHARS_COUNT);
@@ -27,8 +28,8 @@ export const envSchema = z
   .object({
     ACCEPTED_LANGUAGES: acceptedLanguagesSchema,
     CACHE_CRITICAL_CSS: z.stringbool().default(false),
-    CACHE_CRITICAL_CSS_BUDGET_SEC: positiveNumberSchema.default(
-      DEFAULT_CRITICAL_CSS_BUDGET_SEC,
+    CACHE_CRITICAL_CSS_BUDGET_MS: positiveNumberSchema.default(
+      DEFAULT_CRITICAL_CSS_BUDGET_MS,
     ),
     CACHE_CRITICAL_CSS_TTL_SEC: positiveNumberSchema.default(CACHE_TTL_SEC),
     CACHE_RENDER: z.stringbool().default(false),
@@ -52,6 +53,9 @@ export const envSchema = z
       DEFAULT_REDIS_READ_TIMEOUT_MS,
     ),
     SERVE_SOURCE_MAPS: z.stringbool().default(false),
+    SSR_RESPONSE_BUDGET_MS: positiveNumberSchema.default(
+      DEFAULT_SSR_RESPONSE_BUDGET_MS,
+    ),
   })
   .refine(
     ({ ACCEPTED_LANGUAGES, DEFAULT_LANGUAGE }) =>

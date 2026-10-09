@@ -25,20 +25,31 @@ async function readRenderCache(
   context: Context,
   shouldRefresh: boolean,
 ) {
-  if (key === false || shouldRefresh) return { hit: undefined };
+  if (key === false) return { hit: undefined, shouldCacheRender: false };
 
-  const renderResultJson = await cacheService.getRender(key);
-  if (!renderResultJson) return { hit: undefined };
+  const { isPending, render: renderResultJson } =
+    await cacheService.getRender(key);
+  if (isPending) return { hit: undefined, shouldCacheRender: false };
+
+  if (!renderResultJson || shouldRefresh) {
+    const shouldCacheRender = await cacheService.setRenderPending(
+      key,
+      renderResultJson,
+    );
+    return { hit: undefined, shouldCacheRender };
+  }
 
   const renderResult = parseJson<RenderResult>(renderResultJson);
   const cachedContext = renderResult.state.context;
-  if (isEqual(context, cachedContext)) return { hit: renderResult };
+  if (isEqual(context, cachedContext)) {
+    return { hit: renderResult, shouldCacheRender: false };
+  }
 
   renderResult.state.context = context;
   renderResult.state.context.isContextPatched = true;
   renderResult.state.context.cached = cachedContext;
 
-  return { hit: renderResult };
+  return { hit: renderResult, shouldCacheRender: false };
 }
 
 export async function ssrMiddleware(request: Request, response: Response) {
@@ -54,7 +65,7 @@ export async function ssrMiddleware(request: Request, response: Response) {
     ? computeIdempotencyKey(context)
     : false;
   const { manifest, render } = await loadSsrAssets();
-  const { hit: cachedRenderResult } = await readRenderCache(
+  const { hit: cachedRenderResult, shouldCacheRender } = await readRenderCache(
     renderCacheKey,
     context,
     shouldRefreshRenderCache,
@@ -97,7 +108,7 @@ export async function ssrMiddleware(request: Request, response: Response) {
     .status(currentRoute.meta.responseCode ?? 200)
     .send(page);
 
-  if (renderCacheKey !== false && !isRenderCached) {
+  if (renderCacheKey !== false && shouldCacheRender) {
     try {
       await cacheService.setRender(
         renderCacheKey,
@@ -113,17 +124,17 @@ export async function ssrMiddleware(request: Request, response: Response) {
     (!isCriticalCssCached || shouldRefreshCriticalCssCache)
   ) {
     try {
-      const pendingCss = await cacheService.setCriticalCssPending(
+      const shouldCacheCss = await cacheService.setCriticalCssPending(
         criticalCssCacheKey,
         criticalCss,
       );
-      if (!pendingCss) return;
+      if (!shouldCacheCss) return;
 
       const css = await getCriticalCss(html, [
         ...manifest.css.initial,
         ...manifest.css.async,
       ]);
-      await cacheService.setCriticalCss(criticalCssCacheKey, css, pendingCss);
+      await cacheService.setCriticalCss(criticalCssCacheKey, css);
     } catch (error) {
       request.log.error(error, 'Failed to generate critical CSS');
     }

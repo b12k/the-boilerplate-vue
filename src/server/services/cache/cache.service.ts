@@ -1,11 +1,13 @@
 import type { Promisable } from 'type-fest';
 
+import { env } from '@server/env';
 import { loggerService } from '@server/services/logger.service';
-import { randomUUID } from 'node:crypto';
 
 import { RedisCache } from './redis.cache';
 
-const PENDING_CSS_PREFIX = 'pending:';
+const PENDING = 'pending';
+const PENDING_TTL_MARGIN_MS = 1000;
+const MS_PER_SECOND = 1000;
 
 interface CacheClient {
   get: (key: string) => Promisable<string | undefined>;
@@ -13,52 +15,46 @@ interface CacheClient {
   setIfAbsent: (
     key: string,
     value: string,
-    ttlSec: number,
+    ttlMs: number,
   ) => Promisable<boolean>;
   setIfValue: (
     key: string,
     value: string,
     expectedValue: string,
-    ttlSec: number,
+    ttlMs: number,
   ) => Promisable<boolean>;
 }
 
-interface CacheClientConfig {
-  cacheSalt: string;
-  criticalCssCacheBudgetSec: number;
-  criticalCssCacheTtlSec: number;
-  redisConnectionRetries: number;
-  redisReadTimeoutMs: number;
-  redisUrl?: string | undefined;
-  renderCacheTtlSec: number;
-}
 class CacheService {
   public readonly cacheType = 'R';
 
   private client?: CacheClient;
 
-  private config!: CacheClientConfig;
+  private static saltCriticalCssKey(key: string) {
+    return ['[CRITICAL-CSS]', env.CACHE_SALT, key].join(':');
+  }
+
+  private static saltRenderKey(key: string) {
+    return ['[RENDER]', env.CACHE_SALT, key].join(':');
+  }
 
   public async getCriticalCss(key: string) {
-    const css = await this.client?.get(this.saltCriticalCssKey(key));
-    return css === 'pending' || css?.startsWith(PENDING_CSS_PREFIX)
-      ? undefined
-      : css;
+    const css = await this.client?.get(CacheService.saltCriticalCssKey(key));
+    return css === PENDING ? undefined : css;
   }
 
-  public getRender(key: string) {
-    return this.client?.get(this.saltRenderKey(key));
+  public async getRender(key: string) {
+    const render = await this.client?.get(CacheService.saltRenderKey(key));
+    const isPending = render === PENDING;
+    return { isPending, render: isPending ? undefined : render };
   }
 
-  public initialize(config: CacheClientConfig) {
-    this.config = config;
-    if (!config.redisUrl) return;
-
+  public initialize() {
     const client = new RedisCache(
-      config.redisUrl,
-      config.renderCacheTtlSec,
-      config.redisConnectionRetries,
-      config.redisReadTimeoutMs,
+      env.REDIS_URL,
+      env.CACHE_RENDER_TTL_SEC,
+      env.REDIS_CONNECTION_RETRIES,
+      env.REDIS_READ_TIMEOUT_MS,
     );
     this.client = client;
 
@@ -71,43 +67,47 @@ class CacheService {
     });
   }
 
-  public async setCriticalCss(key: string, css: string, pendingCss: string) {
+  public async setCriticalCss(key: string, css: string) {
     await this.client?.setIfValue(
-      this.saltCriticalCssKey(key),
+      CacheService.saltCriticalCssKey(key),
       css,
-      pendingCss,
-      this.config.criticalCssCacheTtlSec,
+      PENDING,
+      env.CACHE_CRITICAL_CSS_TTL_SEC * MS_PER_SECOND,
     );
   }
 
   public async setCriticalCssPending(key: string, cachedCss?: string) {
-    const saltedKey = this.saltCriticalCssKey(key);
-    const pendingCss = `${PENDING_CSS_PREFIX}${randomUUID()}`;
-    const budgetSec = this.config.criticalCssCacheBudgetSec;
+    const saltedKey = CacheService.saltCriticalCssKey(key);
+    const ttlMs = env.CACHE_CRITICAL_CSS_BUDGET_MS + PENDING_TTL_MARGIN_MS;
     const isPending =
       cachedCss === undefined
-        ? await this.client?.setIfAbsent(saltedKey, pendingCss, budgetSec)
+        ? await this.client?.setIfAbsent(saltedKey, PENDING, ttlMs)
+        : await this.client?.setIfValue(saltedKey, PENDING, cachedCss, ttlMs);
+    return Boolean(isPending);
+  }
+
+  public setRender(key: string, render: string) {
+    return this.client?.setIfValue(
+      CacheService.saltRenderKey(key),
+      render,
+      PENDING,
+      env.CACHE_RENDER_TTL_SEC * MS_PER_SECOND,
+    );
+  }
+
+  public async setRenderPending(key: string, cachedRender?: string) {
+    const saltedKey = CacheService.saltRenderKey(key);
+    const ttlMs = env.SSR_RESPONSE_BUDGET_MS + PENDING_TTL_MARGIN_MS;
+    const isPending =
+      cachedRender === undefined
+        ? await this.client?.setIfAbsent(saltedKey, PENDING, ttlMs)
         : await this.client?.setIfValue(
             saltedKey,
-            pendingCss,
-            cachedCss,
-            budgetSec,
+            PENDING,
+            cachedRender,
+            ttlMs,
           );
-    return isPending ? pendingCss : undefined;
-  }
-
-  public async setRender(key: string, value: string) {
-    const saltedKey = this.saltRenderKey(key);
-
-    await this.client?.set(saltedKey, value, this.config.renderCacheTtlSec);
-  }
-
-  private saltCriticalCssKey(key: string) {
-    return ['[CRITICAL-CSS]', this.config.cacheSalt, key].join(':');
-  }
-
-  private saltRenderKey(key: string) {
-    return ['[RENDER]', this.config.cacheSalt, key].join(':');
+    return Boolean(isPending);
   }
 }
 

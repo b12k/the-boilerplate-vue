@@ -123,13 +123,13 @@ export class RedisCache implements CacheClient {
     }
   }
 
-  public async setIfAbsent(key: string, value: string, ttlSec: number) {
+  public async setIfAbsent(key: string, value: string, ttlMs: number) {
     if (!this.client?.isReady) return false;
 
     try {
       const result = await this.client.set(key, value, {
         condition: 'NX',
-        expiration: { type: 'EX', value: ttlSec },
+        expiration: { type: 'PX', value: ttlMs },
       });
       return result === 'OK';
     } catch (error) {
@@ -142,15 +142,15 @@ export class RedisCache implements CacheClient {
     key: string,
     value: string,
     expectedValue: string,
-    ttlSec: number,
+    ttlMs: number,
   ) {
     if (!this.client?.isReady) return false;
 
     try {
-      // Replace only this computation's pending value, before it expires.
+      // Replace only the expected cache value atomically.
       const result = await this.client.eval(
-        'if redis.call("GET", KEYS[1]) == ARGV[1] then redis.call("SET", KEYS[1], ARGV[2], "EX", ARGV[3]) return 1 end return 0',
-        { arguments: [expectedValue, value, ttlSec.toString()], keys: [key] },
+        'if redis.call("GET", KEYS[1]) == ARGV[1] then redis.call("SET", KEYS[1], ARGV[2], "PX", ARGV[3]) return 1 end return 0',
+        { arguments: [expectedValue, value, ttlMs.toString()], keys: [key] },
       );
       return result === 1;
     } catch (error) {

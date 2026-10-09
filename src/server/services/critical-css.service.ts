@@ -4,10 +4,8 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { PurgeCSS } from 'purgecss';
 
-const MS_PER_SEC = 1000;
-
 export async function getCriticalCss(html: string, cssFiles: Array<string>) {
-  const budgetMs = env.CACHE_CRITICAL_CSS_BUDGET_SEC * MS_PER_SEC;
+  const budgetMs = env.CACHE_CRITICAL_CSS_BUDGET_MS;
   const expiresBefore = performance.now() + budgetMs;
   const controller = new AbortController();
   try {
