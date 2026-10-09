@@ -16,6 +16,7 @@ export class RedisCache implements CacheClient {
     private readonly url: string,
     private readonly ttlSec: number,
     private readonly connectionRetries: number,
+    private readonly readTimeoutMs: number,
   ) {}
 
   private static async connectClient(
@@ -94,12 +95,19 @@ export class RedisCache implements CacheClient {
     // oxlint-disable-next-line unicorn/no-useless-undefined -- Cache misses must be explicit on every return path.
     if (!this.client?.isReady) return undefined;
 
+    const controller = new AbortController();
     try {
-      return (await this.client.get(key)) ?? undefined;
+      const cached = await Promise.race([
+        this.client.get(key),
+        this.timeoutRead(controller.signal),
+      ]);
+      return cached ?? undefined;
     } catch (error) {
       RedisCache.logError(error);
       // oxlint-disable-next-line unicorn/no-useless-undefined -- A failed cache read is a miss.
       return undefined;
+    } finally {
+      controller.abort();
     }
   }
 
@@ -173,5 +181,12 @@ export class RedisCache implements CacheClient {
       );
     });
     return client;
+  }
+
+  private async timeoutRead(signal: AbortSignal) {
+    await delay(this.readTimeoutMs, undefined, { signal });
+    throw new Error(
+      `[RedisCache] GET timed out after ${this.readTimeoutMs} ms`,
+    );
   }
 }

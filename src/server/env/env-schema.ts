@@ -4,6 +4,7 @@ import { z } from 'zod';
 const CACHE_TTL_SEC = 86_400;
 const DEFAULT_CRITICAL_CSS_BUDGET_SEC = 10;
 const DEFAULT_REDIS_CONNECTION_RETRIES = 5;
+const DEFAULT_REDIS_READ_TIMEOUT_MS = 1000;
 const LANG_CHARS_COUNT = 2;
 
 const languageSchema = z.string().trim().length(LANG_CHARS_COUNT);
@@ -47,6 +48,9 @@ export const envSchema = z
     REDIS_HOST: nonEmptyStringSchema,
     REDIS_PASSWORD: z.string(),
     REDIS_PORT: positiveNumberSchema,
+    REDIS_READ_TIMEOUT_MS: positiveNumberSchema.default(
+      DEFAULT_REDIS_READ_TIMEOUT_MS,
+    ),
     SERVE_SOURCE_MAPS: z.stringbool().default(false),
   })
   .refine(

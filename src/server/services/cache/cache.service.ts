@@ -28,6 +28,7 @@ interface CacheClientConfig {
   criticalCssCacheBudgetSec: number;
   criticalCssCacheTtlSec: number;
   redisConnectionRetries: number;
+  redisReadTimeoutMs: number;
   redisUrl?: string | undefined;
   renderCacheTtlSec: number;
 }
@@ -57,6 +58,7 @@ class CacheService {
       config.redisUrl,
       config.renderCacheTtlSec,
       config.redisConnectionRetries,
+      config.redisReadTimeoutMs,
     );
     this.client = client;
 
