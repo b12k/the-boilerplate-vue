@@ -1,43 +1,98 @@
 import { loggerService } from '@server/services/logger.service';
+import { setTimeout as delay } from 'node:timers/promises';
 import { createClient } from 'redis';
 
 import type { CacheClient } from './cache.service';
 
 const RECONNECT_DELAY_MS = 1000;
+const CONNECTION_TIMEOUT_MS = 1000;
 
 export class RedisCache implements CacheClient {
-  private readonly client;
+  private client?: ReturnType<RedisCache['createClient']>;
 
-  private hasConnected = false;
+  private isConnecting = false;
 
   public constructor(
-    url: string,
+    private readonly url: string,
     private readonly ttlSec: number,
+    private readonly connectionRetries: number,
+  ) {}
+
+  private static async connectClient(
+    client: ReturnType<RedisCache['createClient']>,
   ) {
-    this.client = createClient({
-      disableOfflineQueue: true,
-      socket: {
-        // Initial failure must let the server continue SSR without cache.
-        reconnectStrategy: () =>
-          this.hasConnected ? RECONNECT_DELAY_MS : false,
-      },
-      url,
-    });
-    this.client.on('error', (error: unknown) => RedisCache.logError(error));
+    const controller = new AbortController();
+    try {
+      await Promise.race([
+        client.connect(),
+        RedisCache.timeoutConnection(controller.signal),
+      ]);
+    } finally {
+      controller.abort();
+    }
   }
 
   private static logError(error: unknown) {
     loggerService.logger.error(error, '[RedisCache] Redis cache unavailable');
   }
 
-  public async connect() {
-    await this.client.connect();
-    this.hasConnected = true;
+  private static async timeoutConnection(signal: AbortSignal) {
+    await delay(CONNECTION_TIMEOUT_MS, undefined, { signal });
+    throw new Error('[RedisCache] Connection timed out');
+  }
+
+  public async connect(attemptsCount = this.connectionRetries + 1) {
+    if (this.isConnecting) return;
+
+    this.isConnecting = true;
+    // oxlint-disable-next-line init-declarations -- A cause exists only after a failed attempt.
+    let connectionError: unknown;
+    try {
+      for (
+        let attemptIndex = 0;
+        attemptIndex < attemptsCount;
+        attemptIndex += 1
+      ) {
+        // oxlint-disable-next-line no-await-in-loop -- Delay separates sequential connection attempts.
+        if (attemptIndex > 0) await delay(RECONNECT_DELAY_MS);
+
+        const client = this.createClient();
+        this.client = client;
+        try {
+          // oxlint-disable-next-line no-await-in-loop -- Connection attempts must run sequentially.
+          await RedisCache.connectClient(client);
+          loggerService.logger.info(
+            {
+              connectionAttempt: attemptIndex + 1,
+              connectionAttempts: attemptsCount,
+            },
+            '[RedisCache] Connected',
+          );
+          return;
+        } catch (error) {
+          client.destroy();
+          connectionError = error;
+          loggerService.logger.error(
+            {
+              connectionAttempt: attemptIndex + 1,
+              connectionAttempts: attemptsCount,
+              err: error,
+            },
+            '[RedisCache] Connection attempt failed',
+          );
+        }
+      }
+      throw new Error('[RedisCache] Connection retries exhausted', {
+        cause: connectionError,
+      });
+    } finally {
+      this.isConnecting = false;
+    }
   }
 
   public async get(key: string) {
     // oxlint-disable-next-line unicorn/no-useless-undefined -- Cache misses must be explicit on every return path.
-    if (!this.client.isReady) return undefined;
+    if (!this.client?.isReady) return undefined;
 
     try {
       return (await this.client.get(key)) ?? undefined;
@@ -49,7 +104,7 @@ export class RedisCache implements CacheClient {
   }
 
   public async set(key: string, value: string, ttlSec = this.ttlSec) {
-    if (!this.client.isReady) return;
+    if (!this.client?.isReady) return;
 
     try {
       await this.client.set(key, value, {
@@ -61,7 +116,7 @@ export class RedisCache implements CacheClient {
   }
 
   public async setIfAbsent(key: string, value: string, ttlSec: number) {
-    if (!this.client.isReady) return false;
+    if (!this.client?.isReady) return false;
 
     try {
       const result = await this.client.set(key, value, {
@@ -81,7 +136,7 @@ export class RedisCache implements CacheClient {
     expectedValue: string,
     ttlSec: number,
   ) {
-    if (!this.client.isReady) return false;
+    if (!this.client?.isReady) return false;
 
     try {
       // Replace only this computation's pending value, before it expires.
@@ -94,5 +149,29 @@ export class RedisCache implements CacheClient {
       RedisCache.logError(error);
       return false;
     }
+  }
+
+  private createClient() {
+    const client = createClient({
+      disableOfflineQueue: true,
+      socket: {
+        connectTimeout: CONNECTION_TIMEOUT_MS,
+        // The bounded loop owns retries, including handshake timeouts.
+        reconnectStrategy: false,
+      },
+      url: this.url,
+    });
+    client.on('error', (error: unknown) => {
+      if (!this.isConnecting) RedisCache.logError(error);
+    });
+    client.on('terminated', () => {
+      if (this.isConnecting || client !== this.client) return;
+      client.destroy();
+      // oxlint-disable-next-line promise/prefer-await-to-callbacks, promise/prefer-await-to-then -- A socket event starts recovery in the background and handles its terminal failure.
+      this.connect(this.connectionRetries).catch((error: unknown) =>
+        RedisCache.logError(error),
+      );
+    });
+    return client;
   }
 }

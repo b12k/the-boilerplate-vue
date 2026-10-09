@@ -24,10 +24,11 @@ import {
 } from './utils';
 
 async function startServer() {
-  await cacheService.initialize({
+  cacheService.initialize({
     cacheSalt: env.CACHE_SALT,
     criticalCssCacheBudgetSec: env.CACHE_CRITICAL_CSS_BUDGET_SEC,
     criticalCssCacheTtlSec: env.CACHE_CRITICAL_CSS_TTL_SEC,
+    redisConnectionRetries: env.REDIS_CONNECTION_RETRIES,
     redisUrl:
       env.CACHE_RENDER || env.CACHE_CRITICAL_CSS ? env.REDIS_URL : undefined,
     renderCacheTtlSec: env.CACHE_RENDER_TTL_SEC,

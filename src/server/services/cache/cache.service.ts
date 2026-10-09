@@ -27,6 +27,7 @@ interface CacheClientConfig {
   cacheSalt: string;
   criticalCssCacheBudgetSec: number;
   criticalCssCacheTtlSec: number;
+  redisConnectionRetries: number;
   redisUrl?: string | undefined;
   renderCacheTtlSec: number;
 }
@@ -48,21 +49,24 @@ class CacheService {
     return this.client?.get(this.saltRenderKey(key));
   }
 
-  public async initialize(config: CacheClientConfig) {
+  public initialize(config: CacheClientConfig) {
     this.config = config;
     if (!config.redisUrl) return;
 
-    const client = new RedisCache(config.redisUrl, config.renderCacheTtlSec);
+    const client = new RedisCache(
+      config.redisUrl,
+      config.renderCacheTtlSec,
+      config.redisConnectionRetries,
+    );
     this.client = client;
 
-    try {
-      await client.connect();
-    } catch (error) {
+    // oxlint-disable-next-line promise/prefer-await-to-callbacks, promise/prefer-await-to-then -- HTTP startup must not await the connection loop; terminal failures are handled here.
+    client.connect().catch((error: unknown) => {
       loggerService.logger.error(
         error,
         '[CacheService] Connection to redis server failed!',
       );
-    }
+    });
   }
 
   public async setCriticalCss(key: string, css: string, pendingCss: string) {

@@ -3,6 +3,7 @@ import { z } from 'zod';
 // One day
 const CACHE_TTL_SEC = 86_400;
 const DEFAULT_CRITICAL_CSS_BUDGET_SEC = 10;
+const DEFAULT_REDIS_CONNECTION_RETRIES = 5;
 const LANG_CHARS_COUNT = 2;
 
 const languageSchema = z.string().trim().length(LANG_CHARS_COUNT);
@@ -38,6 +39,11 @@ export const envSchema = z
     LOG_LEVEL: logLevelSchema.default('info'),
     NODE_ENV: nonEmptyStringSchema,
     PORT: positiveNumberSchema,
+    REDIS_CONNECTION_RETRIES: z.coerce
+      .number()
+      .int()
+      .min(0)
+      .default(DEFAULT_REDIS_CONNECTION_RETRIES),
     REDIS_HOST: nonEmptyStringSchema,
     REDIS_PASSWORD: z.string(),
     REDIS_PORT: positiveNumberSchema,
