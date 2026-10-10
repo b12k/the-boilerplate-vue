@@ -319,6 +319,10 @@
 - HTML miss/hit, debug, 404, 500 и health: no-store.
 - Хешированные JS/CSS/изображения: public, max-age=31536000, immutable.
 - Manifest: no-store; unhashed favicon: no-cache. Проверяем фактический ответ, а не только параметры serveStatic.
+- В development основной сервер отдаёт static с no-cache; временные чанки и manifest на отдельном Rspack dev server получают no-store.
+- GET, HEAD, query и условный запрос для static сохраняют Cache-Control. Favicon и unhashed static дают 304 при совпадающем Last-Modified; HEAD и 304 имеют пустое тело.
+- Ошибка после назначения static cache header, отсутствующий файл, SSR timeout, debug и readiness 503 возвращают no-store. Missing hashed asset не получает immutable.
+- Разрешённые source maps сохраняют private, no-store, в том числе путь с .map и хешем. HTML-файл с хешем получает no-store. Range 206 для hashed static сохраняет immutable, ошибочный Range 416 — no-store.
 - Политика cache-control действует на early responses и redirects, где это предусмотрено. TTL Redis не превращается в TTL HTML.
 - Версионная полная перезагрузка действительно получает новый HTML.
 

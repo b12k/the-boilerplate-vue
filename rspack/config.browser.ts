@@ -73,6 +73,7 @@ export default {
           },
           headers: {
             'Access-Control-Allow-Origin': '*',
+            'Cache-Control': 'no-store',
             'Service-Worker-Allowed': '/',
           },
           hot: true,

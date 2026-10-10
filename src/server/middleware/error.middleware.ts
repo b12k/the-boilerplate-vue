@@ -36,6 +36,7 @@ export function errorMiddleware(
     return;
   }
 
+  response.setHeader('Cache-Control', 'no-store');
   const context = getOptionalContext();
   const status = 'status' in error ? error.status : undefined;
   const statusCode = 'statusCode' in error ? error.statusCode : undefined;

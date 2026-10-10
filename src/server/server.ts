@@ -3,10 +3,10 @@ import cookieParser from 'cookie-parser';
 import express, { static as serveStatic } from 'express';
 import { once } from 'node:events';
 import nunjucks from 'nunjucks';
-import serveFavicon from 'serve-favicon';
 
 import { env } from './env';
 import {
+  cacheControlMiddleware,
   contextMiddleware,
   errorMiddleware,
   healthMiddleware,
@@ -14,6 +14,7 @@ import {
   languageMiddleware,
   mocksRouter,
   readinessMiddleware,
+  setStaticCacheHeaders,
   sourceMapsMiddleware,
   ssrMiddleware,
 } from './middleware';
@@ -54,10 +55,21 @@ async function startServer() {
     .set('view engine', 'njk')
     .set('etag', false)
     .use(loggerService)
+    .use(cacheControlMiddleware)
     .use(liveReload)
     .use(cookieParser())
     .use(compression())
-    .use(serveFavicon(env.FAVICON_PATH))
+    .get('/favicon.ico', (_request, response) =>
+      response
+        .setHeader('Cache-Control', 'no-cache')
+        .sendFile(env.FAVICON_PATH, { cacheControl: false }),
+    )
+    .all('/favicon.ico', (request, response) =>
+      response
+        .setHeader('Allow', 'GET, HEAD, OPTIONS')
+        .status(request.method === 'OPTIONS' ? 200 : METHOD_NOT_ALLOWED_STATUS)
+        .end(),
+    )
     .get('/health', healthMiddleware)
     .use(readinessMiddleware)
     .use('/api/mocks', mocksRouter)
@@ -67,8 +79,9 @@ async function startServer() {
       '/public',
       sourceMapsMiddleware,
       serveStatic(env.PUBLIC_PATH, {
+        cacheControl: false,
         etag: false,
-        maxAge: '7d',
+        setHeaders: setStaticCacheHeaders,
       }),
     )
     .use(helmetMiddleware)

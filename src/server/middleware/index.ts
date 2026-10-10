@@ -1,3 +1,4 @@
+export * from './cache-control.middleware';
 export * from './context.middleware';
 export * from './error.middleware';
 export * from './health.middleware';
