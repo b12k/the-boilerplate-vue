@@ -6,6 +6,7 @@ import { SsrResponseTimeoutError } from '@server/utils';
 import { stringify } from 'safe-stable-stringify';
 
 import { getOptionalContext } from './context.middleware';
+import { setHtmlSecurityHeaders } from './helmet.middleware';
 
 const MIN_ERROR_STATUS = 400;
 const MAX_ERROR_STATUS = 599;
@@ -37,6 +38,7 @@ export function errorMiddleware(
   }
 
   response.setHeader('Cache-Control', 'no-store');
+  setHtmlSecurityHeaders(request, response);
   const context = getOptionalContext();
   const status = 'status' in error ? error.status : undefined;
   const statusCode = 'statusCode' in error ? error.statusCode : undefined;

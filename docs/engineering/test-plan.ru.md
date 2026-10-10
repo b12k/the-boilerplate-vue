@@ -328,10 +328,11 @@
 
 ### 21. Security headers
 
-- /health, /, public asset, manifest, source-map rejection, SSR, 404 и 500: общие headers присутствуют, X-Powered-By отсутствует.
+- /health, /, favicon, API, public asset, manifest, source-map rejection, SSR, 404, 405, 500 и readiness 503: общие headers присутствуют, X-Powered-By отсутствует. HSTS включён только в production.
 - HTML: корректная CSP; nonce в разрешённых inline scripts совпадает с nonce заголовка текущего ответа.
 - Два ответа из render-cache не переиспользуют nonce первого запроса.
 - Static не требует HTML nonce. Development HMR/live reload и production hydration не блокируются CSP.
+- Ранняя ошибка до SSR получает HTML CSP и nonce; debug scripts используют тот же nonce. JSON, static, source maps и SSE не создают HTML nonce. Автоматический HEAD сохраняет заголовки GET и пустое тело.
 
 ### 22. Version и контейнер
 

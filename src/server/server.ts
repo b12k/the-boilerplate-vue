@@ -11,6 +11,7 @@ import {
   errorMiddleware,
   healthMiddleware,
   helmetMiddleware,
+  htmlSecurityMiddleware,
   languageMiddleware,
   mocksRouter,
   readinessMiddleware,
@@ -52,10 +53,12 @@ async function startServer() {
     .addGlobal('env', env);
 
   app
+    .disable('x-powered-by')
     .set('view engine', 'njk')
     .set('etag', false)
     .use(loggerService)
     .use(cacheControlMiddleware)
+    .use(helmetMiddleware)
     .use(liveReload)
     .use(cookieParser())
     .use(compression())
@@ -84,8 +87,7 @@ async function startServer() {
         setHeaders: setStaticCacheHeaders,
       }),
     )
-    .use(helmetMiddleware)
-    .get(ssrPaths, (request, response) =>
+    .get(ssrPaths, htmlSecurityMiddleware, (request, response) =>
       trackServerTask(ssrMiddleware(request, response)),
     )
     .all(ssrPaths, (_request, response) =>
@@ -93,7 +95,7 @@ async function startServer() {
         .setHeader('Allow', 'GET, HEAD')
         .sendStatus(METHOD_NOT_ALLOWED_STATUS),
     )
-    .use('/{*splat}', (request, response) =>
+    .use('/{*splat}', htmlSecurityMiddleware, (request, response) =>
       response.status(404).render('404', {
         lang: getLanguage(request),
         nonce: request.nonce,
