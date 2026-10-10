@@ -41,8 +41,9 @@ async function render(
       }),
     ssrAbortSignal,
   );
+  const ssrContext = { modules: new Set<string>() };
   const html = await execInSsrOrAbort(
-    () => renderToString(app),
+    () => renderToString(app, ssrContext),
     ssrAbortSignal,
   );
   return {
@@ -55,6 +56,7 @@ async function render(
     },
     head: head.render(),
     html,
+    modules: [...ssrContext.modules],
     state: { ...store.state.value, context: useStore('context').$state },
   };
 }

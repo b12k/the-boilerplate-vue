@@ -71,11 +71,19 @@ const cssIgnoreLoader = {
   use: ['ignore-loader'],
 };
 
+const ssrResourcesLoader = {
+  enforce: 'post' as const,
+  loader: path.resolve(import.meta.dirname, 'ssr-resources.loader.ts'),
+  resourceQuery: /^$/u,
+  test: /\.vue$/u,
+};
+
 export {
   createImageLoader,
   cssIgnoreLoader,
   cssLoader,
   iconsLoader,
+  ssrResourcesLoader,
   tsLoader,
   vueLoader,
 };

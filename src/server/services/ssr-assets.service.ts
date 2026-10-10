@@ -10,7 +10,26 @@ import path from 'node:path';
 type ClientManifest = Record<
   'css' | 'js',
   { async: Array<string>; initial: Array<string> }
->;
+> & { modules: Record<string, PageAssets> };
+
+interface PageAssets {
+  css: Array<string>;
+  js: Array<string>;
+}
+
+function getPageAssets(
+  manifest: ClientManifest,
+  modules: Array<string>,
+): PageAssets {
+  const css = new Set(manifest.css.initial);
+  const js = new Set(manifest.js.initial);
+  for (const moduleId of modules) {
+    const moduleAssets = manifest.modules[moduleId];
+    for (const file of moduleAssets?.css ?? []) css.add(file);
+    for (const file of moduleAssets?.js ?? []) js.add(file);
+  }
+  return { css: [...css], js: [...js] };
+}
 
 // Rspack emits the SSR renderer as CommonJS, including its development require cache.
 const requireRenderer = createRequire(import.meta.url);
@@ -60,4 +79,4 @@ async function loadSsrAssets() {
   }
 }
 
-export { type ClientManifest, loadSsrAssets };
+export { type ClientManifest, getPageAssets, loadSsrAssets };

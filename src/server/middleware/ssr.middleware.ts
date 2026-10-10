@@ -7,6 +7,7 @@ import {
   cacheService,
   computeIdempotencyKey,
   getCriticalCss,
+  getPageAssets,
   loadSsrAssets,
 } from '@server/services';
 import {
@@ -129,7 +130,8 @@ export async function ssrMiddleware(request: Request, response: Response) {
             ssrAbortController.signal,
           ));
         ssrResponseBudget.assertIsWithinBudget();
-        const { currentRoute, head, html, state } = renderResult;
+        const { currentRoute, head, html, modules, state } = renderResult;
+        const pageAssets = getPageAssets(manifest, modules);
         const criticalCssCacheKey = context.isCriticalCssCacheEnabled
           ? stringToBase64(currentRoute.name)
           : undefined;
@@ -142,8 +144,8 @@ export async function ssrMiddleware(request: Request, response: Response) {
           criticalCss: criticalCssCacheHit?.css,
           head,
           html,
-          manifest,
           nonce: request.nonce,
+          pageAssets,
           state: serializedState.replaceAll('<', String.raw`\u003C`),
         });
         const renderResultJson = shouldCacheRender
@@ -154,7 +156,7 @@ export async function ssrMiddleware(request: Request, response: Response) {
           criticalCssCacheHit,
           criticalCssCacheKey,
           isRenderCached: Boolean(renderCacheResult.hit),
-          manifest,
+          pageAssets,
           renderResult,
           renderResultJson,
           responseHtml,
@@ -170,7 +172,7 @@ export async function ssrMiddleware(request: Request, response: Response) {
       criticalCssCacheHit,
       criticalCssCacheKey,
       isRenderCached,
-      manifest,
+      pageAssets,
       renderResult,
       renderResultJson,
       responseHtml,
@@ -205,7 +207,7 @@ export async function ssrMiddleware(request: Request, response: Response) {
         await cacheCriticalCss({
           cachedCss: criticalCssCacheHit?.css,
           cacheKey: criticalCssCacheKey,
-          cssFiles: [...manifest.css.initial, ...manifest.css.async],
+          cssFiles: pageAssets.css,
           renderedHtml: renderResult.html,
         });
       } catch (error) {

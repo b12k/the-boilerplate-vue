@@ -49,6 +49,13 @@ export default {
                 name: getVendorName,
                 test: /[/\\]node_modules[/\\]/u,
               },
+              shared: {
+                chunks: 'all',
+                minChunks: 2,
+                minSize: 0,
+                name: 'shared',
+                test: /[/\\]src[/\\]app[/\\]/u,
+              },
               vendor: {
                 chunks: 'all',
                 filename: getFilenameJs('vendor', env.IS_PROD),

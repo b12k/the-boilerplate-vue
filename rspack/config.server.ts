@@ -2,7 +2,11 @@ import type { Configuration } from '@rspack/core';
 
 import { baseConfig } from './config.base';
 import { env } from './env';
-import { createImageLoader, cssIgnoreLoader } from './loaders';
+import {
+  createImageLoader,
+  cssIgnoreLoader,
+  ssrResourcesLoader,
+} from './loaders';
 import { createManifestPlugin, createProgressPlugin } from './plugins';
 import { getCacheConfig } from './utils';
 
@@ -17,6 +21,7 @@ export default {
     ({ request }, resolveExternal) => {
       if (
         !request ||
+        request.includes('!') ||
         request.startsWith('.') ||
         request.startsWith('@app/') ||
         request.startsWith('@server/')
@@ -34,6 +39,7 @@ export default {
   module: {
     rules: [
       ...baseConfig.module.rules,
+      ssrResourcesLoader,
       createImageLoader(true),
       cssIgnoreLoader,
     ],

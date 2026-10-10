@@ -8,22 +8,13 @@
     {{ head.headTags | safe }}
     {% if criticalCss %}
       <style data-type="critical-css">{{ criticalCss | safe }}</style>
-      {% for style in manifest.css.initial %}<link rel="preload" as="style" href="{{ style }}" data-async-css>{% endfor %}
+      {% for style in pageAssets.css %}<link rel="preload" as="style" href="{{ style }}" data-async-css>{% endfor %}
     {% else %}
-      {% for style in manifest.css.initial %}<link rel="stylesheet" href="{{ style }}">{% endfor %}
+      {% for style in pageAssets.css %}<link rel="stylesheet" href="{{ style }}">{% endfor %}
     {% endif %}
-    {% for style in manifest.css.async %}<link rel="prefetch" as="style" href="{{ style }}">{% endfor %}
-    {% for script in manifest.js.initial %}<script src="{{ script }}" defer></script>{% endfor %}
-    {% for script in manifest.js.async %}<link rel="prefetch" as="script" href="{{ script }}">{% endfor %}
-    <script nonce="{{ nonce }}">
-      window.INITIAL_STATE = {{ state | safe }};
-      document.querySelectorAll('[data-async-css]').forEach((link) => {
-        link.rel = 'stylesheet';
-      });
-    </script>
+    {% for script in pageAssets.js %}<script src="{{ script }}" defer></script>{% endfor %}
     <noscript>
-      {% for style in manifest.css.initial %}<link rel="stylesheet" href="{{ style }}">{% endfor %}
-      {% for style in manifest.css.async %}<link rel="stylesheet" href="{{ style }}">{% endfor %}
+      {% for style in pageAssets.css %}<link rel="stylesheet" href="{{ style }}">{% endfor %}
     </noscript>
     <script defer
             src="https://cloud.umami.is/script.js"
@@ -36,6 +27,12 @@
     {% if context.isDebug %}
       {% include "_env.njk" %}
     {% endif %}
+    <script nonce="{{ nonce }}">
+      window.INITIAL_STATE = {{ state | safe }};
+      document.querySelectorAll('[data-async-css]').forEach((link) => {
+        link.rel = 'stylesheet';
+      });
+    </script>
   </body>
   {% if not env.IS_PROD and env.LIVE_RELOAD_PATH %}
     {% include "_live-reload.njk" %}

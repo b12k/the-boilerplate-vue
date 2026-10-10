@@ -275,6 +275,11 @@
 - Повторный SSR из Redis сохраняет mapping использованных компонентов и корректные стили.
 - Critical CSS есть/нет, JavaScript выключен: необходимые полные стили доступны во всех трёх сценариях.
 - Две ленивые страницы с разной разметкой позволяют обнаружить потерю CSS; одной home для проверки недостаточно.
+- Отдельный defineAsyncComponent со scoped CSS должен присутствовать в SSR и получать собственные CSS/JS. Scope ID серверного HTML совпадает с селекторами клиентской сборки; проверяем computed styles, а не только HTTP 200.
+- Идентификаторы использованных компонентов хранятся в RenderResult/Redis; в Pinia и window.INITIAL_STATE их нет. Setup и prefetch продолжают работать.
+- Состав ресурсов проверяем при CSS miss, hit, pending и выключенном кеше. Browser resource timing показывает загрузку уникальных ресурсов соседнего маршрута после навигации.
+- Проверку без JavaScript выполняем в production local/Docker. В development действует vue-style-loader; проверяем стили после hydration и отсутствие ошибок lazy compilation.
+- INITIAL_STATE и переключение async CSS расположены перед закрывающим body. При присваивании состояния SSR-разметка уже существует, hydration ещё не началась; после запуска клиента все data-async-css имеют rel=stylesheet. Nonce и noscript fallback сохраняются.
 
 ### 18. Version service
 
