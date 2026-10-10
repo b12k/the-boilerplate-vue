@@ -25,6 +25,7 @@ export function helmetMiddleware(
         childSrc: ["'self'"],
         connectSrc: [
           "'self'",
+          new URL(env.API_URL).origin,
           ...developmentSources,
           'https://gateway.umami.is',
           'https://eu.umami.is',

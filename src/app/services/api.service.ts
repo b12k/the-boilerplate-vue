@@ -1,64 +1,73 @@
+import type { Context } from '@server/services';
 import type { Logger } from 'pino';
 
-import { delay } from 'es-toolkit/promise';
+import { create as createAxios, isAxiosError } from 'axios';
 
-import type { DemoRun } from './demo-api';
+import type {
+  DemoArchitecture,
+  DemoOverview,
+  DemoProject,
+  DemoRun,
+} from './api.types';
 
-import { demoArchitecture, demoOverview } from './demo-api';
+function createApi(
+  context: Context,
+  logger: Logger,
+  ssrAbortSignal?: AbortSignal,
+) {
+  const apiClient = createAxios({
+    baseURL: context.apiUrl,
+    ...(ssrAbortSignal && { signal: ssrAbortSignal }),
+  });
 
-const MOCK_DELAY_MS = 120;
-const DEMO_RUN_DELAY_MS = 650;
+  apiClient.interceptors.request.use((requestConfig) => {
+    const requestAbortSignal = requestConfig.signal;
+    if (ssrAbortSignal) {
+      requestConfig.signal =
+        requestAbortSignal instanceof AbortSignal &&
+        requestAbortSignal !== ssrAbortSignal
+          ? AbortSignal.any([ssrAbortSignal, requestAbortSignal])
+          : ssrAbortSignal;
+    }
+    logger.info({ endpoint: requestConfig.url, source: 'http' }, 'API request');
+    return requestConfig;
+  });
 
-export function createApi(logger: Logger) {
-  let sequence = 0;
-
-  async function fetchMock<T>(
+  async function fetchApi<T>(
     endpoint: string,
-    response: T,
-    signal?: AbortSignal,
+    requestAbortSignal?: AbortSignal,
+    params?: { fail: boolean },
   ) {
-    logger.info({ endpoint, source: 'mock' }, 'Demo API request');
-    await delay(MOCK_DELAY_MS, signal ? { signal } : undefined);
-    signal?.throwIfAborted();
-    return structuredClone(response);
+    const { data: apiResponse } = await apiClient.get<T>(endpoint, {
+      ...(params && { params }),
+      ...(requestAbortSignal && { signal: requestAbortSignal }),
+    });
+    return apiResponse;
   }
 
   return {
-    fetchArchitecture: (signal?: AbortSignal) =>
-      fetchMock('/demo/architecture', demoArchitecture, signal),
-    fetchOverview: (signal?: AbortSignal) =>
-      fetchMock('/demo/overview', demoOverview, signal),
-    fetchProject(id: string, signal?: AbortSignal) {
-      const project = demoOverview.projects.find(
-        (candidate) => candidate.id === id,
-      );
-      return fetchMock(`/demo/projects/${id}`, project, signal);
+    fetchArchitecture: (requestAbortSignal?: AbortSignal) =>
+      fetchApi<DemoArchitecture>('/architecture', requestAbortSignal),
+    fetchOverview: (requestAbortSignal?: AbortSignal) =>
+      fetchApi<DemoOverview>('/overview', requestAbortSignal),
+    fetchProject(id: string, requestAbortSignal?: AbortSignal) {
+      return fetchApi<DemoProject>(
+        `/projects/${encodeURIComponent(id)}`,
+        requestAbortSignal,
+      ).catch((error: unknown): undefined => {
+        if (isAxiosError(error) && error.response?.status === 404) return;
+        throw error;
+      });
     },
-    async fetchRun(
-      shouldFail: boolean,
-      signal?: AbortSignal,
-    ): Promise<DemoRun> {
-      logger.info(
-        { endpoint: '/demo/run', source: 'mock' },
-        'Demo API request',
-      );
-      await delay(DEMO_RUN_DELAY_MS, signal ? { signal } : undefined);
-      signal?.throwIfAborted();
-      if (shouldFail) {
-        throw new Error(
-          'The mock API could not complete this request. Try again.',
-        );
-      }
-      sequence += 1;
-      return {
-        delayMs: DEMO_RUN_DELAY_MS,
-        sequence,
-        steps: [
-          'Mock API responded',
-          'Pinia state updated',
-          'Page rendered from state',
-        ],
-      };
+    fetchRun(shouldFail: boolean, requestAbortSignal?: AbortSignal) {
+      return fetchApi<DemoRun>('/run', requestAbortSignal, {
+        fail: shouldFail,
+      });
+    },
+    setNavigationAbortSignal(navigationAbortSignal: AbortSignal) {
+      apiClient.defaults.signal = navigationAbortSignal;
     },
   };
 }
+
+export { createApi };

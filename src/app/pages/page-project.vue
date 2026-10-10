@@ -5,11 +5,8 @@
   import { storeToRefs } from 'pinia';
 
   defineOptions({
-    fetchData: async (to, getStore, signal) => {
-      await getStore('showcase').fetchProject(
-        String(to.params['projectId']),
-        signal,
-      );
+    fetchData: async (to, getStore) => {
+      await getStore('showcase').fetchProject(String(to.params['projectId']));
     },
     shouldReFetch: true,
   });

@@ -10,11 +10,11 @@
   import { useHead } from '@unhead/vue';
   import { storeToRefs } from 'pinia';
   import { tv } from 'tailwind-variants';
-  import { computed, onScopeDispose } from 'vue';
+  import { computed } from 'vue';
 
   defineOptions({
-    fetchData: async (_, getStore, signal) => {
-      await getStore('showcase').fetchRun(false, signal);
+    fetchData: async (_, getStore) => {
+      await getStore('showcase').fetchRun();
     },
   });
   const showcaseStore = useStore('showcase');
@@ -55,17 +55,14 @@
     },
     {
       description:
-        'The navigation signal cancels the mock delay. A stale result cannot replace the next request.',
+        'The navigation signal cancels the Axios request. A stale result cannot replace the next request.',
       name: 'Leave while it loads.',
       number: '03',
     },
   ];
   const grid = tv({ base: 'grid items-start gap-6 md:grid-cols-[1.5fr_1fr]' });
-  const controller = new AbortController();
-  onScopeDispose(() => controller.abort());
-
   async function fetchRun(shouldFail = false) {
-    await showcaseStore.fetchRun(shouldFail, controller.signal);
+    await showcaseStore.fetchRun(shouldFail);
   }
   useHead({ title: 'Data Lab — Vue Boilerplate' });
 </script>
@@ -78,8 +75,8 @@
         <br />
         become a page.
       </template>
-      A fake API with real asynchronous behaviour. The response lives in Pinia.
-      The page reads it, on the server and in your browser.
+      A server mock API with real HTTP requests through Axios. The response
+      lives in Pinia. The page reads it during SSR and in your browser.
     </PageIntro>
     <div :class="grid()">
       <RequestConsole

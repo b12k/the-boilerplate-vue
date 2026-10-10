@@ -8,9 +8,13 @@ import { createApi } from './api.service';
 
 type Services = ReturnType<typeof createServices>;
 
-function createServices(_: Context, logger: Logger) {
+function createServices(
+  context: Context,
+  logger: Logger,
+  ssrAbortSignal?: AbortSignal,
+) {
   return markRaw({
-    api: createApi(logger),
+    api: createApi(context, logger, ssrAbortSignal),
     logger,
   });
 }

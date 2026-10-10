@@ -2,22 +2,24 @@ import { loggerService } from '@server/services/logger.service';
 import { setTimeout as delay } from 'node:timers/promises';
 import { createClient } from 'redis';
 
-import type { CacheClient } from './cache.service';
+import type { CacheClient, ConditionalCacheWriteParams } from './cache.service';
 
 const RECONNECT_DELAY_MS = 1000;
 const CONNECTION_TIMEOUT_MS = 1000;
+
+interface RedisCacheOptions {
+  connectionRetriesCount: number;
+  defaultTtlSec: number;
+  readTimeoutMs: number;
+  redisUrl: string;
+}
 
 export class RedisCache implements CacheClient {
   private client?: ReturnType<RedisCache['createClient']>;
 
   private isConnecting = false;
 
-  public constructor(
-    private readonly url: string,
-    private readonly ttlSec: number,
-    private readonly connectionRetries: number,
-    private readonly readTimeoutMs: number,
-  ) {}
+  public constructor(private readonly options: RedisCacheOptions) {}
 
   private static async connectClient(
     client: ReturnType<RedisCache['createClient']>,
@@ -42,7 +44,9 @@ export class RedisCache implements CacheClient {
     throw new Error('[RedisCache] Connection timed out');
   }
 
-  public async connect(attemptsCount = this.connectionRetries + 1) {
+  public async connect(
+    attemptsCount = this.options.connectionRetriesCount + 1,
+  ) {
     if (this.isConnecting) return;
 
     this.isConnecting = true;
@@ -126,7 +130,11 @@ export class RedisCache implements CacheClient {
     }
   }
 
-  public async set(key: string, value: string, ttlSec = this.ttlSec) {
+  public async set(
+    key: string,
+    value: string,
+    ttlSec = this.options.defaultTtlSec,
+  ) {
     if (!this.client?.isReady) return;
 
     try {
@@ -153,12 +161,12 @@ export class RedisCache implements CacheClient {
     }
   }
 
-  public async setIfValue(
-    key: string,
-    value: string,
-    expectedValue: string,
-    ttlMs: number,
-  ) {
+  public async setIfValue({
+    expectedValue,
+    key,
+    ttlMs,
+    value,
+  }: ConditionalCacheWriteParams) {
     if (!this.client?.isReady) return false;
 
     try {
@@ -182,7 +190,7 @@ export class RedisCache implements CacheClient {
         // The bounded loop owns retries, including handshake timeouts.
         reconnectStrategy: false,
       },
-      url: this.url,
+      url: this.options.redisUrl,
     });
     client.on('error', (error: unknown) => {
       if (!this.isConnecting) RedisCache.logError(error);
@@ -190,18 +198,18 @@ export class RedisCache implements CacheClient {
     client.on('terminated', () => {
       if (this.isConnecting || client !== this.client) return;
       client.destroy();
-      // oxlint-disable-next-line promise/prefer-await-to-callbacks, promise/prefer-await-to-then -- A socket event starts recovery in the background and handles its terminal failure.
-      this.connect(this.connectionRetries).catch((error: unknown) =>
-        RedisCache.logError(error),
+      // Recover in the background after a socket error.
+      this.connect(this.options.connectionRetriesCount).catch(
+        (error: unknown) => RedisCache.logError(error),
       );
     });
     return client;
   }
 
   private async timeoutRead(signal: AbortSignal) {
-    await delay(this.readTimeoutMs, undefined, { signal });
+    await delay(this.options.readTimeoutMs, undefined, { signal });
     throw new Error(
-      `[RedisCache] GET timed out after ${this.readTimeoutMs} ms`,
+      `[RedisCache] GET timed out after ${this.options.readTimeoutMs} ms`,
     );
   }
 }

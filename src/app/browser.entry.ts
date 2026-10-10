@@ -26,14 +26,26 @@ async function startClient() {
 
   app.mount('#app');
 
-  let prefetchController = new AbortController();
-  const prefetchControllers = new WeakMap<object, AbortController>();
+  let navigationAbortController = new AbortController();
+  const navigationAbortControllers = new WeakMap<object, AbortController>();
+  services.api.setNavigationAbortSignal(navigationAbortController.signal);
+
+  function cancelNavigation(to: object) {
+    const cancelledNavigationController = navigationAbortControllers.get(to);
+    cancelledNavigationController?.abort();
+    navigationAbortControllers.delete(to);
+    if (cancelledNavigationController === navigationAbortController) {
+      navigationAbortController = new AbortController();
+      services.api.setNavigationAbortSignal(navigationAbortController.signal);
+    }
+  }
 
   router.beforeEach(async (to, from) => {
-    prefetchController.abort();
-    const controller = new AbortController();
-    prefetchController = controller;
-    prefetchControllers.set(to, controller);
+    navigationAbortController.abort();
+    const routeAbortController = new AbortController();
+    navigationAbortController = routeAbortController;
+    navigationAbortControllers.set(to, routeAbortController);
+    services.api.setNavigationAbortSignal(routeAbortController.signal);
 
     try {
       await execRoutePreFetch(
@@ -41,31 +53,29 @@ async function startClient() {
         {
           isSsr: false,
           logger: services.logger,
-          signal: controller.signal,
+          signal: routeAbortController.signal,
           useStore,
         },
         from,
       );
       return true;
     } catch (error) {
-      if (controller.signal.aborted) return true;
+      if (routeAbortController.signal.aborted) return true;
 
-      controller.abort();
+      routeAbortController.abort();
       services.logger.error(error);
       return false;
     }
   });
 
   router.afterEach((to, _, failure) => {
-    if (failure) prefetchControllers.get(to)?.abort();
-    prefetchControllers.delete(to);
+    if (failure) cancelNavigation(to);
+    navigationAbortControllers.delete(to);
   });
 
   // Vue Router delivers navigation errors through a callback hook.
-  // oxlint-disable-next-line promise/prefer-await-to-callbacks
   router.onError((error, to) => {
-    prefetchControllers.get(to)?.abort();
-    prefetchControllers.delete(to);
+    cancelNavigation(to);
     services.logger.error(error);
   });
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import type { DemoRun } from '@app/services/demo-api';
+  import type { DemoRun } from '@app/services';
 
   import { tv } from 'tailwind-variants';
 
@@ -32,8 +32,8 @@
     </div>
     <div :class="styles.endpoint()">
       <UiBadge>GET</UiBadge>
-      <code class="font-mono text-sm">/demo/run</code>
-      <span :class="styles.delay()">650 ms simulated delay</span>
+      <code class="font-mono text-sm">/api/mocks/run</code>
+      <span :class="styles.delay()">650 ms server delay</span>
     </div>
     <RunResult
       :error="error"

@@ -8,7 +8,7 @@
       description: 'Route + language + device context',
       name: 'Request arrives',
     },
-    { description: 'Typed API → scoped Pinia store', name: 'Fetch the data' },
+    { description: 'Axios HTTP → typed data → Pinia', name: 'Fetch the data' },
     {
       description: 'Page content + serialized state',
       name: 'Render useful HTML',

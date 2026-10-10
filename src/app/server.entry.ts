@@ -8,25 +8,43 @@ import { renderToString } from 'vue/server-renderer';
 
 import { createApp } from './create-app';
 import { execRoutePreFetch } from './router';
+import { execInSsrOrAbort } from './utils';
 
 type Render = typeof render;
 
 type RenderResult = AsyncReturnType<Render>;
 
-async function render(context: Context, logger: Logger) {
-  const { app, head, router, store, useStore } = await createApp({
-    head: createHead(),
-    history: createMemoryHistory(context.baseUrl),
-    initialState: { context },
-    logger,
-  });
+async function render(
+  context: Context,
+  logger: Logger,
+  ssrAbortSignal: AbortSignal,
+) {
+  const { app, head, router, store, useStore } = await execInSsrOrAbort(
+    () =>
+      createApp({
+        head: createHead(),
+        history: createMemoryHistory(context.baseUrl),
+        initialState: { context },
+        logger,
+        ssrAbortSignal,
+      }),
+    ssrAbortSignal,
+  );
 
-  await execRoutePreFetch(router.currentRoute.value, {
-    isSsr: true,
-    logger,
-    useStore,
-  });
-  const html = await renderToString(app);
+  await execInSsrOrAbort(
+    () =>
+      execRoutePreFetch(router.currentRoute.value, {
+        isSsr: true,
+        logger,
+        signal: ssrAbortSignal,
+        useStore,
+      }),
+    ssrAbortSignal,
+  );
+  const html = await execInSsrOrAbort(
+    () => renderToString(app),
+    ssrAbortSignal,
+  );
   return {
     currentRoute: {
       meta: router.currentRoute.value.meta,

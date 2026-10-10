@@ -22,6 +22,7 @@ interface CreateAppConfig {
   history: RouterHistory;
   initialState: InitialState;
   logger: Logger;
+  ssrAbortSignal?: AbortSignal;
 }
 
 type InitialState = Record<string, StateTree> & { context: Context };
@@ -31,12 +32,13 @@ async function createApp({
   history,
   initialState,
   logger,
+  ssrAbortSignal,
 }: CreateAppConfig) {
   const app = createSSRApp(App);
   app.provide(initialContextKey, initialState.context);
   const store = createPinia();
   const useStore = createUseStore(store);
-  const services = createServices(initialState.context, logger);
+  const services = createServices(initialState.context, logger, ssrAbortSignal);
   const router = createRouter({
     history,
     routes,

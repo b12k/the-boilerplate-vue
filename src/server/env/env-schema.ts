@@ -27,6 +27,7 @@ const acceptedLanguagesSchema = z
 export const envSchema = z
   .object({
     ACCEPTED_LANGUAGES: acceptedLanguagesSchema,
+    API_URL: z.url({ protocol: /^https?$/u }),
     CACHE_CRITICAL_CSS: z.stringbool().default(false),
     CACHE_CRITICAL_CSS_BUDGET_MS: positiveNumberSchema.default(
       DEFAULT_CRITICAL_CSS_BUDGET_MS,

@@ -1,29 +1,10 @@
-interface DemoArchitecture {
-  layers: Array<{ description: string; file: string; name: string }>;
-  principles: Array<{ description: string; name: string }>;
-}
+import type {
+  DemoArchitecture,
+  DemoOverview,
+  DemoProject,
+} from '@app/services';
 
-interface DemoOverview {
-  features: Array<{ description: string; name: string; number: string }>;
-  projects: Array<DemoProject>;
-}
-
-interface DemoProject {
-  category: string;
-  description: string;
-  features: Array<string>;
-  id: string;
-  name: string;
-  status: string;
-}
-
-interface DemoRun {
-  delayMs: number;
-  sequence: number;
-  steps: Array<string>;
-}
-
-const projects: Array<DemoProject> = [
+const mockProjects: Array<DemoProject> = [
   {
     category: 'Public product',
     description: 'A product catalogue with fast first pages and shared state.',
@@ -50,7 +31,7 @@ const projects: Array<DemoProject> = [
   },
 ];
 
-const demoOverview: DemoOverview = {
+const mockOverview: DemoOverview = {
   features: [
     {
       description: 'Render useful content before the browser runs JavaScript.',
@@ -73,10 +54,10 @@ const demoOverview: DemoOverview = {
       number: '04',
     },
   ],
-  projects,
+  projects: mockProjects,
 };
 
-const demoArchitecture: DemoArchitecture = {
+const mockArchitecture: DemoArchitecture = {
   layers: [
     {
       description: 'A lazy page declares the data it needs through fetchData.',
@@ -90,7 +71,7 @@ const demoArchitecture: DemoArchitecture = {
     },
     {
       description:
-        'An injected service returns a typed response. This demo uses mock data.',
+        'Axios loads typed JSON from /api/mocks. SSR and the browser use the same service.',
       file: 'services/api.service.ts',
       name: 'API',
     },
@@ -124,11 +105,4 @@ const demoArchitecture: DemoArchitecture = {
   ],
 };
 
-export {
-  demoArchitecture,
-  type DemoArchitecture,
-  demoOverview,
-  type DemoOverview,
-  type DemoProject,
-  type DemoRun,
-};
+export { mockArchitecture, mockOverview, mockProjects };

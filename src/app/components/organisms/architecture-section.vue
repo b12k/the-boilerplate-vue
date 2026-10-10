@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import type { DemoArchitecture } from '@app/services/demo-api';
+  import type { DemoArchitecture } from '@app/services';
 
   import { tv } from 'tailwind-variants';
 
@@ -29,8 +29,8 @@
         One data flow.
       </h2>
       <p :class="styles.description()">
-        The content on this page came from the mock API. Its route loader wrote
-        the response into a request-scoped Pinia store before SSR rendered it.
+        Axios loaded this content from the server mock API over HTTP. The route
+        loader wrote it into a scoped Pinia store before SSR rendered the page.
       </p>
       <UiLink
         to="/lab"

@@ -52,6 +52,7 @@ function buildContext(request: Request) {
   const query: Record<string, unknown> = request.query;
 
   return {
+    apiUrl: env.API_URL,
     baseUrl: request.baseUrl,
     canServeSourceMaps: env.SERVE_SOURCE_MAPS,
     device,

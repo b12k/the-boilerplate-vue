@@ -139,6 +139,8 @@ export default {
     'node/no-top-level-await': 'off',
     'one-var': ['error', 'never'],
     'oxc/no-async-await': 'off',
+    // Express 5 forwards rejected async handlers to error middleware.
+    'oxc/no-async-endpoint-handlers': 'off',
     'oxc/no-barrel-file': 'off',
     'oxc/no-optional-chaining': 'off',
     'oxc/no-rest-spread-properties': 'off',
@@ -157,6 +159,9 @@ export default {
         type: 'natural',
       },
     ],
+    // Allow promise chains for background tasks and callback-based APIs.
+    'promise/prefer-await-to-callbacks': 'off',
+    'promise/prefer-await-to-then': 'off',
     // Perfectionist owns ordering.
     'sort-imports': 'off',
     'sort-keys': 'off',

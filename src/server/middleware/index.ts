@@ -5,3 +5,4 @@ export * from './helmet.middleware';
 export * from './language.middleware';
 export * from './source-maps.middleware';
 export * from './ssr.middleware';
+export { mocksRouter } from '@server/routes';

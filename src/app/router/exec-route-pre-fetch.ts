@@ -44,7 +44,6 @@ export async function execRoutePreFetch(
 
   if (!isSsr && to.meta.noPreFetchAwait) {
     // Observe background failures without making navigation wait for them.
-    // oxlint-disable-next-line promise/prefer-await-to-then, promise/prefer-await-to-callbacks
     prefetch.catch((error: unknown) => logger.error(error));
     return;
   }

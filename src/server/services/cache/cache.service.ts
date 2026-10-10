@@ -17,17 +17,17 @@ interface CacheClient {
     value: string,
     ttlMs: number,
   ) => Promisable<boolean>;
-  setIfValue: (
-    key: string,
-    value: string,
-    expectedValue: string,
-    ttlMs: number,
-  ) => Promisable<boolean>;
+  setIfValue: (params: ConditionalCacheWriteParams) => Promisable<boolean>;
+}
+
+interface ConditionalCacheWriteParams {
+  expectedValue: string;
+  key: string;
+  ttlMs: number;
+  value: string;
 }
 
 class CacheService {
-  public readonly cacheType = 'R';
-
   private client?: CacheClient;
 
   private static saltCriticalCssKey(key: string) {
@@ -54,15 +54,15 @@ class CacheService {
   }
 
   public initialize() {
-    const client = new RedisCache(
-      env.REDIS_URL,
-      env.CACHE_RENDER_TTL_SEC,
-      env.REDIS_CONNECTION_RETRIES,
-      env.REDIS_READ_TIMEOUT_MS,
-    );
+    const client = new RedisCache({
+      connectionRetriesCount: env.REDIS_CONNECTION_RETRIES,
+      defaultTtlSec: env.CACHE_RENDER_TTL_SEC,
+      readTimeoutMs: env.REDIS_READ_TIMEOUT_MS,
+      redisUrl: env.REDIS_URL,
+    });
     this.client = client;
 
-    // oxlint-disable-next-line promise/prefer-await-to-callbacks, promise/prefer-await-to-then -- HTTP startup must not await the connection loop; terminal failures are handled here.
+    // HTTP startup must not await the connection loop.
     client.connect().catch((error: unknown) => {
       loggerService.logger.error(
         error,
@@ -85,7 +85,12 @@ class CacheService {
     const isPending =
       cachedCss === undefined
         ? await this.client?.setIfAbsent(saltedKey, PENDING, ttlMs)
-        : await this.client?.setIfValue(saltedKey, PENDING, cachedCss, ttlMs);
+        : await this.client?.setIfValue({
+            expectedValue: cachedCss,
+            key: saltedKey,
+            ttlMs,
+            value: PENDING,
+          });
     return Boolean(isPending);
   }
 
@@ -103,16 +108,16 @@ class CacheService {
     const isPending =
       cachedRender === undefined
         ? await this.client?.setIfAbsent(saltedKey, PENDING, ttlMs)
-        : await this.client?.setIfValue(
-            saltedKey,
-            PENDING,
-            cachedRender,
+        : await this.client?.setIfValue({
+            expectedValue: cachedRender,
+            key: saltedKey,
             ttlMs,
-          );
+            value: PENDING,
+          });
     return Boolean(isPending);
   }
 }
 
 const cacheService = new CacheService();
 
-export { type CacheClient, cacheService };
+export { type CacheClient, cacheService, type ConditionalCacheWriteParams };

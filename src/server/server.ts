@@ -12,6 +12,7 @@ import {
   healthMiddleware,
   helmetMiddleware,
   languageMiddleware,
+  mocksRouter,
   sourceMapsMiddleware,
   ssrMiddleware,
 } from './middleware';
@@ -44,6 +45,7 @@ async function startServer() {
     .use(compression())
     .use(serveFavicon(env.FAVICON_PATH))
     .use('/health', healthMiddleware)
+    .use('/api/mocks', mocksRouter)
     .use('/{:lang}', languageMiddleware)
     .use('/{:lang}', contextMiddleware)
     .use(

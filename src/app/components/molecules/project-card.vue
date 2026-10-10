@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import type { DemoProject } from '@app/services/demo-api';
+  import type { DemoProject } from '@app/services';
 
   import { tv } from 'tailwind-variants';
 

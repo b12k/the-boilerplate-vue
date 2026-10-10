@@ -4,5 +4,5 @@ export * from './live-reload';
 export * from './override-env';
 export * from './parse-json';
 export * from './print-development-banner';
-export * from './ssr-deadline';
+export * from './ssr-response-budget';
 export * from './string-to-base64';

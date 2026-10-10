@@ -11,8 +11,8 @@
   import { storeToRefs } from 'pinia';
 
   defineOptions({
-    fetchData: async (_, getStore, signal) => {
-      await getStore('showcase').fetchOverview(signal);
+    fetchData: async (_, getStore) => {
+      await getStore('showcase').fetchOverview();
     },
   });
   const { overview } = storeToRefs(useStore('showcase'));
