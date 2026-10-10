@@ -7,6 +7,7 @@ import {
   overrideEnv,
   parseJson,
 } from '@server/utils';
+import { omit } from 'es-toolkit/object';
 import { UAParser } from 'ua-parser-js';
 
 type BuildContext = ReturnType<typeof buildContext>;
@@ -49,7 +50,9 @@ function buildContext(request: Request) {
       ? detectedDeviceType
       : 'desktop';
   const device: Device = { type: deviceType };
-  const query: Record<string, unknown> = request.query;
+  const query: Record<string, unknown> = omit(request.query, ['DEBUG_ON_KEY']);
+  const contextUrl = new URL(request.url, 'http://localhost');
+  contextUrl.searchParams.delete('DEBUG_ON_KEY');
 
   return {
     apiUrl: env.API_URL,
@@ -66,7 +69,7 @@ function buildContext(request: Request) {
     query,
     shouldRefreshCriticalCssCache,
     shouldRefreshRenderCache,
-    url: request.url,
+    url: contextUrl.pathname + contextUrl.search,
     version: env.VERSION,
   };
 }

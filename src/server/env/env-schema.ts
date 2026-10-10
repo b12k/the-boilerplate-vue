@@ -35,7 +35,6 @@ export const envSchema = z
     CACHE_RENDER_TTL_SEC: positiveNumberSchema.default(
       envDefaults.CACHE_RENDER_TTL_SEC,
     ),
-    DEBUG: z.stringbool().default(envDefaults.DEBUG),
     DEBUG_ON_KEY: z.uuid().optional(),
     DEFAULT_LANGUAGE: languageSchema,
     LIVE_RELOAD_PATH: nonEmptyStringSchema.optional(),

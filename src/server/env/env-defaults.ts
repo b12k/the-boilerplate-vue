@@ -4,7 +4,6 @@ export const envDefaults = {
   CACHE_CRITICAL_CSS_TTL_SEC: 86_400,
   CACHE_RENDER: true,
   CACHE_RENDER_TTL_SEC: 86_400,
-  DEBUG: false,
   LOG_LEVEL: 'info',
   NODE_ENV: 'production',
   PORT: 8080,
