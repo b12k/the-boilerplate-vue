@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 
+import { env } from '@server/env';
 import { serverReadiness } from '@server/utils';
 
 const SERVICE_UNAVAILABLE_STATUS = 503;
@@ -10,10 +11,12 @@ export function healthMiddleware(_: Request, response: Response) {
   if (serverReadiness.isDraining) status = 'DRAINING';
   if (serverReadiness.isReady) status = 'OK';
   response
+    .setHeader('Cache-Control', 'no-store')
     .status(serverReadiness.isReady ? 200 : SERVICE_UNAVAILABLE_STATUS)
-    .send({
+    .json({
       ready: serverReadiness.isReady,
       status,
       uptime: Date.now() - startedAt,
+      version: env.VERSION,
     });
 }

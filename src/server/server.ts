@@ -55,7 +55,7 @@ async function startServer() {
     .use(cookieParser())
     .use(compression())
     .use(serveFavicon(env.FAVICON_PATH))
-    .use('/health', healthMiddleware)
+    .get('/health', healthMiddleware)
     .use(readinessMiddleware)
     .use('/api/mocks', mocksRouter)
     .use('/{:lang}', languageMiddleware)

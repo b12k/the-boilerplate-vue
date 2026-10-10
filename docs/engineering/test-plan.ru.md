@@ -255,10 +255,13 @@
 ### 14. Health
 
 - GET /health: JSON, текущая version, готовность, 200 и no-store.
+- Query и стандартный trailing slash не меняют контракт. Вложенный /health/... и POST/PUT/PATCH/DELETE на готовом сервере не попадают в health-обработчик. Автоматический HEAD от Express сохранён: статус и заголовки GET, пустое тело, без отдельного обработчика.
 - В startup/draining готовность false; если HTTP ещё доступен на существующем соединении — 503. После закрытия listener новое соединение может быть отклонено, а не получить 503.
 - Недоступный Redis при работающем SSR не меняет health на ошибку.
 - Проверка не вызывает renderer и не выполняет Redis-команд.
 - Отдельные /ready и /version не регистрируются как новые служебные маршруты.
+- Проверяем состояния STARTING/OK/DRAINING через настоящий health middleware для source, local dist и Docker dist; на работающем сервере — routing, заголовки и общую версию из package.json.
+- Изоляция: серия /health не меняет Redis commandstats и не вызывает renderer fixture. Отдельно проверяем настоящий HTTP pipeline во время shutdown и готовность при недоступном Redis. Результаты: [пункт 14](./fix-14-review.ru.md).
 
 ### 15. SET/DELEX timeouts
 
