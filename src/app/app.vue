@@ -1,8 +1,14 @@
 <script lang="ts" setup>
   import { LayoutHollyGrail } from '@app/components';
+  import { useStore } from '@app/store';
   import { useHead } from '@unhead/vue';
 
+  const contextStore = useStore('context');
+
   useHead({
+    htmlAttrs: {
+      lang: () => contextStore.lang?.toString(),
+    },
     link: [
       {
         href: 'https://fonts.googleapis.com',
