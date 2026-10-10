@@ -4,7 +4,7 @@
 
 По запросу пользователя в текущей правке уже уточнены ssrAbortSignal/ssrAbortController, timerAbortSignal/timerAbortController, requestAbortSignal/navigationAbortSignal, operationPromise, budgetStartedAtMs/budgetExpiresAtMs/remainingBudgetMs, preparedResponse/renderCacheResult/responseHtml и createSsrResponseBudget/ssrResponseBudget. Context передаётся в createApi из createServices и задаёт полный API URL. Фабрика настраивает Axios; сигналы удалены из действий store и примеров страниц.
 
-Оставшиеся предложения ниже составляют список для отдельного ревью. Номера основных 33 правок не изменены. Объём: 40 групп кандидатов и 3 необязательных уточнения оформления.
+Оставшиеся предложения включены в [пункт 34 плана правок](./fixes.ru.md#34-ревью-и-уточнение-имён). Пункт выполняется последним, после сверки с итоговым кодом и ревью предложений. Объём: 40 групп кандидатов и 3 необязательных уточнения оформления.
 
 ## Кандидаты
 

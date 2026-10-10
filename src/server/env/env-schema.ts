@@ -1,11 +1,7 @@
 import { z } from 'zod';
 
-// One day
-const CACHE_TTL_SEC = 86_400;
-const DEFAULT_CRITICAL_CSS_BUDGET_MS = 10_000;
-const DEFAULT_REDIS_CONNECTION_RETRIES = 5;
-const DEFAULT_REDIS_READ_TIMEOUT_MS = 1000;
-const DEFAULT_SSR_RESPONSE_BUDGET_MS = 30_000;
+import { envDefaults } from './env-defaults';
+
 const LANG_CHARS_COUNT = 2;
 
 const languageSchema = z.string().trim().length(LANG_CHARS_COUNT);
@@ -28,34 +24,38 @@ export const envSchema = z
   .object({
     ACCEPTED_LANGUAGES: acceptedLanguagesSchema,
     API_URL: z.url({ protocol: /^https?$/u }),
-    CACHE_CRITICAL_CSS: z.stringbool().default(false),
+    CACHE_CRITICAL_CSS: z.stringbool().default(envDefaults.CACHE_CRITICAL_CSS),
     CACHE_CRITICAL_CSS_BUDGET_MS: positiveNumberSchema.default(
-      DEFAULT_CRITICAL_CSS_BUDGET_MS,
+      envDefaults.CACHE_CRITICAL_CSS_BUDGET_MS,
     ),
-    CACHE_CRITICAL_CSS_TTL_SEC: positiveNumberSchema.default(CACHE_TTL_SEC),
-    CACHE_RENDER: z.stringbool().default(false),
-    CACHE_RENDER_TTL_SEC: positiveNumberSchema.default(CACHE_TTL_SEC),
-    DEBUG: z.stringbool().default(false),
+    CACHE_CRITICAL_CSS_TTL_SEC: positiveNumberSchema.default(
+      envDefaults.CACHE_CRITICAL_CSS_TTL_SEC,
+    ),
+    CACHE_RENDER: z.stringbool().default(envDefaults.CACHE_RENDER),
+    CACHE_RENDER_TTL_SEC: positiveNumberSchema.default(
+      envDefaults.CACHE_RENDER_TTL_SEC,
+    ),
+    DEBUG: z.stringbool().default(envDefaults.DEBUG),
     DEBUG_ON_KEY: z.uuid().optional(),
     DEFAULT_LANGUAGE: languageSchema,
     LIVE_RELOAD_PATH: nonEmptyStringSchema.optional(),
-    LOG_LEVEL: logLevelSchema.default('info'),
-    NODE_ENV: nonEmptyStringSchema,
-    PORT: positiveNumberSchema,
+    LOG_LEVEL: logLevelSchema.default(envDefaults.LOG_LEVEL),
+    NODE_ENV: nonEmptyStringSchema.default(envDefaults.NODE_ENV),
+    PORT: positiveNumberSchema.default(envDefaults.PORT),
     REDIS_CONNECTION_RETRIES: z.coerce
       .number()
       .int()
       .min(0)
-      .default(DEFAULT_REDIS_CONNECTION_RETRIES),
+      .default(envDefaults.REDIS_CONNECTION_RETRIES),
     REDIS_HOST: nonEmptyStringSchema,
     REDIS_PASSWORD: z.string(),
     REDIS_PORT: positiveNumberSchema,
     REDIS_READ_TIMEOUT_MS: positiveNumberSchema.default(
-      DEFAULT_REDIS_READ_TIMEOUT_MS,
+      envDefaults.REDIS_READ_TIMEOUT_MS,
     ),
-    SERVE_SOURCE_MAPS: z.stringbool().default(false),
+    SERVE_SOURCE_MAPS: z.stringbool().default(envDefaults.SERVE_SOURCE_MAPS),
     SSR_RESPONSE_BUDGET_MS: positiveNumberSchema.default(
-      DEFAULT_SSR_RESPONSE_BUDGET_MS,
+      envDefaults.SSR_RESPONSE_BUDGET_MS,
     ),
   })
   .refine(
