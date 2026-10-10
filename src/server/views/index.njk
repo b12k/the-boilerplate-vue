@@ -13,9 +13,6 @@
     <noscript>
       {% for style in pageAssets.css %}<link rel="stylesheet" href="{{ style }}">{% endfor %}
     </noscript>
-    <script defer
-            src="https://cloud.umami.is/script.js"
-            data-website-id="127e8d85-f677-4920-84fd-9e6e58f8aeaa"></script>
   </head>
   <body {{ head.bodyAttrs | safe }}>
     {{ head.bodyTagsOpen | safe }}

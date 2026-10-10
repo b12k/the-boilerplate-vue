@@ -24,7 +24,7 @@
         rel: 'stylesheet',
       },
     ],
-    title: 'Bogdan Kolesnyk - web solution architecture and development',
+    title: 'App',
   });
 </script>
 
