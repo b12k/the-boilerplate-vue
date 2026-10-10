@@ -14,6 +14,7 @@ import {
   createSsrResponseBudget,
   parseJson,
   stringToBase64,
+  trackServerTask,
 } from '@server/utils';
 import { isEqual } from 'es-toolkit/predicate';
 import nunjucks from 'nunjucks';
@@ -105,9 +106,11 @@ export async function ssrMiddleware(request: Request, response: Response) {
     if (renderCacheKey === false || !shouldCacheRender) return;
     shouldCacheRender = false;
     // Pending cleanup must not delay the timeout response.
-    cacheService.deleteRenderPending(renderCacheKey).catch((error: unknown) => {
-      request.log.error(error, 'Failed to delete SSR render pending');
-    });
+    trackServerTask(cacheService.deleteRenderPending(renderCacheKey)).catch(
+      (error: unknown) => {
+        request.log.error(error, 'Failed to delete SSR render pending');
+      },
+    );
   }
 
   try {

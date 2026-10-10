@@ -13,19 +13,24 @@ import {
   helmetMiddleware,
   languageMiddleware,
   mocksRouter,
+  readinessMiddleware,
   sourceMapsMiddleware,
   ssrMiddleware,
 } from './middleware';
-import { cacheService, loggerService } from './services';
+import { cacheService, loadSsrAssets, loggerService } from './services';
 import {
   acceptedLanguages,
   getLanguage,
+  installGracefulShutdown,
   liveReload,
   printDevelopmentBanner,
+  serverReadiness,
+  trackServerTask,
 } from './utils';
 
 async function startServer() {
   cacheService.initialize();
+  await loadSsrAssets();
 
   const app = express();
 
@@ -45,6 +50,7 @@ async function startServer() {
     .use(compression())
     .use(serveFavicon(env.FAVICON_PATH))
     .use('/health', healthMiddleware)
+    .use(readinessMiddleware)
     .use('/api/mocks', mocksRouter)
     .use('/{:lang}', languageMiddleware)
     .use('/{:lang}', contextMiddleware)
@@ -59,7 +65,7 @@ async function startServer() {
     .use(helmetMiddleware)
     .use(
       acceptedLanguages.map((lang) => `/${lang}`),
-      ssrMiddleware,
+      (request, response) => trackServerTask(ssrMiddleware(request, response)),
     )
     .use('/{*splat}', (request, response) =>
       response.status(404).render('404', {
@@ -70,7 +76,19 @@ async function startServer() {
     .use(errorMiddleware);
 
   const server = app.listen(env.PORT);
+  installGracefulShutdown({
+    budgetMs: env.SHUTDOWN_BUDGET_MS,
+    closeResources: async () => {
+      await cacheService.close();
+    },
+    forceCloseResources: () => {
+      cacheService.destroy();
+    },
+    logger: loggerService.logger,
+    server,
+  });
   await once(server, 'listening');
+  serverReadiness.isReady = !serverReadiness.isDraining;
   if (!env.IS_PROD) printDevelopmentBanner(env.PORT);
 }
 
@@ -78,5 +96,6 @@ try {
   await startServer();
 } catch (error) {
   loggerService.logger.fatal(error);
+  cacheService.destroy();
   process.exitCode = 1;
 }

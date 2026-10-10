@@ -9,7 +9,9 @@ const PENDING = 'pending';
 const PENDING_TTL_MARGIN_MS = 1000;
 
 interface CacheClient {
+  close: () => Promisable<void>;
   deleteIfValue: (key: string, expectedValue: string) => Promisable<boolean>;
+  destroy: () => void;
   get: (key: string) => Promisable<string | undefined>;
   set: (key: string, value: string, ttlSec?: number) => Promisable<void>;
   setIfAbsent: (
@@ -38,8 +40,16 @@ class CacheService {
     return ['[RENDER]', env.CACHE_SALT, key].join(':');
   }
 
+  public async close() {
+    await this.client?.close();
+  }
+
   public async deleteRenderPending(key: string) {
     await this.client?.deleteIfValue(CacheService.saltRenderKey(key), PENDING);
+  }
+
+  public destroy() {
+    this.client?.destroy();
   }
 
   public async getCriticalCss(key: string) {

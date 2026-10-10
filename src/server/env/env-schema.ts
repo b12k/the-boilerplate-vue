@@ -53,6 +53,9 @@ export const envSchema = z
       envDefaults.REDIS_READ_TIMEOUT_MS,
     ),
     SERVE_SOURCE_MAPS: z.stringbool().default(envDefaults.SERVE_SOURCE_MAPS),
+    SHUTDOWN_BUDGET_MS: positiveNumberSchema.default(
+      envDefaults.SHUTDOWN_BUDGET_MS,
+    ),
     SSR_RESPONSE_BUDGET_MS: positiveNumberSchema.default(
       envDefaults.SSR_RESPONSE_BUDGET_MS,
     ),

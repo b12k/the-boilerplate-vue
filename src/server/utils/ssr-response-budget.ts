@@ -1,5 +1,7 @@
 import { setTimeout as delay } from 'node:timers/promises';
 
+import { trackServerTask } from './server-tasks';
+
 class SsrResponseTimeoutError extends Error {
   public readonly code = 'SSR_RESPONSE_TIMEOUT';
 
@@ -53,7 +55,7 @@ function createSsrResponseBudget(
   async function waitFor<T>(runOperation: () => Promise<T>) {
     ssrAbortSignal?.throwIfAborted();
     try {
-      const operationPromise = runOperation();
+      const operationPromise = trackServerTask(runOperation());
       return await Promise.race([rejectAfterBudget(), operationPromise]);
     } catch (error) {
       ssrAbortSignal?.throwIfAborted();
