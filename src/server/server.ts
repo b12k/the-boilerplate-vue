@@ -34,6 +34,9 @@ import {
   trackServerTask,
 } from './utils';
 
+const METHOD_NOT_ALLOWED_STATUS = 405;
+const ssrPaths = acceptedLanguages.map((lang) => `/${lang}{/*ssrPath}`);
+
 async function startServer() {
   cacheService.initialize();
   await loadSsrAssets();
@@ -69,9 +72,13 @@ async function startServer() {
       }),
     )
     .use(helmetMiddleware)
-    .use(
-      acceptedLanguages.map((lang) => `/${lang}`),
-      (request, response) => trackServerTask(ssrMiddleware(request, response)),
+    .get(ssrPaths, (request, response) =>
+      trackServerTask(ssrMiddleware(request, response)),
+    )
+    .all(ssrPaths, (_request, response) =>
+      response
+        .setHeader('Allow', 'GET, HEAD')
+        .sendStatus(METHOD_NOT_ALLOWED_STATUS),
     )
     .use('/{*splat}', (request, response) =>
       response.status(404).render('404', {

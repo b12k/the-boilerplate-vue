@@ -308,8 +308,10 @@
 ### 19. HTTP methods
 
 - GET HTML — обычный SSR. HEAD — тот же статус/заголовки без тела, автоматическое поведение Express.
-- POST/PUT/PATCH/DELETE на HTML-маршруте — 405, Allow: GET, HEAD, renderer не выполняется.
-- Зарегистрированная API fixture перед SSR не попадает под запрет HTML methods.
+- POST/PUT/PATCH/DELETE/OPTIONS на HTML-маршруте — 405, Allow: GET, HEAD, renderer не выполняется. Проверяем корень языка, trailing slash, вложенный путь и query.
+- HEAD для успешной страницы и SSR 404 сохраняет статус и Content-Type GET, имеет пустое тело и собственный X-Request-ID.
+- Зарегистрированная POST API fixture перед SSR не попадает под запрет HTML methods, включая API внутри языкового префикса. Отдельный renderer fixture подтверждает отсутствие вызовов для 405 и API; контрольные GET/HEAD действительно запускают renderer.
+- Похожие префиксы /english и /enough, а также неподдерживаемый язык не получают SSR 405: сохраняется обычный 404.
 - Языковой redirect и health сохраняют согласованные маршруты.
 
 ### 20. Cache headers
