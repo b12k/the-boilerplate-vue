@@ -113,12 +113,11 @@ function getFilenameJs(name: string, isProduction: boolean) {
 }
 
 function getVendorName(module?: Module) {
-  // Source https://medium.com/hackernoon/the-100-correct-way-to-split-your-chunks-with-webpack-f8a9df5b7758
-  const matched = module?.context?.match(
-    /[/\\]node_modules[/\\](?<packageName>.*?)(?:[/\\]|$)/u,
-  );
+  const matched = module?.context
+    ?.replaceAll('\\', '/')
+    .match(/.*\/node_modules\/(?<packageName>(?:@[^/]+\/)?[^/]+)(?:\/|$)/u);
 
-  return matched?.groups?.['packageName']?.replace('@', '') ?? 'other';
+  return matched?.groups?.['packageName'] ?? 'other';
 }
 
 export { generateManifest, getCacheConfig, getFilenameJs, getVendorName };
