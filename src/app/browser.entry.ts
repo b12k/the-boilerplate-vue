@@ -6,6 +6,7 @@ import type { InitialState } from './create-app';
 
 import { createApp } from './create-app';
 import { execRoutePreFetch } from './router';
+import { createVersionService } from './services';
 import './styles/main.css';
 
 declare global {
@@ -16,6 +17,9 @@ async function startClient() {
   const initialState = globalThis.INITIAL_STATE;
   const history = createWebHistory(initialState.context.baseUrl);
   const logger = pino({ browser: { asObject: true } });
+  const versionService = createVersionService(initialState.context, logger);
+  versionService.start();
+  import.meta.webpackHot?.dispose(versionService.stop);
   const head = createHead();
   const { app, router, services, useStore } = await createApp({
     head,
@@ -25,6 +29,7 @@ async function startClient() {
   });
 
   app.mount('#app');
+  app.onUnmount(versionService.stop);
 
   let navigationAbortController = new AbortController();
   const navigationAbortControllers = new WeakMap<object, AbortController>();
