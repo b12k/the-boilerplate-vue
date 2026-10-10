@@ -58,7 +58,7 @@ function createImageLoader(isSSR = false) {
     },
     parser: {
       dataUrlCondition: {
-        maxSize: 256_000,
+        maxSize: 8192,
       },
     },
     test: /\.(?:png|gif|jpe?g|svg|webp)$/u,
