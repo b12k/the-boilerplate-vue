@@ -6,6 +6,7 @@ import type { CacheClient, ConditionalCacheWriteParams } from './cache.service';
 
 const RECONNECT_DELAY_MS = 1000;
 const CONNECTION_TIMEOUT_MS = 1000;
+const COMMAND_TIMEOUT_MS = 1000;
 
 interface RedisCacheOptions {
   connectionRetriesCount: number;
@@ -35,13 +36,47 @@ export class RedisCache implements CacheClient {
     }
   }
 
+  private static createCommandTimeoutError(commandName: string) {
+    return new Error(
+      `[RedisCache] ${commandName} timed out after ${COMMAND_TIMEOUT_MS} ms; operation unconfirmed`,
+    );
+  }
+
   private static logError(error: unknown) {
     loggerService.logger.error(error, '[RedisCache] Redis cache unavailable');
+  }
+
+  private static async timeoutCommand(
+    commandName: string,
+    timerAbortSignal: AbortSignal,
+  ) {
+    await delay(COMMAND_TIMEOUT_MS, undefined, { signal: timerAbortSignal });
+    throw RedisCache.createCommandTimeoutError(commandName);
   }
 
   private static async timeoutConnection(signal: AbortSignal) {
     await delay(CONNECTION_TIMEOUT_MS, undefined, { signal });
     throw new Error('[RedisCache] Connection timed out');
+  }
+
+  private static async waitForCommand<T>(
+    commandName: string,
+    commandPromise: Promise<T>,
+  ) {
+    const commandStartedAtMs = performance.now();
+    const timerAbortController = new AbortController();
+    try {
+      const commandResult = await Promise.race([
+        commandPromise,
+        RedisCache.timeoutCommand(commandName, timerAbortController.signal),
+      ]);
+      if (performance.now() - commandStartedAtMs >= COMMAND_TIMEOUT_MS) {
+        throw RedisCache.createCommandTimeoutError(commandName);
+      }
+      return commandResult;
+    } finally {
+      timerAbortController.abort();
+    }
   }
 
   public async connect(
@@ -99,10 +134,13 @@ export class RedisCache implements CacheClient {
     if (!this.client?.isReady) return false;
 
     try {
-      const result = await this.client.delEx(key, {
-        condition: 'IFEQ',
-        matchValue: expectedValue,
-      });
+      const result = await RedisCache.waitForCommand(
+        'DELEX IFEQ',
+        this.client.delEx(key, {
+          condition: 'IFEQ',
+          matchValue: expectedValue,
+        }),
+      );
       return result === 1;
     } catch (error) {
       RedisCache.logError(error);
@@ -138,9 +176,12 @@ export class RedisCache implements CacheClient {
     if (!this.client?.isReady) return;
 
     try {
-      await this.client.set(key, value, {
-        expiration: { type: 'EX', value: ttlSec },
-      });
+      await RedisCache.waitForCommand(
+        'SET',
+        this.client.set(key, value, {
+          expiration: { type: 'EX', value: ttlSec },
+        }),
+      );
     } catch (error) {
       RedisCache.logError(error);
     }
@@ -150,10 +191,13 @@ export class RedisCache implements CacheClient {
     if (!this.client?.isReady) return false;
 
     try {
-      const result = await this.client.set(key, value, {
-        condition: 'NX',
-        expiration: { type: 'PX', value: ttlMs },
-      });
+      const result = await RedisCache.waitForCommand(
+        'SET NX',
+        this.client.set(key, value, {
+          condition: 'NX',
+          expiration: { type: 'PX', value: ttlMs },
+        }),
+      );
       return result === 'OK';
     } catch (error) {
       RedisCache.logError(error);
@@ -170,11 +214,14 @@ export class RedisCache implements CacheClient {
     if (!this.client?.isReady) return false;
 
     try {
-      const result = await this.client.set(key, value, {
-        condition: 'IFEQ',
-        expiration: { type: 'PX', value: ttlMs },
-        matchValue: expectedValue,
-      });
+      const result = await RedisCache.waitForCommand(
+        'SET IFEQ',
+        this.client.set(key, value, {
+          condition: 'IFEQ',
+          expiration: { type: 'PX', value: ttlMs },
+          matchValue: expectedValue,
+        }),
+      );
       return result === 'OK';
     } catch (error) {
       RedisCache.logError(error);
