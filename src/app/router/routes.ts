@@ -33,6 +33,9 @@ export const routes: Array<RouteRecordRawNamed> = [
     path: '/404',
   },
   {
+    meta: {
+      responseCode: 404,
+    },
     name: 'CatchNotFound',
     path: '/:url(.*)*',
     redirect: ({ params: { url } }) => ({

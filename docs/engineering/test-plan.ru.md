@@ -359,8 +359,10 @@
 ### 25. Redirect
 
 - Fixture /old → /new: HTTP 302 и Location с языковым base, без SSR page; meta.responseCode=301 меняет код на 301.
+- Код берём из redirectedFrom.meta.responseCode ?? 302; responseCode=200 целевой страницы не отменяет обычный HTTP redirect. У CatchNotFound явно задан responseCode=404 для сохранения внутреннего перехода.
 - Redirect с query и цепочкой переходов: Location указывает конечный адрес, query сохраняется согласно Vue Router.
 - Prefetch, renderer HTML и CSS worker целевой страницы не запускаются для redirect-ответа; redirect не записывается в render-cache.
+- Если запрос захватил render pending, redirect удаляет его; следующий запрос снова может захватить ключ. Проверяем на отдельном Redis.
 - Проверка 301/302/303/307/308 не считает 304 редиректом.
 - Обычный page использует meta.responseCode ?? 200. /en/missing остаётся 404 с клиентской навигацией; серверный fallback JS-переход сохранён.
 - SSR-redirect и переход по той же ссылке в клиентском приложении приводят к одному целевому маршруту.

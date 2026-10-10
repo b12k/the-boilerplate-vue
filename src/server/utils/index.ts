@@ -1,3 +1,4 @@
+export * from './check-is-redirect-response-code';
 export * from './extract-request-property';
 export * from './get-language';
 export * from './graceful-shutdown';

@@ -11,6 +11,7 @@ import {
   loadSsrAssets,
 } from '@server/services';
 import {
+  checkIsRedirectResponseCode,
   createSsrResponseBudget,
   parseJson,
   stringToBase64,
@@ -139,6 +140,13 @@ export async function ssrMiddleware(request: Request, response: Response) {
           ));
         ssrResponseBudget.assertIsWithinBudget();
         const { currentRoute, head, html, modules, state } = renderResult;
+        if (checkIsRedirectResponseCode(currentRoute.meta.responseCode)) {
+          discardRenderPending();
+          response
+            .setHeader('X-Response-Time', Date.now() - responseStartedAtMs)
+            .redirect(currentRoute.meta.responseCode, currentRoute.path);
+          return false;
+        }
         const pageAssets = getPageAssets(manifest, modules);
         const criticalCssCacheKey = context.isCriticalCssCacheEnabled
           ? stringToBase64(currentRoute.name)
@@ -175,6 +183,7 @@ export async function ssrMiddleware(request: Request, response: Response) {
         throw error;
       }
     });
+    if (!preparedResponse) return;
     ssrResponseBudget.assertIsWithinBudget();
     const {
       criticalCssCacheHit,

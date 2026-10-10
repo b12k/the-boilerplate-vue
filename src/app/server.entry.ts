@@ -2,6 +2,7 @@ import type { Context } from '@server/services';
 import type { Logger } from 'pino';
 import type { AsyncReturnType } from 'type-fest';
 
+import { checkIsRedirectResponseCode } from '@server/utils/check-is-redirect-response-code';
 import { createHead } from '@unhead/vue/server';
 import { createMemoryHistory } from 'vue-router';
 import { renderToString } from 'vue/server-renderer';
@@ -31,29 +32,38 @@ async function render(
     ssrAbortSignal,
   );
 
-  await execInSsrOrAbort(
-    () =>
-      execRoutePreFetch(router.currentRoute.value, {
-        isSsr: true,
-        logger,
-        signal: ssrAbortSignal,
-        useStore,
-      }),
-    ssrAbortSignal,
-  );
+  const currentRoute = router.currentRoute.value;
+  const responseCode = currentRoute.redirectedFrom
+    ? (currentRoute.redirectedFrom.meta.responseCode ?? 302)
+    : currentRoute.meta.responseCode;
+  const routeResponse = {
+    meta: { ...currentRoute.meta, responseCode },
+    name: currentRoute.name?.toString() ?? currentRoute.path,
+    path: currentRoute.path,
+  };
   const ssrContext = { modules: new Set<string>() };
-  const html = await execInSsrOrAbort(
-    () => renderToString(app, ssrContext),
-    ssrAbortSignal,
-  );
+  let html = '';
+
+  if (checkIsRedirectResponseCode(responseCode)) {
+    routeResponse.path = router.resolve(currentRoute.fullPath).href;
+  } else {
+    await execInSsrOrAbort(
+      () =>
+        execRoutePreFetch(currentRoute, {
+          isSsr: true,
+          logger,
+          signal: ssrAbortSignal,
+          useStore,
+        }),
+      ssrAbortSignal,
+    );
+    html = await execInSsrOrAbort(
+      () => renderToString(app, ssrContext),
+      ssrAbortSignal,
+    );
+  }
   return {
-    currentRoute: {
-      meta: router.currentRoute.value.meta,
-      name:
-        router.currentRoute.value.name?.toString() ??
-        router.currentRoute.value.path,
-      path: router.currentRoute.value.path,
-    },
+    currentRoute: routeResponse,
     head: head.render(),
     html,
     modules: [...ssrContext.modules],
