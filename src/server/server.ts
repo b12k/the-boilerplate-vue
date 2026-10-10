@@ -17,7 +17,13 @@ import {
   sourceMapsMiddleware,
   ssrMiddleware,
 } from './middleware';
-import { cacheService, loadSsrAssets, loggerService } from './services';
+import {
+  cacheService,
+  closeCriticalCssPool,
+  destroyCriticalCssPool,
+  loadSsrAssets,
+  loggerService,
+} from './services';
 import {
   acceptedLanguages,
   getLanguage,
@@ -79,9 +85,11 @@ async function startServer() {
   installGracefulShutdown({
     budgetMs: env.SHUTDOWN_BUDGET_MS,
     closeResources: async () => {
+      await closeCriticalCssPool();
       await cacheService.close();
     },
     forceCloseResources: () => {
+      destroyCriticalCssPool();
       cacheService.destroy();
     },
     logger: loggerService.logger,

@@ -28,6 +28,17 @@ export const envSchema = z
     CACHE_CRITICAL_CSS_BUDGET_MS: positiveNumberSchema.default(
       envDefaults.CACHE_CRITICAL_CSS_BUDGET_MS,
     ),
+    CACHE_CRITICAL_CSS_MAX_HTML_BYTES: positiveNumberSchema.default(
+      envDefaults.CACHE_CRITICAL_CSS_MAX_HTML_BYTES,
+    ),
+    CACHE_CRITICAL_CSS_MAX_QUEUE: z.coerce
+      .number()
+      .int()
+      .min(0)
+      .default(envDefaults.CACHE_CRITICAL_CSS_MAX_QUEUE),
+    CACHE_CRITICAL_CSS_MAX_THREADS: positiveNumberSchema.default(
+      envDefaults.CACHE_CRITICAL_CSS_MAX_THREADS,
+    ),
     CACHE_CRITICAL_CSS_TTL_SEC: positiveNumberSchema.default(
       envDefaults.CACHE_CRITICAL_CSS_TTL_SEC,
     ),

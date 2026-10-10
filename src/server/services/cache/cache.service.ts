@@ -44,6 +44,13 @@ class CacheService {
     await this.client?.close();
   }
 
+  public async deleteCriticalCssPending(key: string) {
+    await this.client?.deleteIfValue(
+      CacheService.saltCriticalCssKey(key),
+      PENDING,
+    );
+  }
+
   public async deleteRenderPending(key: string) {
     await this.client?.deleteIfValue(CacheService.saltRenderKey(key), PENDING);
   }

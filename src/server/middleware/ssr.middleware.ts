@@ -39,8 +39,13 @@ async function cacheCriticalCss({
   );
   if (!shouldCacheCss) return;
 
-  const criticalCss = await getCriticalCss(renderedHtml, cssFiles);
-  await cacheService.setCriticalCss(cacheKey, criticalCss);
+  try {
+    const criticalCss = await getCriticalCss(renderedHtml, cssFiles);
+    await cacheService.setCriticalCss(cacheKey, criticalCss);
+  } catch (error) {
+    await cacheService.deleteCriticalCssPending(cacheKey);
+    throw error;
+  }
 }
 
 async function readCriticalCssCache(key: string | undefined) {

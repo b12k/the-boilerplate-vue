@@ -2,7 +2,7 @@ import type { KnipConfiguration } from 'knip';
 
 export default {
   commitlint: true,
-  entry: ['src/server/server.ts'],
+  entry: ['src/server/server.ts', 'src/server/workers/*.worker.ts'],
   ignoreDependencies: [
     // Nodemon loads this through its JSON exec command.
     '@swc-node/register',

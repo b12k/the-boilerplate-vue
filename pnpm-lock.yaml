@@ -211,6 +211,9 @@ importers:
       pino-pretty:
         specifier: 13.2.0
         version: 13.2.0
+      piscina:
+        specifier: 5.3.2
+        version: 5.3.2
       purgecss:
         specifier: 8.0.0
         version: 8.0.0
@@ -3989,6 +3992,10 @@ packages:
 
   piscina@4.9.4:
     resolution: {integrity: sha512-RyBDr2VheQ8ZfH3N8SzQZHztqVyOtadTwLnUYof6gdj5161/eu2wNhCbGl5GHnNKDpnkicJYpKtL2J+y/gk6XA==}
+
+  piscina@5.3.2:
+    resolution: {integrity: sha512-vv7l/mM7B9WgrhDaudIqv1x6v4LOBRYYmpWGdWushhpbCmVHp11sUB2v4hj1CAeTGXVxuZFz6xOU1RalAiPKfQ==}
+    engines: {node: '>=20.x'}
 
   pkg-dir@4.2.0:
     resolution: {integrity: sha512-HRDzbaKjC+AOWVXxAU/x54COGeIv9eb+6CkDSQoNTt4XyWoIJvuPsXizxu/Fr23EiekbtZwmh1IcIG/l/a10GQ==}
@@ -8266,6 +8273,10 @@ snapshots:
   pirates@4.0.7: {}
 
   piscina@4.9.4:
+    optionalDependencies:
+      '@napi-rs/nice': 1.1.1
+
+  piscina@5.3.2:
     optionalDependencies:
       '@napi-rs/nice': 1.1.1
 
