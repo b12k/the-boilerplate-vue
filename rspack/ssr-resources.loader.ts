@@ -4,7 +4,8 @@ import path from 'node:path';
 
 /* oxlint-disable oxc/no-this-in-exported-function -- Rspack binds LoaderContext when calling pitch loaders. */
 
-function registerSsrResources(this: LoaderContext<Record<string, never>>) {
+// Rspack calls the named pitch export before normal loaders; its return value replaces the module source.
+export function pitch(this: LoaderContext<Record<string, never>>) {
   const moduleId = path
     .relative(this.rootContext, this.resourcePath)
     .replaceAll('\\', '/');
@@ -22,5 +23,3 @@ function registerSsrResources(this: LoaderContext<Record<string, never>>) {
     export default component;
   `;
 }
-
-export { registerSsrResources as pitch };
