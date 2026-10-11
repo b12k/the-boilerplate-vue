@@ -196,6 +196,9 @@ importers:
       helmet:
         specifier: 8.3.0
         version: 8.3.0
+      htmlparser2:
+        specifier: 9.1.0
+        version: 9.1.0
       nunjucks:
         specifier: 3.2.4
         version: 3.2.4(chokidar@5.0.0)
