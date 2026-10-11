@@ -54,6 +54,8 @@ Set `shouldReFetch: true` in `defineOptions` when a reused page must fetch again
 
 Import named components from `@app/components`. Use Tailwind utilities for layout and `tailwind-variants` for shared variants. Put public files in `src/public`.
 
+`CardSection` and `InfoCard` use `headingVariant` to choose plain or monospace titles. This setting changes appearance; it does not change the HTML heading level.
+
 ## Set page behavior
 
 Use Unhead for titles and metadata. `app.vue` reads the document language from the context store. Language prefixes come from server configuration; the demo text is in English.

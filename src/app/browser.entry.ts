@@ -36,10 +36,11 @@ async function startClient() {
   services.api.setNavigationAbortSignal(navigationAbortController.signal);
 
   function cancelNavigation(to: object) {
-    const cancelledNavigationController = navigationAbortControllers.get(to);
-    cancelledNavigationController?.abort();
+    const cancelledNavigationAbortController =
+      navigationAbortControllers.get(to);
+    cancelledNavigationAbortController?.abort();
     navigationAbortControllers.delete(to);
-    if (cancelledNavigationController === navigationAbortController) {
+    if (cancelledNavigationAbortController === navigationAbortController) {
       navigationAbortController = new AbortController();
       services.api.setNavigationAbortSignal(navigationAbortController.signal);
     }
@@ -58,7 +59,7 @@ async function startClient() {
         {
           isSsr: false,
           logger: services.logger,
-          signal: routeAbortController.signal,
+          prefetchAbortSignal: routeAbortController.signal,
           useStore,
         },
         from,

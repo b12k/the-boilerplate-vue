@@ -20,7 +20,7 @@ async function render(
   logger: Logger,
   ssrAbortSignal: AbortSignal,
 ) {
-  const { app, head, router, store, useStore } = await execInSsrOrAbort(
+  const { app, head, pinia, router, useStore } = await execInSsrOrAbort(
     () =>
       createApp({
         head: createHead(),
@@ -52,7 +52,7 @@ async function render(
         execRoutePreFetch(currentRoute, {
           isSsr: true,
           logger,
-          signal: ssrAbortSignal,
+          prefetchAbortSignal: ssrAbortSignal,
           useStore,
         }),
       ssrAbortSignal,
@@ -67,7 +67,7 @@ async function render(
     head: head.render(),
     html,
     modules: [...ssrContext.modules],
-    state: { ...store.state.value, context: useStore('context').$state },
+    state: { ...pinia.state.value, context: useStore('context').$state },
   };
 }
 

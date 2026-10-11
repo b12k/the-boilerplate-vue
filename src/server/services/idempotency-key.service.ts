@@ -7,12 +7,12 @@ import { match } from 'path-to-regexp';
 
 type BeforeAfterComputeKeyFunction = (
   context: Context,
-  parameters: Record<string, string>,
+  routeParams: Record<string, string>,
 ) => boolean | string;
 
 type ComputeKeyFunction = (
   context: Context,
-  parameters: Record<string, string>,
+  routeParams: Record<string, string>,
 ) => FalsyValue | string;
 
 type FalsyValue = 0 | false | null | undefined;
@@ -34,9 +34,9 @@ function trimSlashes(path: string) {
 function computeIdempotencyKey(context: Context) {
   const { baseUrl, url } = context;
   const pathname = trimSlashes((baseUrl + url).split('?')[0] ?? '');
-  const matched = Object.entries(idempotencyConfig.paths)
-    .map(([key, computeKey]) => {
-      const matchedPath = match(trimSlashes(key), {
+  const matchedCacheRule = Object.entries(idempotencyConfig.paths)
+    .map(([routePattern, computeKey]) => {
+      const matchedPath = match(trimSlashes(routePattern), {
         decode: decodeURIComponent,
       })(pathname);
       return matchedPath === false
@@ -45,31 +45,31 @@ function computeIdempotencyKey(context: Context) {
     })
     .find(Boolean);
 
-  if (!matched) return false;
+  if (!matchedCacheRule) return false;
 
-  const parameters = mapValues(matched.params, (parameter) =>
+  const routeParams = mapValues(matchedCacheRule.params, (parameter) =>
     Array.isArray(parameter) ? parameter.join('/') : String(parameter),
   );
 
-  const keyBeforeComputed = idempotencyConfig.beforeCompute
-    ? idempotencyConfig.beforeCompute(context, parameters)
+  const cacheKeyPrefix = idempotencyConfig.beforeCompute
+    ? idempotencyConfig.beforeCompute(context, routeParams)
     : '';
 
-  if (keyBeforeComputed === false) return false;
+  if (cacheKeyPrefix === false) return false;
 
-  const computedKey = matched.computeKey(context, parameters);
+  const routeCacheKey = matchedCacheRule.computeKey(context, routeParams);
 
-  if (typeof computedKey !== 'string' || !computedKey) {
+  if (typeof routeCacheKey !== 'string' || !routeCacheKey) {
     return false;
   }
 
-  const keyAfterComputed = idempotencyConfig.afterCompute
-    ? idempotencyConfig.afterCompute(context, parameters)
+  const cacheKeySuffix = idempotencyConfig.afterCompute
+    ? idempotencyConfig.afterCompute(context, routeParams)
     : '';
 
-  if (keyAfterComputed === false) return false;
+  if (cacheKeySuffix === false) return false;
 
-  return hashKey(`${keyBeforeComputed}${computedKey}${keyAfterComputed}`);
+  return hashKey(`${cacheKeyPrefix}${routeCacheKey}${cacheKeySuffix}`);
 }
 
 export { computeIdempotencyKey, type IdempotencyConfig };

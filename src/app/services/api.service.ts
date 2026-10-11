@@ -59,9 +59,9 @@ function createApi(
         throw error;
       });
     },
-    fetchRun(shouldFail: boolean, requestAbortSignal?: AbortSignal) {
+    fetchRun(shouldSimulateFailure: boolean, requestAbortSignal?: AbortSignal) {
       return fetchApi<DemoRun>('/run', requestAbortSignal, {
-        fail: shouldFail,
+        fail: shouldSimulateFailure,
       });
     },
     setNavigationAbortSignal(navigationAbortSignal: AbortSignal) {

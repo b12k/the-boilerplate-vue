@@ -4,7 +4,7 @@ import { env } from '@server/env';
 import { serverReadiness } from '@server/utils';
 
 const SERVICE_UNAVAILABLE_STATUS = 503;
-const startedAt = Date.now();
+const serviceStartedAtMs = Date.now();
 
 export function healthMiddleware(_: Request, response: Response) {
   let status = 'STARTING';
@@ -16,7 +16,7 @@ export function healthMiddleware(_: Request, response: Response) {
     .json({
       ready: serverReadiness.isReady,
       status,
-      uptime: Date.now() - startedAt,
+      uptime: Date.now() - serviceStartedAtMs,
       version: env.VERSION,
     });
 }

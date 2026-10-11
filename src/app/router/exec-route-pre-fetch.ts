@@ -10,7 +10,7 @@ import { getMatchedComponents } from '@b12k/vue3-router-gmc';
 interface RoutePreFetchConfig {
   isSsr: boolean;
   logger: Logger;
-  signal?: AbortSignal;
+  prefetchAbortSignal?: AbortSignal;
   useStore: typeof useAppStore;
 }
 
@@ -19,34 +19,34 @@ export async function execRoutePreFetch(
   {
     isSsr,
     logger,
-    signal = new AbortController().signal,
+    prefetchAbortSignal = new AbortController().signal,
     useStore,
   }: RoutePreFetchConfig,
   from?: RouteLocationNormalizedLoaded,
 ) {
   const { entering, staying } = await getMatchedComponents(to, from);
-  if (signal.aborted) return;
+  if (prefetchAbortSignal.aborted) return;
 
-  const components = [
+  const componentsToPrefetch = [
     ...entering,
     ...staying.filter(({ shouldReFetch }) => shouldReFetch),
   ];
-  const prefetch = Promise.all(
-    components.map(async ({ fetchData }) => {
+  const prefetchPromise = Promise.all(
+    componentsToPrefetch.map(async ({ fetchData }) => {
       try {
-        signal.throwIfAborted();
-        await fetchData?.(to, useStore, signal);
+        prefetchAbortSignal.throwIfAborted();
+        await fetchData?.(to, useStore, prefetchAbortSignal);
       } catch (error) {
-        if (!signal.aborted) throw error;
+        if (!prefetchAbortSignal.aborted) throw error;
       }
     }),
   );
 
   if (!isSsr && to.meta.noPreFetchAwait) {
     // Observe background failures without making navigation wait for them.
-    prefetch.catch((error: unknown) => logger.error(error));
+    prefetchPromise.catch((error: unknown) => logger.error(error));
     return;
   }
 
-  await prefetch;
+  await prefetchPromise;
 }

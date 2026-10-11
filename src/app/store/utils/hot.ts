@@ -11,43 +11,56 @@ interface HotModule {
 
 interface StoreSession {
   data: { pinia?: Pinia };
-  definition: StoreDefinition;
+  storeDefinition: StoreDefinition;
 }
 
-const sessions = new WeakMap<object, StoreSession>();
+const storeSessionsByHotData = new WeakMap<object, StoreSession>();
 
 // Reload when the helper changes because its session registry is recreated.
 import.meta.webpackHot?.decline();
 
 export function hot<Definition extends StoreDefinition>(
-  definition: Definition,
+  storeDefinition: Definition,
   moduleHot: HotModule | undefined,
 ) {
-  if (!moduleHot) return definition;
+  if (!moduleHot) return storeDefinition;
 
   moduleHot.accept();
-  const previous = moduleHot.data ? sessions.get(moduleHot.data) : undefined;
-  if (previous && previous.definition.$id !== definition.$id) {
+  const previousStoreSession = moduleHot.data
+    ? storeSessionsByHotData.get(moduleHot.data)
+    : undefined;
+  if (
+    previousStoreSession &&
+    previousStoreSession.storeDefinition.$id !== storeDefinition.$id
+  ) {
     moduleHot.invalidate();
-    return definition;
+    return storeDefinition;
   }
 
   // Each store module owns one session across replacements.
-  const session: StoreSession = previous ?? { data: {}, definition };
-  const context = {
-    data: session.data,
+  const storeSession: StoreSession = previousStoreSession ?? {
+    data: {},
+    storeDefinition,
+  };
+  const hmrContext = {
+    data: storeSession.data,
     invalidate: () => moduleHot.invalidate(),
   };
-  if (previous) {
-    acceptHMRUpdate(session.definition, context)({ useStore: definition });
+  if (previousStoreSession) {
+    acceptHMRUpdate(
+      storeSession.storeDefinition,
+      hmrContext,
+    )({ useStore: storeDefinition });
   }
-  session.definition = definition;
-  moduleHot.dispose((data) => sessions.set(data, session));
+  storeSession.storeDefinition = storeDefinition;
+  moduleHot.dispose((hotData) =>
+    storeSessionsByHotData.set(hotData, storeSession),
+  );
 
   // Existing imports also use the latest definition when a store is first created later.
-  return new Proxy(definition, {
-    apply(_target, _receiver, parameters: Parameters<StoreDefinition>) {
-      return session.definition(...parameters);
+  return new Proxy(storeDefinition, {
+    apply(_target, _receiver, storeArguments: Parameters<StoreDefinition>) {
+      return storeSession.storeDefinition(...storeArguments);
     },
   });
 }

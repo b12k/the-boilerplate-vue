@@ -11,7 +11,7 @@
     isPending: boolean;
     run: DemoRun | undefined;
   }>();
-  defineEmits<{ request: [shouldFail: boolean] }>();
+  defineEmits<{ request: [shouldSimulateFailure: boolean] }>();
   const styles = tv({
     slots: {
       actions: 'flex flex-wrap items-center gap-3',

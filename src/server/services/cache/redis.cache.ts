@@ -27,16 +27,16 @@ export class RedisCache implements CacheClient {
     client: ReturnType<RedisCache['createClient']>,
     connectionAbortSignal: AbortSignal,
   ) {
-    const controller = new AbortController();
+    const timerAbortController = new AbortController();
     try {
       await Promise.race([
         client.connect(),
         RedisCache.timeoutConnection(
-          AbortSignal.any([controller.signal, connectionAbortSignal]),
+          AbortSignal.any([timerAbortController.signal, connectionAbortSignal]),
         ),
       ]);
     } finally {
-      controller.abort();
+      timerAbortController.abort();
     }
   }
 
@@ -58,8 +58,10 @@ export class RedisCache implements CacheClient {
     throw RedisCache.createCommandTimeoutError(commandName);
   }
 
-  private static async timeoutConnection(signal: AbortSignal) {
-    await delay(CONNECTION_TIMEOUT_MS, undefined, { signal });
+  private static async timeoutConnection(timerAbortSignal: AbortSignal) {
+    await delay(CONNECTION_TIMEOUT_MS, undefined, {
+      signal: timerAbortSignal,
+    });
     throw new Error('[RedisCache] Connection timed out');
   }
 
@@ -151,16 +153,15 @@ export class RedisCache implements CacheClient {
 
   public async deleteIfValue(key: string, expectedValue: string) {
     if (!this.client?.isReady) return false;
-
     try {
-      const result = await RedisCache.waitForCommand(
+      const deletedKeysCount = await RedisCache.waitForCommand(
         'DELEX IFEQ',
         this.client.delEx(key, {
           condition: 'IFEQ',
           matchValue: expectedValue,
         }),
       );
-      return result === 1;
+      return deletedKeysCount === 1;
     } catch (error) {
       RedisCache.logError(error);
       return false;
@@ -176,19 +177,19 @@ export class RedisCache implements CacheClient {
     // oxlint-disable-next-line unicorn/no-useless-undefined -- Cache misses must be explicit on every return path.
     if (!this.client?.isReady) return undefined;
 
-    const controller = new AbortController();
+    const timerAbortController = new AbortController();
     try {
-      const cached = await Promise.race([
+      const cachedValue = await Promise.race([
         this.client.get(key),
-        this.timeoutRead(controller.signal),
+        this.timeoutRead(timerAbortController.signal),
       ]);
-      return cached ?? undefined;
+      return cachedValue ?? undefined;
     } catch (error) {
       RedisCache.logError(error);
       // oxlint-disable-next-line unicorn/no-useless-undefined -- A failed cache read is a miss.
       return undefined;
     } finally {
-      controller.abort();
+      timerAbortController.abort();
     }
   }
 
@@ -198,7 +199,6 @@ export class RedisCache implements CacheClient {
     ttlSec = this.options.defaultTtlSec,
   ) {
     if (!this.client?.isReady) return;
-
     try {
       await RedisCache.waitForCommand(
         'SET',
@@ -213,16 +213,15 @@ export class RedisCache implements CacheClient {
 
   public async setIfAbsent(key: string, value: string, ttlMs: number) {
     if (!this.client?.isReady) return false;
-
     try {
-      const result = await RedisCache.waitForCommand(
+      const setReply = await RedisCache.waitForCommand(
         'SET NX',
         this.client.set(key, value, {
           condition: 'NX',
           expiration: { type: 'PX', value: ttlMs },
         }),
       );
-      return result === 'OK';
+      return setReply === 'OK';
     } catch (error) {
       RedisCache.logError(error);
       return false;
@@ -236,9 +235,8 @@ export class RedisCache implements CacheClient {
     value,
   }: ConditionalCacheWriteParams) {
     if (!this.client?.isReady) return false;
-
     try {
-      const result = await RedisCache.waitForCommand(
+      const setReply = await RedisCache.waitForCommand(
         'SET IFEQ',
         this.client.set(key, value, {
           condition: 'IFEQ',
@@ -246,7 +244,7 @@ export class RedisCache implements CacheClient {
           matchValue: expectedValue,
         }),
       );
-      return result === 'OK';
+      return setReply === 'OK';
     } catch (error) {
       RedisCache.logError(error);
       return false;
@@ -291,8 +289,10 @@ export class RedisCache implements CacheClient {
     return client;
   }
 
-  private async timeoutRead(signal: AbortSignal) {
-    await delay(this.options.readTimeoutMs, undefined, { signal });
+  private async timeoutRead(timerAbortSignal: AbortSignal) {
+    await delay(this.options.readTimeoutMs, undefined, {
+      signal: timerAbortSignal,
+    });
     throw new Error(
       `[RedisCache] GET timed out after ${this.options.readTimeoutMs} ms`,
     );

@@ -36,8 +36,8 @@ async function createApp({
 }: CreateAppConfig) {
   const app = createSSRApp(App);
   app.provide(initialContextKey, initialState.context);
-  const store = createPinia();
-  const useStore = createUseStore(store);
+  const pinia = createPinia();
+  const useStore = createUseStore(pinia);
   const services = createServices(initialState.context, logger, ssrAbortSignal);
   const router = createRouter({
     history,
@@ -45,11 +45,11 @@ async function createApp({
     scrollBehavior: (_, __, savedPosition) => savedPosition ?? { top: 0 },
   });
 
-  store.use(createServicesPiniaPlugin(services));
+  pinia.use(createServicesPiniaPlugin(services));
 
-  app.use(createServicesVuePlugin(services)).use(router).use(store).use(head);
+  app.use(createServicesVuePlugin(services)).use(router).use(pinia).use(head);
 
-  store.state.value = initialState;
+  pinia.state.value = initialState;
 
   app.config.errorHandler = (error, _, info) => {
     services.logger.error(error, info);
@@ -62,9 +62,9 @@ async function createApp({
   return {
     app,
     head,
+    pinia,
     router,
     services,
-    store,
     useStore,
   };
 }

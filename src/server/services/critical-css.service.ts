@@ -63,7 +63,7 @@ async function getCriticalCss(html: string, cssFiles: Array<string>) {
   unfinishedCssTasksCount += 1;
 
   const budgetMs = env.CACHE_CRITICAL_CSS_BUDGET_MS;
-  const expiresBefore = performance.now() + budgetMs;
+  const budgetExpiresAtMs = performance.now() + budgetMs;
   const cssAbortController = new AbortController();
   const timeoutError = new Error(
     `Critical CSS extraction timed out after ${budgetMs} ms, including queue wait`,
@@ -73,12 +73,12 @@ async function getCriticalCss(html: string, cssFiles: Array<string>) {
   }, budgetMs);
 
   try {
-    const css = await getCriticalCssPool().run(
+    const criticalCss = await getCriticalCssPool().run(
       { assetsPath: env.ASSETS_LOCATION_PATH, cssFiles, html },
       { signal: cssAbortController.signal },
     );
-    if (performance.now() >= expiresBefore) throw timeoutError;
-    return css;
+    if (performance.now() >= budgetExpiresAtMs) throw timeoutError;
+    return criticalCss;
   } catch (error) {
     if (cssAbortController.signal.aborted) throw timeoutError;
     throw error;

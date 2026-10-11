@@ -34,7 +34,7 @@
     <CardSection
       :cards="architecture.principles"
       eyebrow="DESIGN PRINCIPLES"
-      heading="mono"
+      heading-variant="mono"
       title="Less ceremony. More clarity."
     />
     <ServerPanel />

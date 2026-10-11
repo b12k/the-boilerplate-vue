@@ -10,9 +10,9 @@
     },
     shouldReFetch: true,
   });
-  const { project } = storeToRefs(useStore('showcase'));
+  const { currentProject } = storeToRefs(useStore('showcase'));
   useHead(() => ({
-    title: `${project.value?.name ?? 'Project not found'} — Vue Boilerplate`,
+    title: `${currentProject.value?.name ?? 'Project not found'} — Vue Boilerplate`,
   }));
 </script>
 
@@ -25,15 +25,15 @@
     >
       ← Back to Overview
     </UiLink>
-    <template v-if="project">
-      <PageIntro :eyebrow="'EXAMPLE APPLICATION / ' + project.category">
+    <template v-if="currentProject">
+      <PageIntro :eyebrow="'EXAMPLE APPLICATION / ' + currentProject.category">
         <template #title>
-          {{ project.name }}
+          {{ currentProject.name }}
           <span class="text-accent">.</span>
         </template>
-        {{ project.description }}
+        {{ currentProject.description }}
       </PageIntro>
-      <ProjectDetail :project="project" />
+      <ProjectDetail :project="currentProject" />
     </template>
     <template v-else>
       <PageIntro eyebrow="MOCK API RESULT">

@@ -16,32 +16,36 @@ export const showcase = hot(
     actions: {
       async fetchArchitecture() {
         this.architecture = await this.$services.api.fetchArchitecture();
-        this.requestsCount += 1;
+        this.completedRequestsCount += 1;
       },
       async fetchOverview() {
         this.overview = await this.$services.api.fetchOverview();
-        this.requestsCount += 1;
+        this.completedRequestsCount += 1;
       },
       async fetchProject(id: string) {
         const project = await this.$services.api.fetchProject(id);
         this.projects = project ? [project] : [];
-        this.requestsCount += 1;
+        this.completedRequestsCount += 1;
       },
-      async fetchRun(shouldFail = false) {
+      async fetchRun(shouldSimulateFailure = false) {
         let isRequestCancelled = false;
-        const requestSequence = this.requestSequence + 1;
-        this.requestSequence = requestSequence;
+        const currentRunRequestSequence = this.runRequestSequence + 1;
+        this.runRequestSequence = currentRunRequestSequence;
         this.isRunPending = true;
         this.runError = '';
         try {
-          const run = await this.$services.api.fetchRun(shouldFail);
-          if (requestSequence === this.requestSequence) this.runs = [run];
+          const runResult = await this.$services.api.fetchRun(
+            shouldSimulateFailure,
+          );
+          if (currentRunRequestSequence === this.runRequestSequence) {
+            this.runs = [runResult];
+          }
         } catch (error) {
           if (isCancel(error)) {
             isRequestCancelled = true;
             return;
           }
-          if (requestSequence === this.requestSequence) {
+          if (currentRunRequestSequence === this.runRequestSequence) {
             if (isAxiosError<ApiErrorResponse>(error)) {
               this.runError = error.response?.data.message ?? error.message;
             } else {
@@ -51,25 +55,25 @@ export const showcase = hot(
             }
           }
         } finally {
-          if (requestSequence === this.requestSequence) {
+          if (currentRunRequestSequence === this.runRequestSequence) {
             this.isRunPending = false;
-            if (!isRequestCancelled) this.requestsCount += 1;
+            if (!isRequestCancelled) this.completedRequestsCount += 1;
           }
         }
       },
     },
     getters: {
-      project: (state) => state.projects.at(0),
-      run: (state) => state.runs.at(-1),
+      currentProject: (state) => state.projects.at(0),
+      latestRunResult: (state) => state.runs.at(-1),
     },
     state: () => ({
       architecture: { layers: [], principles: [] } as DemoArchitecture,
+      completedRequestsCount: 0,
       isRunPending: false,
       overview: { features: [], projects: [] } as DemoOverview,
       projects: [] as Array<DemoProject>,
-      requestsCount: 0,
-      requestSequence: 0,
       runError: '',
+      runRequestSequence: 0,
       runs: [] as Array<DemoRun>,
     }),
   }),

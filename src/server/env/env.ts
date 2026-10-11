@@ -7,11 +7,11 @@ import { parseJson } from '../utils/parse-json';
 import { envSchema } from './env-schema';
 
 /* oxlint-disable node/no-process-env -- Server environment variables are read and validated only in this module. */
-const result = envSchema.safeParse(process.env);
-if (!result.success) {
-  throw new Error(z.prettifyError(result.error));
+const envParseResult = envSchema.safeParse(process.env);
+if (!envParseResult.success) {
+  throw new Error(z.prettifyError(envParseResult.error));
 }
-const envVariables = result.data;
+const envVariables = envParseResult.data;
 const redisUrl = new URL(
   `redis://${envVariables.REDIS_HOST}:${envVariables.REDIS_PORT}`,
 );

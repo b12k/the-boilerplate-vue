@@ -18,13 +18,13 @@ interface PageAssets {
 }
 
 function getPageAssets(
-  manifest: ClientManifest,
+  clientManifest: ClientManifest,
   modules: Array<string>,
 ): PageAssets {
-  const css = new Set(manifest.css.initial);
-  const js = new Set(manifest.js.initial);
+  const css = new Set(clientManifest.css.initial);
+  const js = new Set(clientManifest.js.initial);
   for (const moduleId of modules) {
-    const moduleAssets = manifest.modules[moduleId];
+    const moduleAssets = clientManifest.modules[moduleId];
     for (const file of moduleAssets?.css ?? []) css.add(file);
     for (const file of moduleAssets?.js ?? []) js.add(file);
   }
@@ -35,11 +35,11 @@ function getPageAssets(
 const requireRenderer = createRequire(import.meta.url);
 
 async function readSsrAssets() {
-  const [manifestJson, ssrManifestJson] = await Promise.all([
+  const [clientManifestJson, ssrManifestJson] = await Promise.all([
     readFile(env.CLIENT_MANIFEST_PATH, 'utf8'),
     env.IS_PROD ? undefined : readFile(env.SSR_MANIFEST_PATH, 'utf8'),
   ]);
-  const manifest = parseJson<ClientManifest>(manifestJson);
+  const clientManifest = parseJson<ClientManifest>(clientManifestJson);
   const ssrManifest =
     ssrManifestJson === undefined
       ? undefined
@@ -50,12 +50,12 @@ async function readSsrAssets() {
     render: Render;
   };
 
-  const assets = { manifest, render };
+  const assets = { manifest: clientManifest, render };
   if (ssrManifest === undefined) return assets;
 
   decache(env.SSR_RENDERER_PATH);
-  for (const entry of Object.values(ssrManifest)) {
-    decache(path.resolve(env.ASSETS_LOCATION_PATH, entry));
+  for (const ssrModulePath of Object.values(ssrManifest)) {
+    decache(path.resolve(env.ASSETS_LOCATION_PATH, ssrModulePath));
   }
 
   return assets;
@@ -68,11 +68,11 @@ async function loadSsrAssets() {
   if (!env.IS_PROD) return readSsrAssets();
 
   productionAssetsPromise ??= readSsrAssets();
-  const pending = productionAssetsPromise;
+  const assetsLoadPromise = productionAssetsPromise;
   try {
-    return await pending;
+    return await assetsLoadPromise;
   } catch (error) {
-    if (productionAssetsPromise === pending) {
+    if (productionAssetsPromise === assetsLoadPromise) {
       productionAssetsPromise = undefined;
     }
     throw error;

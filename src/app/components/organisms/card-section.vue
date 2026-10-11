@@ -7,13 +7,13 @@
     cards,
     columns = 'three',
     eyebrow,
-    heading = 'plain',
+    headingVariant = 'plain',
     title,
   } = defineProps<{
     cards: Array<{ description: string; name: string; number?: string }>;
     columns?: 'four' | 'three';
     eyebrow: string;
-    heading?: 'mono' | 'plain';
+    headingVariant?: 'mono' | 'plain';
     title: string;
   }>();
   const section = tv({
@@ -42,7 +42,7 @@
         :title="card.name"
         :description="card.description"
         :number="card.number ?? ''"
-        :heading="heading"
+        :heading-variant="headingVariant"
       />
     </div>
   </section>

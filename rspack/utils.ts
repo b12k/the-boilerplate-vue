@@ -28,16 +28,19 @@ function getModuleAssetPaths(
   return [...moduleFiles];
 }
 
-function reduceManifestFiles(array: Array<string>) {
-  const files: { css: Array<string>; js: Array<string> } = { css: [], js: [] };
-  for (const file of array) {
-    if (file.endsWith('.js')) {
-      files.js.push(file);
-    } else if (file.endsWith('.css')) {
-      files.css.push(file);
+function reduceManifestFiles(assetPaths: Array<string>) {
+  const assetPathsByType: { css: Array<string>; js: Array<string> } = {
+    css: [],
+    js: [],
+  };
+  for (const assetPath of assetPaths) {
+    if (assetPath.endsWith('.js')) {
+      assetPathsByType.js.push(assetPath);
+    } else if (assetPath.endsWith('.css')) {
+      assetPathsByType.css.push(assetPath);
     }
   }
-  return files;
+  return assetPathsByType;
 }
 
 function generateModuleAssets(
@@ -70,7 +73,7 @@ function generateManifest(
   entries: Record<string, Array<string>>,
   { compilation }: { compilation: Compilation },
 ): ClientManifest {
-  const initial = reduceManifestFiles(
+  const initialAssets = reduceManifestFiles(
     (entries['app'] ?? [])
       .map((entry) => {
         const entryFile = files.find((file) => file.path.includes(entry));
@@ -78,19 +81,19 @@ function generateManifest(
       })
       .filter(Boolean),
   );
-  const async = reduceManifestFiles(
+  const asyncAssets = reduceManifestFiles(
     files
       .filter(({ isInitial }) => !isInitial)
       .map(({ path: filePath }) => filePath),
   );
   return {
     css: {
-      async: uniq(async.css),
-      initial: initial.css,
+      async: uniq(asyncAssets.css),
+      initial: initialAssets.css,
     },
     js: {
-      async: async.js,
-      initial: initial.js,
+      async: asyncAssets.js,
+      initial: initialAssets.js,
     },
     modules: generateModuleAssets(compilation, files),
   };
@@ -113,11 +116,11 @@ function getFilenameJs(name: string, isProduction: boolean) {
 }
 
 function getVendorName(module?: Module) {
-  const matched = module?.context
+  const packagePathMatch = module?.context
     ?.replaceAll('\\', '/')
     .match(/.*\/node_modules\/(?<packageName>(?:@[^/]+\/)?[^/]+)(?:\/|$)/u);
 
-  return matched?.groups?.['packageName'] ?? 'other';
+  return packagePathMatch?.groups?.['packageName'] ?? 'other';
 }
 
 export { generateManifest, getCacheConfig, getFilenameJs, getVendorName };

@@ -18,12 +18,12 @@
     },
   });
   const showcaseStore = useStore('showcase');
-  const { isRunPending, requestsCount, run, runError } =
+  const { completedRequestsCount, isRunPending, latestRunResult, runError } =
     storeToRefs(showcaseStore);
   const { counter, doubledCounter } = storeToRefs(useStore('home'));
   const contextStore = useStore('context');
-  const rows = computed(() => [
-    { label: 'Completed mock calls', value: requestsCount.value },
+  const diagnosticRows = computed(() => [
+    { label: 'Completed mock calls', value: completedRequestsCount.value },
     {
       label: 'Shared counter',
       value: `${counter.value} → ${doubledCounter.value}`,
@@ -61,8 +61,8 @@
     },
   ];
   const grid = tv({ base: 'grid items-start gap-6 md:grid-cols-[1.5fr_1fr]' });
-  async function fetchRun(shouldFail = false) {
-    await showcaseStore.fetchRun(shouldFail);
+  async function fetchRun(shouldSimulateFailure = false) {
+    await showcaseStore.fetchRun(shouldSimulateFailure);
   }
   useHead({ title: 'Data Lab — Vue Boilerplate' });
 </script>
@@ -82,10 +82,10 @@
       <RequestConsole
         :error="runError"
         :is-pending="isRunPending"
-        :run="run"
+        :run="latestRunResult"
         @request="fetchRun"
       />
-      <ContextPanel :rows="rows" />
+      <ContextPanel :rows="diagnosticRows" />
     </div>
     <CardSection
       :cards="experiments"

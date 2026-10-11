@@ -18,7 +18,7 @@ export async function extractCriticalCss({
       readFile(path.join(assetsPath, filePath), 'utf8'),
     ),
   );
-  const result = await new PurgeCSS().purge({
+  const purgeResults = await new PurgeCSS().purge({
     content: [
       {
         extension: 'html',
@@ -28,5 +28,5 @@ export async function extractCriticalCss({
     css: [{ raw: cssChunks.join('') }],
     fontFace: true,
   });
-  return result.map(({ css: criticalCss }) => criticalCss).join('');
+  return purgeResults.map(({ css: criticalCss }) => criticalCss).join('');
 }
