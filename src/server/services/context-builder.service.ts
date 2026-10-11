@@ -1,41 +1,43 @@
-import { type Request } from 'express';
+import type { Env } from '@server/env';
+import type { Request } from 'express';
+
+import { env as baseEnv } from '@server/env';
+import {
+  createRequestPropertyExtractor,
+  overrideEnv,
+  parseJson,
+} from '@server/utils';
+import { omit } from 'es-toolkit/object';
 import { UAParser } from 'ua-parser-js';
 
-import { env as _env, type Env } from '../env';
-import { createRequestPropertyExtractor, overrideEnv } from '../utils';
+type BuildContext = ReturnType<typeof buildContext>;
 
+type Context = BuildContext & {
+  cached?: BuildContext | undefined;
+};
 interface Device {
   type: 'desktop' | 'mobile' | 'tablet';
 }
-
-export const buildContext = (request: Request) => {
+function buildContext(request: Request) {
   const getRequestProperty = createRequestPropertyExtractor(request);
-  const enableDebugProperty = getRequestProperty('ENABLE_DEBUG');
+  const debugOnKeyProperty = getRequestProperty('DEBUG_ON_KEY');
   const envOverridesProperty = getRequestProperty('ENV_OVERRIDES');
-  const isCacheEnabled =
-    _env.CACHE === 'true' && getRequestProperty('CACHE') !== 'false';
-  const isRenderCacheEnabled =
-    isCacheEnabled &&
-    _env.RENDER_CACHE === 'true' &&
-    getRequestProperty('RENDER_CACHE') !== 'false';
-  const isCriticalCssCacheEnabled =
-    isCacheEnabled &&
-    _env.CRITICAL_CSS_CACHE === 'true' &&
-    getRequestProperty('CRITICAL_CSS_CACHE') !== 'false';
-  const shouldRefreshRenderCache =
-    getRequestProperty('REFRESH_RENDER_CACHE') === 'true';
-  const shouldRefreshCriticalCssCache =
-    getRequestProperty('REFRESH_CRITICAL_CSS_CACHE') === 'true';
   const isDebug =
-    _env.DEBUG === 'true' || _env.ENABLE_DEBUG === enableDebugProperty;
+    baseEnv.DEBUG ||
+    (Boolean(baseEnv.DEBUG_ON_KEY) &&
+      baseEnv.DEBUG_ON_KEY === debugOnKeyProperty);
+  const shouldRefreshRenderCache =
+    isDebug && getRequestProperty('REFRESH_RENDER_CACHE') === 'true';
+  const shouldRefreshCriticalCssCache =
+    isDebug && getRequestProperty('REFRESH_CRITICAL_CSS_CACHE') === 'true';
 
-  let env: Env = _env;
+  let env: Env = baseEnv;
   if (isDebug && envOverridesProperty) {
     try {
-      const envOverrides = JSON.parse(envOverridesProperty) as Partial<Env>;
+      const envOverrides = parseJson<Partial<Env>>(envOverridesProperty);
       env = overrideEnv(env, envOverrides);
     } catch {
-      env.IS_OVERRIDDEN = 'false';
+      env.IS_OVERRIDDEN = false;
     }
   }
   const uaParser = new UAParser(request.headers['user-agent']);
@@ -43,42 +45,33 @@ export const buildContext = (request: Request) => {
     device: { type: detectedDeviceType },
   } = uaParser.getResult();
 
-  const device: Device = {
-    type: 'mobile',
-  };
-
-  switch (detectedDeviceType) {
-    case 'mobile':
-    case 'tablet': {
-      device.type = detectedDeviceType;
-      break;
-    }
-    default: {
-      device.type = 'desktop';
-    }
-  }
+  const deviceType =
+    detectedDeviceType === 'mobile' || detectedDeviceType === 'tablet'
+      ? detectedDeviceType
+      : 'desktop';
+  const device: Device = { type: deviceType };
+  const query: Record<string, unknown> = omit(request.query, ['DEBUG_ON_KEY']);
+  const contextUrl = new URL(request.url, 'http://localhost');
+  contextUrl.searchParams.delete('DEBUG_ON_KEY');
 
   return {
+    apiUrl: env.API_URL,
     baseUrl: request.baseUrl,
+    canServeSourceMaps: env.SERVE_SOURCE_MAPS,
     device,
-    isCacheEnabled,
     isContextPatched: false,
-    isCriticalCssCacheEnabled,
+    isCriticalCssCacheEnabled: env.CACHE_CRITICAL_CSS,
     isDebug,
-    isEnvOverridden: env.IS_OVERRIDDEN === 'true',
+    isEnvOverridden: env.IS_OVERRIDDEN,
     isProd: env.NODE_ENV !== 'development',
-    isRenderCacheEnabled,
+    isRenderCacheEnabled: env.CACHE_RENDER,
     lang: request.params['lang'],
-    query: request.query,
-    requestId: typeof request.id === 'object' ? '' : request.id.toString(),
+    query,
     shouldRefreshCriticalCssCache,
     shouldRefreshRenderCache,
-    url: request.url,
+    url: contextUrl.pathname + contextUrl.search,
     version: env.VERSION,
   };
-};
+}
 
-export type BuildContext = ReturnType<typeof buildContext>;
-export type Context = BuildContext & {
-  cached?: Partial<BuildContext> | undefined;
-};
+export { buildContext, type Context };

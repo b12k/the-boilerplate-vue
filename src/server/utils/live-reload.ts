@@ -1,20 +1,26 @@
 import type { NextFunction, Request, Response } from 'express';
 
-export const liveReload = (liveReloadPath?: string) => {
-  return (request: Request, response: Response, next: NextFunction) => {
-    const isLiveReload =
-      liveReloadPath &&
-      request.method === 'GET' &&
-      request.path === `/${liveReloadPath}`;
+import { env } from '@server/env';
 
-    if (!isLiveReload) return next();
+export function liveReload(
+  request: Request,
+  response: Response,
+  next: NextFunction,
+) {
+  const isLiveReloadOn = !env.IS_PROD && Boolean(env.LIVE_RELOAD_PATH);
+  const isLiveReloadRequest =
+    request.method === 'GET' && request.path === `/${env.LIVE_RELOAD_PATH}`;
 
-    response.setHeader('Content-Type', 'text/event-stream');
-    response.setHeader('Connection', 'keep-alive');
-    response.setHeader('Cache-Control', 'no-cache');
+  if (!isLiveReloadOn || !isLiveReloadRequest) {
+    next();
+    return;
+  }
 
-    response.write('data:\n\n');
+  response.setHeader('Content-Type', 'text/event-stream');
+  response.setHeader('Connection', 'keep-alive');
+  response.setHeader('Cache-Control', 'no-cache');
 
-    request.on('close', () => response.end());
-  };
-};
+  response.write('data:\n\n');
+
+  request.on('close', () => response.end());
+}

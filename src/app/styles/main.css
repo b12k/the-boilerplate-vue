@@ -1,0 +1,52 @@
+@import 'animate.css';
+@import 'tailwindcss' source('../../../src');
+
+@theme {
+  --color-canvas: #f7f8f4;
+  --color-ink: #202820;
+  --color-muted: #687264;
+  --color-accent: #236747;
+  --color-accent-dark: #174e34;
+  --color-line: #dde2d8;
+  --color-panel: #eaf0e5;
+  --font-sans: 'IBM Plex Sans', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+/* stylelint-disable-next-line selector-class-pattern -- Keep the Animate.css class naming convention. */
+.animate__animated.animate__fastest {
+  animation-duration: 250ms;
+}
+
+@layer base {
+  html {
+    @apply bg-canvas font-sans text-ink;
+
+    font-synthesis: none;
+  }
+
+  h1 {
+    @apply text-[clamp(2.8rem,5.6vw,4.8rem)] leading-[1.05] font-medium tracking-[-0.06em];
+  }
+
+  h2 {
+    @apply text-[clamp(1.6rem,3vw,2.3rem)] leading-[1.15] font-medium tracking-[-0.04em];
+  }
+
+  h3 {
+    @apply text-xl font-medium tracking-tight;
+  }
+
+  p {
+    @apply leading-relaxed text-muted;
+  }
+
+  a:focus-visible,
+  button:focus-visible {
+    @apply outline-3 outline-offset-4 outline-accent;
+  }
+
+  ::selection {
+    @apply bg-accent/20;
+  }
+}

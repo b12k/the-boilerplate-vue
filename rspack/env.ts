@@ -1,22 +1,38 @@
 import path from 'node:path';
+import { z } from 'zod';
 
-const IS_PROD = process.env['NODE_ENV'] !== 'development';
-const WDS_PORT = Number(process.env['WDS_PORT']) || 8081;
-const ICONS_FOLDER_PATH = path.resolve(__dirname, '../src/client/assets/icons');
-const CONTEXT = path.resolve(__dirname, '..');
-const OUTPUT_PATH = path.resolve(__dirname, '../dist');
-const OUTPUT_PUBLIC_PATH = IS_PROD ? '/' : `http://localhost:${WDS_PORT}/`;
-const IS_STATS_ENABLED = process.env['IS_STATS_ENABLED'] === 'true';
-const IS_BUNDLER_CACHE_ENABLED =
-  process.env['IS_BUNDLER_CACHE_ENABLED'] === 'true';
+/* oxlint-disable node/no-process-env -- Rspack environment variables are read and validated only in this module. */
 
-export default {
+const configDirname = import.meta.dirname;
+const flagSchema = z.stringbool().default(false);
+const envSchema = z.object({
+  BUNDLER_CACHE: flagSchema,
+  NODE_ENV: z.string().trim().min(1).default('production'),
+  STATS_ENABLED: flagSchema,
+  WDS_PORT: z.coerce.number().optional(),
+});
+const envParseResult = envSchema.safeParse(process.env);
+if (!envParseResult.success) {
+  throw new Error(z.prettifyError(envParseResult.error));
+}
+const { NODE_ENV, ...envVariables } = envParseResult.data;
+
+const ICONS_FOLDER_PATH = path.resolve(
+  configDirname,
+  '../src/app/assets/icons',
+);
+const IS_PROD = NODE_ENV !== 'development';
+const CONTEXT = path.resolve(configDirname, '..');
+const OUTPUT_PATH = path.resolve(configDirname, '../dist');
+const OUTPUT_PUBLIC_PATH = IS_PROD
+  ? '/'
+  : `http://localhost:${envVariables.WDS_PORT}/`;
+
+export const env = {
+  ...envVariables,
   CONTEXT,
   ICONS_FOLDER_PATH,
-  IS_BUNDLER_CACHE_ENABLED,
   IS_PROD,
-  IS_STATS_ENABLED,
   OUTPUT_PATH,
   OUTPUT_PUBLIC_PATH,
-  WDS_PORT,
 };

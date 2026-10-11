@@ -1,5 +1,5 @@
 {
   "watch": ["src/server", ".env"],
   "ext": "*",
-  "exec": "env-cmd node -r ./swc-register.mjs src/server/server.ts"
+  "exec": "env-cmd node --no-experimental-strip-types --import @swc-node/register/esm-register src/server/server.ts"
 }

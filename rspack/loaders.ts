@@ -3,10 +3,10 @@ import type { PathData } from '@rspack/core';
 import { CssExtractRspackPlugin } from '@rspack/core';
 import path from 'node:path';
 
-import env from './env';
+import { env } from './env';
 
-export const tsLoader = {
-  exclude: [/node_modules/],
+const tsLoader = {
+  exclude: [/node_modules/u],
   loader: 'builtin:swc-loader',
   options: {
     jsc: {
@@ -17,26 +17,26 @@ export const tsLoader = {
     },
     sourceMaps: true,
   },
-  test: /\.ts$/,
+  test: /\.ts$/u,
   type: 'javascript/auto',
 };
 
-export const vueLoader = {
+const vueLoader = {
   loader: 'vue-loader',
   options: {
     experimentalInlineMatchResource: true,
   },
-  test: /\.vue$/,
+  test: /\.vue$/u,
 };
 
-export const iconsLoader = {
+const iconsLoader = {
   include: env.ICONS_FOLDER_PATH,
-  test: /\.svg$/,
+  test: /\.svg$/u,
   type: 'asset/source',
 };
 
-export const cssLoader = {
-  test: /\.css$/,
+const cssLoader = {
+  test: /\.css$/u,
   type: 'javascript/auto',
   use: [
     env.IS_PROD ? CssExtractRspackPlugin.loader : 'vue-style-loader',
@@ -45,7 +45,7 @@ export const cssLoader = {
   ],
 };
 
-export const createImageLoader = (isSSR = false) => {
+function createImageLoader(isSSR = false) {
   return {
     exclude: env.ICONS_FOLDER_PATH,
     generator: {
@@ -58,15 +58,32 @@ export const createImageLoader = (isSSR = false) => {
     },
     parser: {
       dataUrlCondition: {
-        maxSize: 256_000,
+        maxSize: 8192,
       },
     },
-    test: /\.(png|gif|jpe?g|svg|webp)$/,
+    test: /\.(?:png|gif|jpe?g|svg|webp)$/u,
     type: 'asset',
   };
+}
+
+const cssIgnoreLoader = {
+  test: /\.css$/u,
+  use: ['ignore-loader'],
 };
 
-export const cssIgnoreLoader = {
-  test: /\.css$/,
-  use: ['ignore-loader'],
+const ssrResourcesLoader = {
+  enforce: 'post' as const,
+  loader: path.resolve(import.meta.dirname, 'ssr-resources.loader.ts'),
+  resourceQuery: /^$/u,
+  test: /\.vue$/u,
+};
+
+export {
+  createImageLoader,
+  cssIgnoreLoader,
+  cssLoader,
+  iconsLoader,
+  ssrResourcesLoader,
+  tsLoader,
+  vueLoader,
 };

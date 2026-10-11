@@ -1,22 +1,35 @@
 import type { Request, Response } from 'express';
 
+import { env } from '@server/env';
+import { createLogRedactor } from '@server/utils';
 import { randomUUID } from 'node:crypto';
 import { pinoHttp } from 'pino-http';
 import pinoPretty from 'pino-pretty';
 
-import { env } from '../env';
+const prettyLogStream = env.IS_PROD
+  ? undefined
+  : pinoPretty({ colorize: true });
 
-const pinoPrettyStream = pinoPretty({
-  colorize: true,
-});
-
-const config = {
+const httpLoggerOptions = {
   genReqId: (request: Request, response: Response) => {
-    const requestId = request.headers['X-Request-Id'] || randomUUID();
-    response.setHeader('X-Request-Id', requestId);
+    const requestIdHeader = request.headers['x-request-id'];
+    const requestId =
+      typeof requestIdHeader === 'string' && requestIdHeader.length > 0
+        ? requestIdHeader
+        : randomUUID();
+    request.requestId = requestId;
+    response.setHeader('X-Request-ID', requestId);
     return requestId;
   },
-  level: env.LOG_LEVEL || 'silent',
+  hooks: env.REDACT_LOGS
+    ? {
+        streamWrite: createLogRedactor({
+          secrets: [env.REDIS_PASSWORD, env.DEBUG_ON_KEY],
+          urls: [env.API_URL, env.REDIS_URL],
+        }),
+      }
+    : {},
+  level: env.LOG_LEVEL,
 };
 
-export const loggerService = pinoHttp(config, pinoPrettyStream);
+export const loggerService = pinoHttp(httpLoggerOptions, prettyLogStream);

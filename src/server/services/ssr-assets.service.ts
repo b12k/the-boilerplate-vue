@@ -1,52 +1,82 @@
-import type { Render } from '@client';
+import type { Render } from '@app/server.entry';
 
+import { env } from '@server/env';
+import { parseJson } from '@server/utils';
 import decache from 'decache';
+import { readFile } from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 
-import { env } from '../env';
+type ClientManifest = Record<
+  'css' | 'js',
+  { async: Array<string>; initial: Array<string> }
+> & { modules: Record<string, PageAssets> };
 
-export interface AssetsManifest {
-  css: {
-    async: Array<string>;
-    initial: Array<string>;
-  };
-  js: {
-    async: Array<string>;
-    initial: Array<string>;
-  };
+interface PageAssets {
+  css: Array<string>;
+  js: Array<string>;
 }
 
-type ImportedModule<T> = { default: T };
-
-interface SsrAssets {
-  manifest: AssetsManifest;
-  render: Render;
+function getPageAssets(
+  clientManifest: ClientManifest,
+  modules: Array<string>,
+): PageAssets {
+  const css = new Set(clientManifest.css.initial);
+  const js = new Set(clientManifest.js.initial);
+  for (const moduleId of modules) {
+    const moduleAssets = clientManifest.modules[moduleId];
+    for (const file of moduleAssets?.css ?? []) css.add(file);
+    for (const file of moduleAssets?.js ?? []) js.add(file);
+  }
+  return { css: [...css], js: [...js] };
 }
 
-type SsrAssetsLoader = () => Promise<SsrAssets>;
+// Rspack emits the SSR renderer as CommonJS, including its development require cache.
+const requireRenderer = createRequire(import.meta.url);
 
-export const loadSsrAssets: SsrAssetsLoader = async () => {
-  const [{ default: manifest }, { default: ssrManifest }, { default: render }] =
-    (await Promise.all([
-      import(env.CLIENT_MANIFEST_PATH),
-      import(env.SSR_MANIFEST_PATH),
-      import(env.SSR_RENDERER_PATH),
-    ])) as [
-      ImportedModule<AssetsManifest>,
-      ImportedModule<AssetsManifest>,
-      ImportedModule<Render>,
-    ];
+async function readSsrAssets() {
+  const [clientManifestJson, ssrManifestJson] = await Promise.all([
+    readFile(env.CLIENT_MANIFEST_PATH, 'utf8'),
+    env.IS_PROD ? undefined : readFile(env.SSR_MANIFEST_PATH, 'utf8'),
+  ]);
+  const clientManifest = parseJson<ClientManifest>(clientManifestJson);
+  const ssrManifest =
+    ssrManifestJson === undefined
+      ? undefined
+      : parseJson<Record<string, string>>(ssrManifestJson);
+  // This CommonJS module is built from the typed app entry in this codebase.
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+  const { render } = requireRenderer(env.SSR_RENDERER_PATH) as {
+    render: Render;
+  };
 
-  if (env.IS_PROD !== 'true') {
-    decache(env.CLIENT_MANIFEST_PATH);
-    decache(env.SSR_RENDERER_PATH);
-    Object.values(ssrManifest).forEach((entry) =>
-      decache(path.resolve(env.ASSETS_LOCATION_PATH, String(entry))),
-    );
+  const assets = { manifest: clientManifest, render };
+  if (ssrManifest === undefined) return assets;
+
+  decache(env.SSR_RENDERER_PATH);
+  for (const ssrModulePath of Object.values(ssrManifest)) {
+    decache(path.resolve(env.ASSETS_LOCATION_PATH, ssrModulePath));
   }
 
-  return {
-    manifest,
-    render,
-  };
-};
+  return assets;
+}
+
+// oxlint-disable-next-line init-declarations -- The snapshot is loaded on first use.
+let productionAssetsPromise: ReturnType<typeof readSsrAssets> | undefined;
+
+async function loadSsrAssets() {
+  if (!env.IS_PROD) return readSsrAssets();
+
+  productionAssetsPromise ??= readSsrAssets();
+  const assetsLoadPromise = productionAssetsPromise;
+  try {
+    return await assetsLoadPromise;
+  } catch (error) {
+    if (productionAssetsPromise === assetsLoadPromise) {
+      productionAssetsPromise = undefined;
+    }
+    throw error;
+  }
+}
+
+export { type ClientManifest, getPageAssets, loadSsrAssets };

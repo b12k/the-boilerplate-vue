@@ -1,68 +1,75 @@
+import type { Context } from '@server/services';
+
+import { idempotencyConfig } from '@server/idempotency.config';
+import { mapValues } from 'es-toolkit/object';
 import { createHash } from 'node:crypto';
 import { match } from 'path-to-regexp';
 
-import config from '../idempotency.config';
-import { type Context } from './context-builder.service';
-
-export type IdempotencyConfig = {
-  afterCompute?: BeforeAfterComputeKeyFunction;
-  beforeCompute?: BeforeAfterComputeKeyFunction;
-  paths: Record<string, ComputeKeyFunction>;
-};
-
 type BeforeAfterComputeKeyFunction = (
   context: Context,
-  parameters: Record<string, string>,
+  routeParams: Record<string, string>,
 ) => boolean | string;
 
 type ComputeKeyFunction = (
   context: Context,
-  parameters: Record<string, string>,
+  routeParams: Record<string, string>,
 ) => FalsyValue | string;
 
 type FalsyValue = 0 | false | null | undefined;
 
-const trimSlashes = (path: string) => path.replaceAll(/^\/|\/$/g, '');
+interface IdempotencyConfig {
+  afterCompute?: BeforeAfterComputeKeyFunction;
+  beforeCompute?: BeforeAfterComputeKeyFunction;
+  paths: Record<string, ComputeKeyFunction>;
+}
 
-const hashKey = (key: string) =>
-  createHash('sha256').update(key).digest('base64');
+function hashKey(key: string) {
+  return createHash('sha256').update(key).digest('base64');
+}
 
-export const computeIdempotencyKey = (context: Context) => {
+function trimSlashes(path: string) {
+  return path.replaceAll(/^\/|\/$/gu, '');
+}
+
+function computeIdempotencyKey(context: Context) {
   const { baseUrl, url } = context;
-  const fullUrl = trimSlashes(baseUrl + url);
-  const matched = Object.keys(config.paths)
-    .map((key) => {
-      const matchedPath = match(trimSlashes(key), {
+  const pathname = trimSlashes((baseUrl + url).split('?')[0] ?? '');
+  const matchedCacheRule = Object.entries(idempotencyConfig.paths)
+    .map(([routePattern, computeKey]) => {
+      const matchedPath = match(trimSlashes(routePattern), {
         decode: decodeURIComponent,
-      })(fullUrl);
-      return matchedPath ? { key, params: matchedPath.params } : undefined;
+      })(pathname);
+      return matchedPath === false
+        ? undefined
+        : { computeKey, params: matchedPath.params };
     })
     .find(Boolean);
 
-  if (!matched) return false;
+  if (!matchedCacheRule) return false;
 
-  const parameters = matched.params as Record<string, string>;
-
-  const keyBeforeComputed = config.beforeCompute
-    ? config.beforeCompute(context, parameters)
-    : '';
-
-  if (keyBeforeComputed === false) return false;
-
-  const computeKey = config.paths[matched.key];
-
-  if (!computeKey) return false;
-
-  const computedKey = computeKey(context, parameters);
-
-  if (!computedKey) return false;
-
-  const keyAfterComputed = config.afterCompute
-    ? config.afterCompute(context, parameters)
-    : '';
-
-  return (
-    keyAfterComputed !== false &&
-    hashKey(`${keyBeforeComputed}${computedKey}${keyAfterComputed}`)
+  const routeParams = mapValues(matchedCacheRule.params, (parameter) =>
+    Array.isArray(parameter) ? parameter.join('/') : String(parameter),
   );
-};
+
+  const cacheKeyPrefix = idempotencyConfig.beforeCompute
+    ? idempotencyConfig.beforeCompute(context, routeParams)
+    : '';
+
+  if (cacheKeyPrefix === false) return false;
+
+  const routeCacheKey = matchedCacheRule.computeKey(context, routeParams);
+
+  if (typeof routeCacheKey !== 'string' || !routeCacheKey) {
+    return false;
+  }
+
+  const cacheKeySuffix = idempotencyConfig.afterCompute
+    ? idempotencyConfig.afterCompute(context, routeParams)
+    : '';
+
+  if (cacheKeySuffix === false) return false;
+
+  return hashKey(`${cacheKeyPrefix}${routeCacheKey}${cacheKeySuffix}`);
+}
+
+export { computeIdempotencyKey, type IdempotencyConfig };

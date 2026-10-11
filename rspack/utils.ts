@@ -1,69 +1,126 @@
-import type { Module, PersistentCacheOptions } from '@rspack/core';
-import type { ManifestPluginOptions } from 'rspack-manifest-plugin';
+import type { Compilation, Module, PersistentCacheOptions } from '@rspack/core';
+import type { ClientManifest } from '@server/services/ssr-assets.service';
+import type { FileDescriptor } from 'rspack-manifest-plugin';
 
-export const uniqArray = <T>(array: Array<T>) => [...new Set(array)];
+import { uniq } from 'es-toolkit/array';
+import path from 'node:path';
 
-export const getFilenameJs = (name: string, isProduction: boolean) =>
-  isProduction ? `public/js/${name}.[contenthash:8].js` : `public/js/[name].js`;
+import { env } from './env';
 
-export const getVendorName = (module?: Module) => {
-  // Source https://medium.com/hackernoon/the-100-correct-way-to-split-your-chunks-with-webpack-f8a9df5b7758
-  const matched = module?.context?.match(
-    /[/\\]node_modules[/\\](.*?)([/\\]|$)/,
-  );
+function getModuleAssetPaths(
+  module: Module,
+  compilation: Compilation,
+  files: Array<FileDescriptor>,
+) {
+  const moduleFiles = new Set<string>();
+  for (const chunk of compilation.chunkGraph.getModuleChunksIterable(module)) {
+    const groups = [...chunk.groupsIterable];
+    const onlyGroup = groups.length === 1 ? groups[0] : undefined;
+    // A shared chunk belongs to several routes; their other chunks are unrelated.
+    const chunkFiles = onlyGroup ? onlyGroup.getFiles() : [...chunk.files];
+    for (const filename of chunkFiles) {
+      const file = files.find((descriptor) =>
+        descriptor.path.endsWith(filename),
+      );
+      if (file) moduleFiles.add(file.path);
+    }
+  }
+  return [...moduleFiles];
+}
 
-  return matched?.[1]?.replace('@', '') ?? 'other';
-};
+function reduceManifestFiles(assetPaths: Array<string>) {
+  const assetPathsByType: { css: Array<string>; js: Array<string> } = {
+    css: [],
+    js: [],
+  };
+  for (const assetPath of assetPaths) {
+    if (assetPath.endsWith('.js')) {
+      assetPathsByType.js.push(assetPath);
+    } else if (assetPath.endsWith('.css')) {
+      assetPathsByType.css.push(assetPath);
+    }
+  }
+  return assetPathsByType;
+}
 
-const reduceManifestFiles = (array: Array<string>) => {
-  return array.reduce<{ css: Array<string>; js: Array<string> }>(
-    (accumulator, next) => {
-      if (/\.js$/.test(next)) {
-        accumulator.js.push(next);
-      } else if (/\.css$/.test(next)) {
-        accumulator.css.push(next);
-      }
-      return accumulator;
-    },
-    { css: [], js: [] },
-  );
-};
+function generateModuleAssets(
+  compilation: Compilation,
+  files: Array<FileDescriptor>,
+) {
+  const modules: ClientManifest['modules'] = {};
+  for (const module of compilation.modules) {
+    const resourcePath = module.nameForCondition()?.split('?')[0];
+    if (resourcePath?.endsWith('.vue')) {
+      const moduleId = path
+        .relative(env.CONTEXT, resourcePath)
+        .replaceAll('\\', '/');
+      const previousFiles = modules[moduleId];
+      const assets = reduceManifestFiles(
+        getModuleAssetPaths(module, compilation, files),
+      );
+      modules[moduleId] = {
+        css: uniq([...(previousFiles?.css ?? []), ...assets.css]),
+        js: uniq([...(previousFiles?.js ?? []), ...assets.js]),
+      };
+    }
+  }
+  return modules;
+}
 
-export const generateManifest: NonNullable<
-  ManifestPluginOptions['generate']
-> = (_, files, entries) => {
-  const initial = reduceManifestFiles(
+function generateManifest(
+  _: Record<string, unknown>,
+  files: Array<FileDescriptor>,
+  entries: Record<string, Array<string>>,
+  { compilation }: { compilation: Compilation },
+): ClientManifest {
+  const initialAssets = reduceManifestFiles(
     (entries['app'] ?? [])
       .map((entry) => {
         const entryFile = files.find((file) => file.path.includes(entry));
-        return entryFile?.path || '';
+        return entryFile?.path ?? '';
       })
       .filter(Boolean),
   );
-  const async = reduceManifestFiles(
-    files.filter(({ isInitial }) => !isInitial).map(({ path }) => path),
+  const asyncAssets = reduceManifestFiles(
+    files
+      .filter(({ isInitial }) => !isInitial)
+      .map(({ path: filePath }) => filePath),
   );
   return {
     css: {
-      async: uniqArray(async.css),
-      initial: initial.css,
+      async: uniq(asyncAssets.css),
+      initial: initialAssets.css,
     },
     js: {
-      async: async.js,
-      initial: initial.js,
+      async: asyncAssets.js,
+      initial: initialAssets.js,
     },
+    modules: generateModuleAssets(compilation, files),
   };
-};
+}
 
-export const getCacheConfig = (
-  target: 'browser' | 'server',
-  isProduction: boolean,
-) => {
+function getCacheConfig(target: 'browser' | 'server', isProduction: boolean) {
   return {
     storage: {
-      directory: `.temp/rspack/${target}/${isProduction ? 'prod' : 'dev'}`,
+      directory: `node_modules/.cache/rspack/${target}/${isProduction ? 'prod' : 'dev'}`,
       type: 'filesystem',
     },
     type: 'persistent',
-  } as PersistentCacheOptions;
-};
+  } satisfies PersistentCacheOptions;
+}
+
+function getFilenameJs(name: string, isProduction: boolean) {
+  return isProduction
+    ? `public/js/${name}.[contenthash:8].js`
+    : `public/js/[name].js`;
+}
+
+function getVendorName(module?: Module) {
+  const packagePathMatch = module?.context
+    ?.replaceAll('\\', '/')
+    .match(/.*\/node_modules\/(?<packageName>(?:@[^/]+\/)?[^/]+)(?:\/|$)/u);
+
+  return packagePathMatch?.groups?.['packageName'] ?? 'other';
+}
+
+export { generateManifest, getCacheConfig, getFilenameJs, getVendorName };

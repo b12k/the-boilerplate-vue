@@ -1,13 +1,13 @@
 <html>
   <head>
-    <script nonce="{{ requestId }}">
-      const page404 = [
+    <script nonce="{{ nonce }}">
+      const notFoundPageUrl = [
         window.location.origin,
         '{{ lang }}',
         '404',
       ].join('/');
       const pathname = window.location.pathname;
-      window.location.href = `${page404}?url=${encodeURIComponent(pathname)}`;
+      window.location.href = `${notFoundPageUrl}?url=${encodeURIComponent(pathname)}`;
     </script>
     <style>
       body {

@@ -1,24 +1,24 @@
-<script>
-    const path = "/{{ env.LIVE_RELOAD_PATH }}";
-    const delay = 300;
-    const maxAttempts = 10;
+<script nonce="{{ nonce }}">
+    const liveReloadUrl = "/{{ env.LIVE_RELOAD_PATH }}";
+    const retryDelayMs = 300;
+    const maxConnectionAttempts = 10;
     let isServerUp = true;
-    (function connect(attempt) {
-      if (attempt === maxAttempts) return;
+    (function connect(attemptIndex) {
+      if (attemptIndex >= maxConnectionAttempts) return;
 
-      const sse = new EventSource(path);
+      const liveReloadEventSource = new EventSource(liveReloadUrl);
 
-      sse.onmessage = function () {
+      liveReloadEventSource.onmessage = function () {
         if (isServerUp) return;
         window.location.reload();
       }
 
-      sse.onerror = function () {
-        sse.close();
+      liveReloadEventSource.onerror = function () {
+        liveReloadEventSource.close();
         isServerUp = false;
         setTimeout(() => {
-          connect(attempt++);
-        }, delay);
+          connect(attemptIndex + 1);
+        }, retryDelayMs);
       }
     })(0);
 </script>

@@ -1,0 +1,48 @@
+import type { RouteRecordRaw } from 'vue-router';
+
+type RouteRecordRawNamed = RouteRecordRaw & { name: string };
+
+export const routes: Array<RouteRecordRawNamed> = [
+  {
+    component: () => import('@app/pages/page-home.vue'),
+    name: 'home',
+    path: '/',
+  },
+  {
+    component: () => import('@app/pages/page-about.vue'),
+    name: 'about',
+    path: '/about',
+  },
+  {
+    component: () => import('@app/pages/page-lab.vue'),
+    meta: { noPreFetchAwait: true },
+    name: 'lab',
+    path: '/lab',
+  },
+  {
+    component: () => import('@app/pages/page-project.vue'),
+    name: 'project',
+    path: '/projects/:projectId',
+  },
+  {
+    component: () => import('@app/pages/page-404.vue'),
+    meta: {
+      responseCode: 404,
+    },
+    name: 'notFound',
+    path: '/404',
+  },
+  {
+    meta: {
+      responseCode: 404,
+    },
+    name: 'CatchNotFound',
+    path: '/:url(.*)*',
+    redirect: ({ params: { url } }) => ({
+      path: '/404',
+      query: {
+        uri: encodeURIComponent(url?.toString() ?? ''),
+      },
+    }),
+  },
+];
