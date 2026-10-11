@@ -1,3 +1,4 @@
+@import 'animate.css';
 @import 'tailwindcss' source('../../../src');
 
 @theme {

@@ -38,7 +38,7 @@
       >
         <component
           :is="Component"
-          class="page animate__animated animate-fastest"
+          class="page animate__animated animate__faster"
         />
       </Transition>
     </RouterView>
