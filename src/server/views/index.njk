@@ -4,6 +4,8 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     {{ head.headTags | safe }}
     {% if criticalCss %}
+      {# Critical CSS is generated at runtime; its template expression is not CSS. #}
+      <!-- postcss-ignore -->
       <style data-type="critical-css">{{ criticalCss | safe }}</style>
       {% for style in pageAssets.css %}<link rel="preload" as="style" href="{{ style }}" data-async-css>{% endfor %}
     {% else %}

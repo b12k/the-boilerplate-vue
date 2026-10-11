@@ -15,7 +15,7 @@
     "check:format": "pnpm ~oxfmt --check .",
     "check:knip": "pnpm knip",
     "check:scripts": "pnpm oxlint .",
-    "check:styles": "pnpm ~stylelint \"**/*.{css,scss,vue}\"",
+    "check:styles": "pnpm ~stylelint \"**/*.{css,scss,vue,njk}\"",
     "check:types": "pnpm vue-tsc --noEmit -p tsconfig.json",
     "clean": "shx rm -rf dist",
     "deps:check": "ncu -e 1",
