@@ -13,6 +13,11 @@
   --font-mono: 'IBM Plex Mono', monospace;
 }
 
+/* stylelint-disable-next-line selector-class-pattern -- Keep the Animate.css class naming convention. */
+.animate__animated.animate__fastest {
+  animation-duration: 250ms;
+}
+
 @layer base {
   html {
     @apply bg-canvas font-sans text-ink;
