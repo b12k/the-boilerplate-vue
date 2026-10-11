@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { parse } from 'postcss';
 import { PurgeCSS } from 'purgecss';
 
 export interface CriticalCssTask {
@@ -28,5 +29,9 @@ export async function extractCriticalCss({
     css: [{ raw: cssChunks.join('') }],
     fontFace: true,
   });
-  return purgeResults.map(({ css: criticalCss }) => criticalCss).join('');
+  const criticalCssRoot = parse(purgeResults.map(({ css }) => css).join(''));
+  criticalCssRoot.walkComments((comment) => {
+    comment.remove();
+  });
+  return criticalCssRoot.toString();
 }
