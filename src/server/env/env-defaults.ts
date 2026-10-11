@@ -10,6 +10,7 @@ export const envDefaults = {
   LOG_LEVEL: 'info',
   NODE_ENV: 'production',
   PORT: 8080,
+  REDACT_LOGS: true,
   REDIS_CONNECTION_RETRIES: 5,
   REDIS_READ_TIMEOUT_MS: 1000,
   SERVE_SOURCE_MAPS: false,

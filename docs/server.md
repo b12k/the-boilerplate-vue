@@ -15,7 +15,7 @@ These variables are required in every mode:
 
 Use Redis 8.4 or later. The cache uses [conditional SET](https://redis.io/docs/latest/commands/set/) and [DELEX](https://redis.io/docs/latest/commands/delex/). Compose supplies a compatible version.
 
-[env-defaults.ts](../src/server/env/env-defaults.ts) is the source of server defaults. [.env.example](../.env.example) contains local settings and commented override examples. Set `WDS_PORT` for development. The default application port is 8080.
+[env-defaults.ts](../src/server/env/env-defaults.ts) is the source of server defaults. [.env.example](../.env.example) contains local settings and commented default values. Uncomment and edit a value to override its default. Optional settings without defaults are marked separately. Set `WDS_PORT` for development. The default application port is 8080.
 
 ## Choose a run mode
 
@@ -85,6 +85,6 @@ Each response includes `X-Request-ID`. The server accepts a client ID or generat
 
 Development enables HTML diagnostics. In production, set `DEBUG_ON_KEY` to a UUID and send the same value in a `DEBUG_ON_KEY` header, query parameter or cookie. Omit the variable to disable this access. An empty configured key is invalid.
 
-Diagnostic HTML includes full environment values. Treat the key and response as credentials. The logger masks configured secrets. Source maps are disabled by default. See the [environment schema](../src/server/env/env-schema.ts) for accepted settings.
+Diagnostic HTML includes full environment values. Treat the key and response as credentials. The logger masks secrets by default (`REDACT_LOGS=true`). Set `REDACT_LOGS=false` to log full values. This setting does not change HTML diagnostics. Source maps are disabled by default. See the [environment schema](../src/server/env/env-schema.ts) for accepted settings.
 
 Before production, measure latency, CPU and memory with your pages and API. Include cold caches and Redis failure. The engineering smoke checks confirm behavior; they do not establish a traffic capacity.

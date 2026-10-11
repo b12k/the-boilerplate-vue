@@ -52,6 +52,7 @@ export const envSchema = z
     LOG_LEVEL: logLevelSchema.default(envDefaults.LOG_LEVEL),
     NODE_ENV: nonEmptyStringSchema.default(envDefaults.NODE_ENV),
     PORT: positiveNumberSchema.default(envDefaults.PORT),
+    REDACT_LOGS: z.stringbool().default(envDefaults.REDACT_LOGS),
     REDIS_CONNECTION_RETRIES: z.coerce
       .number()
       .int()
