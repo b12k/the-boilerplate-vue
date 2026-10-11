@@ -7,6 +7,7 @@ import type { CacheClient, ConditionalCacheWriteParams } from './cache.service';
 const RECONNECT_DELAY_MS = 1000;
 const CONNECTION_TIMEOUT_MS = 1000;
 const COMMAND_TIMEOUT_MS = 1000;
+const MAX_PENDING_COMMANDS = 256;
 
 interface RedisCacheOptions {
   connectionRetriesCount: number;
@@ -40,22 +41,8 @@ export class RedisCache implements CacheClient {
     }
   }
 
-  private static createCommandTimeoutError(commandName: string) {
-    return new Error(
-      `[RedisCache] ${commandName} timed out after ${COMMAND_TIMEOUT_MS} ms; operation unconfirmed`,
-    );
-  }
-
   private static logError(error: unknown) {
     loggerService.logger.error(error, '[RedisCache] Redis cache unavailable');
-  }
-
-  private static async timeoutCommand(
-    commandName: string,
-    timerAbortSignal: AbortSignal,
-  ) {
-    await delay(COMMAND_TIMEOUT_MS, undefined, { signal: timerAbortSignal });
-    throw RedisCache.createCommandTimeoutError(commandName);
   }
 
   private static async timeoutConnection(timerAbortSignal: AbortSignal) {
@@ -63,26 +50,6 @@ export class RedisCache implements CacheClient {
       signal: timerAbortSignal,
     });
     throw new Error('[RedisCache] Connection timed out');
-  }
-
-  private static async waitForCommand<T>(
-    commandName: string,
-    commandPromise: Promise<T>,
-  ) {
-    const commandStartedAtMs = performance.now();
-    const timerAbortController = new AbortController();
-    try {
-      const commandResult = await Promise.race([
-        commandPromise,
-        RedisCache.timeoutCommand(commandName, timerAbortController.signal),
-      ]);
-      if (performance.now() - commandStartedAtMs >= COMMAND_TIMEOUT_MS) {
-        throw RedisCache.createCommandTimeoutError(commandName);
-      }
-      return commandResult;
-    } finally {
-      timerAbortController.abort();
-    }
   }
 
   public async close() {
@@ -152,11 +119,13 @@ export class RedisCache implements CacheClient {
   }
 
   public async deleteIfValue(key: string, expectedValue: string) {
-    if (!this.client?.isReady) return false;
+    const { client } = this;
+    if (!client?.isReady) return false;
     try {
-      const deletedKeysCount = await RedisCache.waitForCommand(
+      const deletedKeysCount = await this.waitForCommand(
+        client,
         'DELEX IFEQ',
-        this.client.delEx(key, {
+        client.delEx(key, {
           condition: 'IFEQ',
           matchValue: expectedValue,
         }),
@@ -174,22 +143,21 @@ export class RedisCache implements CacheClient {
   }
 
   public async get(key: string) {
+    const { client } = this;
     // oxlint-disable-next-line unicorn/no-useless-undefined -- Cache misses must be explicit on every return path.
-    if (!this.client?.isReady) return undefined;
-
-    const timerAbortController = new AbortController();
+    if (!client?.isReady) return undefined;
     try {
-      const cachedValue = await Promise.race([
-        this.client.get(key),
-        this.timeoutRead(timerAbortController.signal),
-      ]);
+      const cachedValue = await this.waitForCommand(
+        client,
+        'GET',
+        client.get(key),
+        this.options.readTimeoutMs,
+      );
       return cachedValue ?? undefined;
     } catch (error) {
       RedisCache.logError(error);
       // oxlint-disable-next-line unicorn/no-useless-undefined -- A failed cache read is a miss.
       return undefined;
-    } finally {
-      timerAbortController.abort();
     }
   }
 
@@ -198,11 +166,13 @@ export class RedisCache implements CacheClient {
     value: string,
     ttlSec = this.options.defaultTtlSec,
   ) {
-    if (!this.client?.isReady) return;
+    const { client } = this;
+    if (!client?.isReady) return;
     try {
-      await RedisCache.waitForCommand(
+      await this.waitForCommand(
+        client,
         'SET',
-        this.client.set(key, value, {
+        client.set(key, value, {
           expiration: { type: 'EX', value: ttlSec },
         }),
       );
@@ -212,11 +182,13 @@ export class RedisCache implements CacheClient {
   }
 
   public async setIfAbsent(key: string, value: string, ttlMs: number) {
-    if (!this.client?.isReady) return false;
+    const { client } = this;
+    if (!client?.isReady) return false;
     try {
-      const setReply = await RedisCache.waitForCommand(
+      const setReply = await this.waitForCommand(
+        client,
         'SET NX',
-        this.client.set(key, value, {
+        client.set(key, value, {
           condition: 'NX',
           expiration: { type: 'PX', value: ttlMs },
         }),
@@ -234,11 +206,13 @@ export class RedisCache implements CacheClient {
     ttlMs,
     value,
   }: ConditionalCacheWriteParams) {
-    if (!this.client?.isReady) return false;
+    const { client } = this;
+    if (!client?.isReady) return false;
     try {
-      const setReply = await RedisCache.waitForCommand(
+      const setReply = await this.waitForCommand(
+        client,
         'SET IFEQ',
-        this.client.set(key, value, {
+        client.set(key, value, {
           condition: 'IFEQ',
           expiration: { type: 'PX', value: ttlMs },
           matchValue: expectedValue,
@@ -257,6 +231,7 @@ export class RedisCache implements CacheClient {
 
   private createClient() {
     const client = createClient({
+      commandsQueueMaxLength: MAX_PENDING_COMMANDS,
       disableOfflineQueue: true,
       socket: {
         connectTimeout: CONNECTION_TIMEOUT_MS,
@@ -273,28 +248,51 @@ export class RedisCache implements CacheClient {
       if (!this.isConnecting) RedisCache.logError(error);
     });
     client.on('terminated', () => {
-      if (
-        this.connectionAbortController.signal.aborted ||
-        this.isConnecting ||
-        client !== this.client
-      ) {
-        return;
-      }
-      client.destroy();
-      // Recover in the background after a socket error.
-      this.connect(this.options.connectionRetriesCount).catch(
-        (error: unknown) => RedisCache.logError(error),
-      );
+      if (!this.isConnecting) this.resetConnection(client);
     });
     return client;
   }
 
-  private async timeoutRead(timerAbortSignal: AbortSignal) {
-    await delay(this.options.readTimeoutMs, undefined, {
-      signal: timerAbortSignal,
-    });
-    throw new Error(
-      `[RedisCache] GET timed out after ${this.options.readTimeoutMs} ms`,
+  private resetConnection(client: ReturnType<RedisCache['createClient']>) {
+    if (client !== this.client) return;
+    // Reject queued commands before allowing another request to use this connection.
+    delete this.client;
+    client.destroy();
+    if (this.checkIsConnectionStopped()) return;
+    this.connect(this.options.connectionRetriesCount).catch((error: unknown) =>
+      RedisCache.logError(error),
     );
+  }
+
+  private async waitForCommand<T>(
+    client: ReturnType<RedisCache['createClient']>,
+    commandName: string,
+    commandPromise: Promise<T>,
+    timeoutMs = COMMAND_TIMEOUT_MS,
+  ) {
+    const commandStartedAtMs = performance.now();
+    const timerAbortController = new AbortController();
+    const timeoutMessage = `[RedisCache] ${commandName} timed out after ${timeoutMs} ms; operation unconfirmed`;
+    const commandTimeout = delay(timeoutMs, undefined, {
+      signal: timerAbortController.signal,
+    }).then(() => {
+      const timeoutError = new Error(timeoutMessage);
+      RedisCache.logError(timeoutError);
+      this.resetConnection(client);
+      throw timeoutError;
+    });
+    try {
+      const commandResult = await Promise.race([
+        commandPromise,
+        commandTimeout,
+      ]);
+      if (performance.now() - commandStartedAtMs >= timeoutMs) {
+        this.resetConnection(client);
+        throw new Error(timeoutMessage);
+      }
+      return commandResult;
+    } finally {
+      timerAbortController.abort();
+    }
   }
 }
