@@ -64,6 +64,8 @@ The SSR build records the components used by a page. The server selects their as
 
 For a router redirect, set `meta.responseCode` on the source route when you need a code other than 302. SSR sends `Location` for 301, 302, 303, 307 and 308. The demo's catch-all route uses 404 and renders a navigable client page.
 
+For a status that depends on API data, set `to.meta.responseCode` inside `fetchData`. SSR reads it after the hook completes. The project page returns 404 when its record is missing and 200 when found. Change the navigation's `to.meta`, not a shared route record's `meta`.
+
 ## Add a service
 
 Register its factory in [service-creators.ts](../src/app/services/service-creators.ts). Pass the context, logger and optional SSR abort signal. Build the service configuration inside its factory. Stores access services through `this.$services`.

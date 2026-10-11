@@ -6,7 +6,9 @@
 
   defineOptions({
     fetchData: async (to, getStore) => {
-      await getStore('showcase').fetchProject(String(to.params['projectId']));
+      const showcaseStore = getStore('showcase');
+      await showcaseStore.fetchProject(String(to.params['projectId']));
+      to.meta.responseCode = showcaseStore.currentProject ? 200 : 404;
     },
     shouldReFetch: true,
   });

@@ -33,19 +33,15 @@ async function render(
   );
 
   const currentRoute = router.currentRoute.value;
-  const responseCode = currentRoute.redirectedFrom
+  let responseCode = currentRoute.redirectedFrom
     ? (currentRoute.redirectedFrom.meta.responseCode ?? 302)
     : currentRoute.meta.responseCode;
-  const routeResponse = {
-    meta: { ...currentRoute.meta, responseCode },
-    name: currentRoute.name?.toString() ?? currentRoute.path,
-    path: currentRoute.path,
-  };
+  let responsePath = currentRoute.path;
   const ssrContext = { modules: new Set<string>() };
   let html = '';
 
   if (checkIsRedirectResponseCode(responseCode)) {
-    routeResponse.path = router.resolve(currentRoute.fullPath).href;
+    responsePath = router.resolve(currentRoute.fullPath).href;
   } else {
     await execInSsrOrAbort(
       () =>
@@ -57,13 +53,18 @@ async function render(
         }),
       ssrAbortSignal,
     );
+    responseCode = currentRoute.meta.responseCode ?? responseCode;
     html = await execInSsrOrAbort(
       () => renderToString(app, ssrContext),
       ssrAbortSignal,
     );
   }
   return {
-    currentRoute: routeResponse,
+    currentRoute: {
+      meta: { ...currentRoute.meta, responseCode },
+      name: currentRoute.name?.toString() ?? currentRoute.path,
+      path: responsePath,
+    },
     head: head.render(),
     html,
     modules: [...ssrContext.modules],
