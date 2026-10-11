@@ -1,9 +1,9 @@
 import type { Configuration } from 'lint-staged/config';
 
-const STYLES = '*.{css,scss}';
+const STYLES = '*.{css,scss,njk}';
 const SCRIPTS = '*.{js,cjs,mjs,jsx,ts,cts,mts,tsx}';
 const VUE = '*.vue';
-const OTHER = '!(*.{js,cjs,mjs,jsx,ts,cts,mts,tsx,vue,css,scss})';
+const OTHER = '!(*.{js,cjs,mjs,jsx,ts,cts,mts,tsx,vue,css,scss,njk})';
 
 const oxlint = 'pnpm exec oxlint --fix';
 const oxfmt = 'pnpm ~oxfmt --write';
