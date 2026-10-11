@@ -55,11 +55,11 @@ async function readCriticalCssCache(key: string | undefined) {
 }
 
 async function readRenderCache(
-  key: false | string,
+  key: false | string | undefined,
   context: Context,
   shouldRefresh: boolean,
 ) {
-  if (key === false) return { hit: undefined, shouldCacheRender: false };
+  if (!key) return { hit: undefined, shouldCacheRender: false };
 
   const { isPending, render: renderResultJson } =
     await cacheService.getRender(key);
@@ -86,6 +86,28 @@ async function readRenderCache(
   return { hit: renderResult, shouldCacheRender: false };
 }
 
+function setCacheHeaders(
+  response: Response,
+  cacheType: 'Critical-Css' | 'Render',
+  cacheKey: false | string | undefined,
+  isCacheHit: boolean,
+) {
+  if (cacheKey === undefined) {
+    response
+      .setHeader(`X-Cache-${cacheType}`, 'off')
+      .setHeader(`X-Cache-${cacheType}-Status`, 'OFF');
+    return;
+  }
+  const cacheStatus = cacheKey ? 'MISS' : 'BYPASS';
+  response.setHeader(
+    `X-Cache-${cacheType}-Status`,
+    isCacheHit ? 'HIT' : cacheStatus,
+  );
+  if (isCacheHit && cacheKey) {
+    response.setHeader(`X-Cache-${cacheType}`, cacheKey);
+  }
+}
+
 export async function ssrMiddleware(request: Request, response: Response) {
   const ssrAbortController = new AbortController();
   const ssrResponseBudget = createSsrResponseBudget(
@@ -96,7 +118,7 @@ export async function ssrMiddleware(request: Request, response: Response) {
   const context = getContext();
   const renderCacheKey = context.isRenderCacheEnabled
     ? computeIdempotencyKey(context)
-    : false;
+    : undefined;
   let shouldCacheRender = false;
 
   function handleClientDisconnect() {
@@ -109,7 +131,7 @@ export async function ssrMiddleware(request: Request, response: Response) {
   if (response.destroyed) handleClientDisconnect();
 
   function discardRenderPending() {
-    if (renderCacheKey === false || !shouldCacheRender) return;
+    if (!renderCacheKey || !shouldCacheRender) return;
     shouldCacheRender = false;
     // Pending cleanup must not delay the timeout response.
     trackServerTask(cacheService.deleteRenderPending(renderCacheKey)).catch(
@@ -194,18 +216,19 @@ export async function ssrMiddleware(request: Request, response: Response) {
       renderResultJson,
       responseHtml,
     } = preparedResponse;
-    if (criticalCssCacheHit) {
-      response.setHeader('X-Cache-Critical-Css', criticalCssCacheHit.key);
-    }
-    if (isRenderCached) {
-      response.setHeader('X-Cache-Render', renderCacheKey.toString());
-    }
+    setCacheHeaders(
+      response,
+      'Critical-Css',
+      criticalCssCacheKey,
+      Boolean(criticalCssCacheHit),
+    );
+    setCacheHeaders(response, 'Render', renderCacheKey, isRenderCached);
     response
       .setHeader('X-Response-Time', Date.now() - responseStartedAtMs)
       .status(renderResult.currentRoute.meta.responseCode ?? 200)
       .send(responseHtml);
 
-    if (renderCacheKey !== false && renderResultJson !== undefined) {
+    if (renderCacheKey && renderResultJson !== undefined) {
       if (ssrResponseBudget.checkIsExpired()) {
         discardRenderPending();
       } else {

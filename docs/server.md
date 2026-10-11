@@ -48,6 +48,15 @@ Render and critical CSS entries expire after one day by default. A pending entry
 
 Pending TTL is the calculation budget plus 1000 ms: 31000 ms for render and 11000 ms for CSS with default settings.
 
+SSR HTML responses include `X-Cache-Render-Status` and `X-Cache-Critical-Css-Status`:
+
+- `HIT`: the response uses the cached render or critical CSS. The matching `X-Cache-Render` or `X-Cache-Critical-Css` header contains its key.
+- `MISS`: the cache has a key, but no cached result was used. This includes pending entries and unavailable Redis. A render refresh also returns `MISS`.
+- `BYPASS`: the route has no render cache rule.
+- `OFF`: that cache is explicitly disabled. Its matching `X-Cache-Render` or `X-Cache-Critical-Css` header contains `off`.
+
+Each status describes the current response. It does not confirm a later cache write. Critical CSS refresh can return `HIT` when the response uses the previous CSS while a background job updates it.
+
 Redis settings remain required when caches are disabled. An unavailable Redis produces cache misses and SSR continues. Reads wait at most `REDIS_READ_TIMEOUT_MS`, default 1000 ms per read. Cache mutations have a 1000 ms wait limit. A timeout ends local waiting; a command already sent to Redis may still finish.
 
 `REDIS_CONNECTION_RETRIES` defaults to 5. After retries are exhausted, the process stays in SSR mode without further reconnect attempts until restart.
